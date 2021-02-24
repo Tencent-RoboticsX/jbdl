@@ -4,6 +4,7 @@ from oct2py import octave
 import math
 import numpy as np
 from jaxRBDL.Model.JointModel import JointModel
+from test.support import EnvironmentVarGuard
 
 
 CURRENT_PATH = os.path.dirname(os.path.realpath(__file__))
@@ -14,6 +15,10 @@ octave.addpath(MATH_PATH)
 octave.addpath(MODEL_PATH)
 
 class TestJointModel(unittest.TestCase):
+    def setUp(self):
+        self.env = EnvironmentVarGuard()
+        self.env.set('JAX_ENABLE_X64', '1')
+        self.env.set('JAX_PLATFORM_NAME', 'cpu')  
     def test_JointModel(self):
         jtype_list = [0, 1]
         jaxis_list = ['x', 'y', 'z'] 

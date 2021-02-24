@@ -1,5 +1,6 @@
 from typing import Mapping
 import unittest
+from test.support import EnvironmentVarGuard
 import numpy as np
 import math
 from jaxRBDL.Math.CrossMatrix import CrossMatrix
@@ -22,6 +23,10 @@ octave.addpath(MATH_PATH)
 
 
 class TestMath(unittest.TestCase):
+    def setUp(self):
+        self.env = EnvironmentVarGuard()
+        self.env.set('JAX_ENABLE_X64', '1')
+        self.env.set('JAX_PLATFORM_NAME', 'cpu')  
     def test_CrossMatrix(self):
         input = np.random.rand(*(3, 1))
         py_output = CrossMatrix(input)

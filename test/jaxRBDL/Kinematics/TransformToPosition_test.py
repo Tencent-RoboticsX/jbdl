@@ -1,4 +1,5 @@
 import unittest
+from test.support import EnvironmentVarGuard
 import os
 from oct2py import octave
 import numpy as np
@@ -12,6 +13,10 @@ octave.addpath(MATH_PATH)
 octave.addpath(KINEMATICS_PATH)
 
 class TestTransformToPosition(unittest.TestCase):
+    def setUp(self):
+        self.env = EnvironmentVarGuard()
+        self.env.set('JAX_ENABLE_X64', '1')
+        self.env.set('JAX_PLATFORM_NAME', 'cpu')  
     def test_TransformToPosition(self):
         input = np.random.randn(*(6, 6))
         py_output = TransformToPosition(input)

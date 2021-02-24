@@ -3,6 +3,7 @@ from oct2py import octave
 import numpy as np
 import math
 import unittest
+from test.support import EnvironmentVarGuard
 from pyRBDL.Kinematics.CalcBodyToBaseCoordinates import CalcBodyToBaseCoordinates
 from pyRBDL.Kinematics.CalcPointVelocity import CalcPointVelocity
 from pyRBDL.Kinematics.CalcPointAcceleraion import CalcPointAcceleration
@@ -41,6 +42,9 @@ class TestKinematics(unittest.TestCase):
         self.q = np.array([0.0,  0.4765, 0, math.pi/6, math.pi/6, -math.pi/3, -math.pi/3])
         self.qdot = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
         self.qddot = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
+        self.env = EnvironmentVarGuard()
+        self.env.set('JAX_ENABLE_X64', '1')
+        self.env.set('JAX_PLATFORM_NAME', 'cpu')  
 
     def test_CalcBodyToBaseCoordinates(self):
         for i in range(1, int(self.model['NB']) + 1):

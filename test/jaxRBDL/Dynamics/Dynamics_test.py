@@ -1,11 +1,14 @@
 import os
+import jax
 from oct2py import octave
 import numpy as np
 import math
 import unittest
-from pyRBDL.Dynamics.CompositeRigidBodyAlgorithm import CompositeRigidBodyAlgorithm
+from test.support import EnvironmentVarGuard
+from jaxRBDL.Dynamics.CompositeRigidBodyAlgorithm import CompositeRigidBodyAlgorithm
 from pyRBDL.Dynamics.ForwardDynamics import ForwardDynamics
 from pyRBDL.Dynamics.InverseDynamics import InverseDynamics
+# from jaxRBDL.Dynamics.CompositeRigidBodyAlgorithm import CompositeRigidBodyAlgorithmCore
 
 CURRENT_PATH = os.path.dirname(os.path.realpath(__file__))
 OCTAVE_PATH = os.path.join(os.path.dirname(os.path.dirname(CURRENT_PATH)), "octave")
@@ -42,12 +45,15 @@ class TestDynamics(unittest.TestCase):
         self.qdot = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
         self.qddot = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
         self.tau = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
+        self.env = EnvironmentVarGuard()
+        self.env.set('JAX_ENABLE_X64', '1')
+        self.env.set('JAX_PLATFORM_NAME', 'cpu')  
 
     def test_CompositeRigidBodyAlgorithm(self):
         input = (self.model, self.q * np.random.randn(*(7, )))
         py_output = CompositeRigidBodyAlgorithm(*input)
         oct_ouput = octave.CompositeRigidBodyAlgorithm(*input)
-        self.assertAlmostEqual(np.sum(np.abs(py_output-oct_ouput)), 0.0, 14)
+        self.assertAlmostEqual(np.sum(np.abs(py_output-oct_ouput)), 0.0, 5)
 
     def test_ForwardDynamics(self):
         q =  self.q * np.random.randn(*(7, ))

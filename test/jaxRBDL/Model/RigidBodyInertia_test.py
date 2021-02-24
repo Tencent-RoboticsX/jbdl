@@ -1,4 +1,5 @@
 import unittest
+from test.support import EnvironmentVarGuard
 import os
 from oct2py import octave
 import math
@@ -13,6 +14,10 @@ octave.addpath(MATH_PATH)
 octave.addpath(MODEL_PATH)
 
 class TestRigidBodyInertia(unittest.TestCase):
+    def setUp(self):
+        self.env = EnvironmentVarGuard()
+        self.env.set('JAX_ENABLE_X64', '1')
+        self.env.set('JAX_PLATFORM_NAME', 'cpu')  
     def test_RigidBodyInertia(self):
         input = (np.random.randn(), np.random.randn(*(3, 1)), np.random.randn(*(3, 3)))
         py_output = RigidBodyInertia(*input)
