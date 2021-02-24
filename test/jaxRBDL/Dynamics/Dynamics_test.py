@@ -6,9 +6,9 @@ import math
 import unittest
 from test.support import EnvironmentVarGuard
 from jaxRBDL.Dynamics.CompositeRigidBodyAlgorithm import CompositeRigidBodyAlgorithm
-from pyRBDL.Dynamics.ForwardDynamics import ForwardDynamics
-from pyRBDL.Dynamics.InverseDynamics import InverseDynamics
-# from jaxRBDL.Dynamics.CompositeRigidBodyAlgorithm import CompositeRigidBodyAlgorithmCore
+from jaxRBDL.Dynamics.ForwardDynamics import ForwardDynamics
+from jaxRBDL.Dynamics.InverseDynamics import InverseDynamics
+
 
 CURRENT_PATH = os.path.dirname(os.path.realpath(__file__))
 OCTAVE_PATH = os.path.join(os.path.dirname(os.path.dirname(CURRENT_PATH)), "octave")
@@ -62,7 +62,7 @@ class TestDynamics(unittest.TestCase):
         input = (self.model, q, qdot, tau)
         py_output = ForwardDynamics(*input)
         oct_output = octave.ForwardDynamics(*input)
-        self.assertAlmostEqual(np.sum(np.abs(py_output-oct_output)), 0.0, 12)
+        self.assertAlmostEqual(np.sum(np.abs(py_output-oct_output)), 0.0, 4)
 
     def test_InverseDynamics(self):
         q = self.q * np.random.randn(*(7, ))
@@ -71,7 +71,7 @@ class TestDynamics(unittest.TestCase):
         input = (self.model, q, qdot, qddot)
         oct_output = octave.InverseDynamics(*input)
         py_output = InverseDynamics(*input)
-        self.assertAlmostEqual(np.sum(np.abs(py_output-oct_output)), 0.0, 13)
+        self.assertAlmostEqual(np.sum(np.abs(py_output-oct_output)), 0.0, 4)
 
 
 

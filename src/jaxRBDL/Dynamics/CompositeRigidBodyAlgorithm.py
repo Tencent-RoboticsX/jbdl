@@ -11,13 +11,9 @@ from jax.ops import index_update, index
 
 
 
-
-    
-
 def CompositeRigidBodyAlgorithm(model: dict, q):
 
     NB = int(model["NB"])
-
     jtype = model["jtype"].flatten()
     jaxis = model['jaxis']
     parent = model['parent'].flatten().astype(int)

@@ -1,15 +1,16 @@
 import numpy as np
-from pyRBDL.Model.JointModel import JointModel
-from pyRBDL.Math.CrossMotionSpace import CrossMotionSpace
-from pyRBDL.Math.CrossForceSpace import CrossForceSpace
+import jax.numpy as jnp
+from jaxRBDL.Model.JointModel import JointModel
+from jaxRBDL.Math.CrossMotionSpace import CrossMotionSpace
+from jaxRBDL.Math.CrossForceSpace import CrossForceSpace
 
-def InverseDynamics(model: dict, q: np.ndarray, qdot: np.ndarray, qddot: np.ndarray)-> np.ndarray:
+def InverseDynamics(model, q, qdot, qddot):
     
     a_grav = model["a_grav"].reshape(6, 1)
     qdot = qdot.flatten()
     qddot = qddot.flatten()
     NB = int(model["NB"])
-    tau = np.zeros((NB,1))
+
     jtype = model["jtype"].flatten()
     jaxis = model['jaxis']
     parent = model['parent'].flatten().astype(int)
@@ -30,20 +31,23 @@ def InverseDynamics(model: dict, q: np.ndarray, qdot: np.ndarray, qddot: np.ndar
     for i in range(NB):
         XJ, Si = JointModel(jtype[i], jaxis[i], q[i])
         S.append(Si)
-        vJ = S[i] * qdot[i]
-        Xup.append(np.matmul(XJ, Xtree[i]))
+        vJ = jnp.multiply(S[i], qdot[i])
+        Xup.append(jnp.matmul(XJ, Xtree[i]))
         if parent[i] == 0:
             v.append(vJ)
-            avp.append(np.matmul(Xup[i], -a_grav))
+            avp.append(jnp.matmul(Xup[i], -a_grav))
         else:
-            v.append(np.matmul(Xup[i], v[parent[i] - 1]) + vJ)
-            avp.append(np.matmul(Xup[i], avp[parent[i] - 1]) + S[i] * qddot[i] + np.matmul(CrossMotionSpace(v[i]), vJ))
-        fvp.append(np.matmul(I[i], avp[i]) + np.matmul(np.matmul(CrossForceSpace(v[i]), I[i]), v[i]))
+            v.append(jnp.matmul(Xup[i], v[parent[i] - 1])+ vJ)
+            avp.append(jnp.matmul(Xup[i], avp[parent[i] - 1]) + jnp.multiply(S[i], qddot[i]) + jnp.matmul(CrossMotionSpace(v[i]), vJ))
+        fvp.append(jnp.matmul(I[i], avp[i]) + jnp.matmul(jnp.matmul(CrossForceSpace(v[i]), I[i]), v[i]))
+
+    tau = [0.0] * NB
 
     for i in range(NB-1, -1, -1):
-        tau[i] = np.matmul(S[i].transpose(), fvp[i]).squeeze()
+        tau[i] = jnp.squeeze(jnp.matmul(jnp.transpose(S[i]), fvp[i]))
         if parent[i] != 0:
-            fvp[parent[i] - 1] = fvp[parent[i] - 1] + np.matmul(Xup[i].transpose(), fvp[i])
+            fvp[parent[i] - 1] = fvp[parent[i] - 1] + jnp.matmul(jnp.transpose(Xup[i]), fvp[i])
+    tau = jnp.reshape(jnp.array(tau), (NB, 1))
 
     return tau 
 
