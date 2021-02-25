@@ -6,21 +6,18 @@ from jaxRBDL.Math.CrossForceSpace import CrossForceSpace
 
 def InverseDynamics(model, q, qdot, qddot):
     
-    a_grav = model["a_grav"].reshape(6, 1)
+    a_grav = model["a_grav"]
     qdot = qdot.flatten()
     qddot = qddot.flatten()
-    NB = int(model["NB"])
+    NB = model["NB"] 
 
-    jtype = model["jtype"].flatten()
-    jaxis = model['jaxis']
-    parent = model['parent'].flatten().astype(int)
+    jtype = model["jtype"]
+    jaxis = model["jaxis"]
+    parent = model["parent"]
+    Xtree = model["Xtree"]
+    I = model["I"]
 
-    try:
-        Xtree = np.squeeze(model['Xtree'], axis=0)
-        I =  np.squeeze(model['I'], axis=0)
-    except:
-        Xtree = model['Xtree']
-        I = model['I']
+
 
     S = []
     Xup = []

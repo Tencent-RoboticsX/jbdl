@@ -40,6 +40,7 @@ class TestModelWrapper(unittest.TestCase):
         self.ip = octave.ipParmsInit(0, 0, 0, 0)
         self.model = octave.model_create()
 
+
     def test_ModelWrapper(self):
         mdl = ModelWrapper(self.model)
 
@@ -48,6 +49,8 @@ class TestModelWrapper(unittest.TestCase):
             self.assertIsInstance(item, int)
         
         self.assertIsInstance(mdl.NB, int)
+        self.assertIsInstance(mdl.a_grav, np.ndarray)
+        self.assertTrue(mdl.a_grav.shape==(6, 1))
 
         self.assertIsInstance(mdl.jtype, list)
         for item in mdl.jtype:
@@ -73,6 +76,9 @@ class TestModelWrapper(unittest.TestCase):
             self.assertIsInstance(item, int)
         
         self.assertIsInstance(mdl.NB, int)
+        self.assertIsInstance(mdl.a_grav, np.ndarray)
+        self.assertTrue(mdl.a_grav.shape==(6, 1))
+
 
         self.assertIsInstance(mdl.jtype, list)
         for item in mdl.jtype:

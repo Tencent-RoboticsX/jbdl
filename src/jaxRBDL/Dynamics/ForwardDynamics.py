@@ -8,17 +8,14 @@ def ForwardDynamics(model, q, qdot, tau):
     q = q.flatten()
     qdot = qdot.flatten()
     tau = tau.flatten()
-    a_grav = model["a_grav"].reshape(6, 1)
-    NB = int(model["NB"])
-    jtype = model["jtype"].flatten()
-    jaxis = model['jaxis']
-    parent = model['parent'].flatten().astype(int)
-    try:
-        Xtree = np.squeeze(model['Xtree'], axis=0)
-        IA = np.squeeze(model['I'], axis=0).copy()
-    except:
-        Xtree = model['Xtree']
-        IA = model['I'].copy()
+    a_grav = model["a_grav"]
+    NB = model["NB"]
+    jtype = model["jtype"]
+    jaxis = model["jaxis"]
+    parent = model["parent"]
+    Xtree = model["Xtree"]
+    IA = model["I"].copy()
+
     
     S = []
     Xup = []

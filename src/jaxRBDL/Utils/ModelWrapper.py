@@ -24,6 +24,14 @@ class ModelWrapper(object):
         return I
 
     @property
+    def a_grav(self):
+        a_grav = self._model['a_grav']
+        if not isinstance(a_grav, np.ndarray):
+            a_grav = np.asfarray(a_grav) 
+        a_grav = a_grav.flatten().reshape(6, 1)
+        return a_grav
+
+    @property
     def parent(self):
         parent = self._model['parent']
         if isinstance(parent, np.ndarray):
@@ -51,6 +59,7 @@ class ModelWrapper(object):
     def model(self):
         model = dict()
         model["NB"] = self.NB
+        model["a_grav"] = self.a_grav
         model["jtype"] = self.jtype
         model["jaxis"] = self.jaxis
         model["Xtree"] = self.Xtree
@@ -62,7 +71,9 @@ class ModelWrapper(object):
     def json(self):
         json_model = dict()
         for key, value in self.model.items():
-            if isinstance(value, list):
+            if isinstance(value, np.ndarray):
+                json_model[key] = value.tolist()
+            elif isinstance(value, list):
                 json_list = []
                 for elem in value:
                     if isinstance(elem, np.ndarray):
@@ -87,6 +98,8 @@ class ModelWrapper(object):
             model[key] = value
             if key in ["Xtree", "I"]:
                 model[key] = [np.asarray(elem) for elem in value]
+            elif key in ["a_grav"]:
+                model[key] = np.asfarray(value)
             else:
                 model[key] = value
         self._model = model

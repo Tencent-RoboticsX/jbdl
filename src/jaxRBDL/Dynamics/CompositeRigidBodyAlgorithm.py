@@ -14,16 +14,11 @@ from jax.ops import index_update, index
 def CompositeRigidBodyAlgorithm(model: dict, q):
 
     NB = int(model["NB"])
-    jtype = model["jtype"].flatten()
+    jtype = model["jtype"]
     jaxis = model['jaxis']
-    parent = model['parent'].flatten().astype(int)
-    try:
-        Xtree = np.squeeze(model['Xtree'], axis=0)
-        IC = np.squeeze(model['I'], axis=0).copy()
-    except:
-        Xtree = model['Xtree']
-        IC = model['I'].copy()
-
+    parent = model['parent']
+    Xtree = model["Xtree"]
+    IC = model["I"].copy()
 
     q = q.flatten()
     S = []

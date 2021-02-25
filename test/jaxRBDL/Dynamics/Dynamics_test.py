@@ -8,6 +8,7 @@ from test.support import EnvironmentVarGuard
 from jaxRBDL.Dynamics.CompositeRigidBodyAlgorithm import CompositeRigidBodyAlgorithm
 from jaxRBDL.Dynamics.ForwardDynamics import ForwardDynamics
 from jaxRBDL.Dynamics.InverseDynamics import InverseDynamics
+from jaxRBDL.Utils.ModelWrapper import ModelWrapper
 
 
 CURRENT_PATH = os.path.dirname(os.path.realpath(__file__))
@@ -40,7 +41,8 @@ class TestDynamics(unittest.TestCase):
         octave.push("ip", ip)
         octave.push("model", model)
         self.ip = octave.ipParmsInit(0, 0, 0, 0)
-        self.model = octave.model_create()
+        self.model = ModelWrapper(octave.model_create()).model
+
         self.q = np.array([0.0,  0.4765, 0, math.pi/6, math.pi/6, -math.pi/3, -math.pi/3])
         self.qdot = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
         self.qddot = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
