@@ -77,11 +77,6 @@ class TestKinematics(unittest.TestCase):
             oct_output = octave.CalcPointAcceleration(*input)
             self.assertAlmostEqual(np.sum(np.abs(py_output-oct_output)), 0.0, 5)
 
-        # from jax import make_jaxpr
-        # print(make_jaxpr(CalcPointAccelerationCore, static_argnums=(1, 2, 3, 4))(
-        #     self._model["Xtree"], tuple(self._model["parent"]), tuple(self._model["jtype"]), self._model["jaxis"], 3,
-        #     self.q, self.qdot, self.qddot, np.random.rand(*(3,))
-        # ))
 
     def test_CalcPointJacobian(self):
         for i in range(1, int(self.model['NB']) + 1):
@@ -90,10 +85,7 @@ class TestKinematics(unittest.TestCase):
             py_output = CalcPointJacobian(*input)
             self.assertAlmostEqual(np.sum(np.abs(py_output-oct_output)), 0.0, 5)
 
-        # from jax import make_jaxpr
-        # print(make_jaxpr(CalcPointJacobianCore, static_argnums=(1, 2, 3, 4, 5))(
-        #     self._model["Xtree"], tuple(self._model["parent"]), tuple(self._model["jtype"]), self._model["jaxis"], self._model["NB"], 3, self.q, np.random.rand(*(3,))
-        # ))
+
         
     def test_CalcPointJacobianDerivative(self):
         for i in range(1, int(self.model['NB']) + 1):
@@ -102,10 +94,6 @@ class TestKinematics(unittest.TestCase):
             oct_output = octave.CalcPointJacobianDerivative(*input)
             self.assertAlmostEqual(np.sum(np.abs(py_output-oct_output)), 0.0, 5)
 
-        # from jax import make_jaxpr
-        # print(make_jaxpr(CalcPointJacobianDerivativeCore, static_argnums=(1, 2, 3, 4, 5))(
-        #     self.model["Xtree"], tuple(self.model["parent"]), tuple(self.model["jtype"]), self.model["jaxis"], self.model["NB"], 3, self.q, self.qdot, np.random.rand(*(3,))
-        # ))
      
 
 
