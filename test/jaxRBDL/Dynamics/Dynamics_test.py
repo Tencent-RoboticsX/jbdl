@@ -1,5 +1,7 @@
 import os
 import jax
+from jax.api import jit
+from jax import grad
 from oct2py import octave
 import numpy as np
 import math
@@ -7,6 +9,7 @@ import unittest
 from test.support import EnvironmentVarGuard
 from jaxRBDL.Dynamics.CompositeRigidBodyAlgorithm import CompositeRigidBodyAlgorithm
 from jaxRBDL.Dynamics.ForwardDynamics import ForwardDynamics
+from jaxRBDL.Dynamics.ForwardDynamics import ForwardDynamicsCore
 from jaxRBDL.Dynamics.InverseDynamics import InverseDynamics
 from jaxRBDL.Utils.ModelWrapper import ModelWrapper
 
@@ -64,7 +67,30 @@ class TestDynamics(unittest.TestCase):
         input = (self.model, q, qdot, tau)
         py_output = ForwardDynamics(*input)
         oct_output = octave.ForwardDynamics(*input)
-        self.assertAlmostEqual(np.sum(np.abs(py_output-oct_output)), 0.0, 4)
+        self.assertAlmostEqual(np.sum(np.abs(py_output-oct_output)), 0.0, 3)
+
+    def test_ForwardDynamicsGradients(self):
+        q =  self.q * np.random.randn(*(7, ))
+        qdot =  self.qdot * np.random.randn(*(7, ))
+        tau = self.tau * np.random.randn(*(7, ))
+        input = (self.model["Xtree"], self.model["I"], tuple(self.model["parent"]), tuple(self.model["jtype"]), self.model["jaxis"],
+                 self.model["NB"], q, qdot, tau, self.model["a_grav"])
+        ForwardDynamicsCore(*input)
+        qddot2Xtree,  qddot2I= jit(jax.jacfwd(ForwardDynamicsCore, argnums=(0, 1)), static_argnums=(2, 3, 4, 5))(*input)
+        print("====================")
+        for item in qddot2Xtree:
+            print(item.shape)
+
+        print("====================")
+        for item in qddot2I:
+            print(item.shape)
+            
+        print("====================")
+        qddot2q, qddot2qdot, qddot2tau, qddot2a_grav = jit(jax.jacfwd(ForwardDynamicsCore, argnums=(6,7, 8, 9)), static_argnums=(2, 3, 4, 5))(*input)
+        print(qddot2q.shape)
+        print(qddot2qdot.shape)
+        print(qddot2tau.shape)
+        print(qddot2a_grav.shape)
 
     def test_InverseDynamics(self):
         q = self.q * np.random.randn(*(7, ))

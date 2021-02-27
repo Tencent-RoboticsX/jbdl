@@ -1,27 +1,20 @@
 import numpy as np
 import jax.numpy as jnp
+from jax.api import jit
 from jaxRBDL.Model.JointModel import JointModel
 from jaxRBDL.Math.CrossMotionSpace import CrossMotionSpace
 from jaxRBDL.Math.CrossForceSpace import CrossForceSpace
+from functools import partial
 
-def ForwardDynamics(model, q, qdot, tau):    
-    q = q.flatten()
-    qdot = qdot.flatten()
-    tau = tau.flatten()
-    a_grav = model["a_grav"]
-    NB = model["NB"]
-    jtype = model["jtype"]
-    jaxis = model["jaxis"]
-    parent = model["parent"]
-    Xtree = model["Xtree"]
-    IA = model["I"].copy()
 
-    
+@partial(jit, static_argnums=(2, 3, 4, 5))
+def ForwardDynamicsCore(Xtree, I, parent, jtype, jaxis, NB, q, qdot, tau, a_grav):  
     S = []
     Xup = []
     v = []
     c = []
     pA = []
+    IA = I.copy()
 
     for i in range(NB):
         XJ, Si = JointModel(jtype[i], jaxis[i], q[i])
@@ -66,6 +59,21 @@ def ForwardDynamics(model, q, qdot, tau):
         a[i] = a[i] + jnp.multiply(S[i],  qddot[i])
 
     qddot = jnp.reshape(jnp.stack(qddot), (NB, 1))
+    return qddot
+
+def ForwardDynamics(model, q, qdot, tau):    
+    q = q.flatten()
+    qdot = qdot.flatten()
+    tau = tau.flatten()
+    a_grav = model["a_grav"]
+    NB = model["NB"]
+    jtype = model["jtype"]
+    jaxis = model["jaxis"]
+    parent = model["parent"]
+    Xtree = model["Xtree"]
+    I = model["I"]
+
+    qddot = ForwardDynamicsCore(Xtree, I, tuple(parent), tuple(jtype), jaxis, NB, q, qdot, tau, a_grav)
     return qddot
 
 
