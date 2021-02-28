@@ -11,6 +11,7 @@ from jax import lax
 
 @partial(jit, static_argnums=(2, 3, 4, 5))
 def CompositeRigidBodyAlgorithmCore(Xtree, I, parent, jtype, jaxis, NB, q):
+    # print("Re-Tracing")
 
     IC = I.copy()
     

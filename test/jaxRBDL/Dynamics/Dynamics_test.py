@@ -68,11 +68,53 @@ class TestDynamics(unittest.TestCase):
 
     def test_CompositeRigidBodyAlgorithmGradients(self):
         # print("Testing CompositeRigidBodyAlgorithmGradients!!!")
+        def CompositeRigidBodyAlgorithmCoreWithJit():
+            q = self.q * np.random.randn(*(7, ))
+            input = (self.model["Xtree"], self.model["I"], tuple(self.model["parent"]), tuple(self.model["jtype"]), self.model["jaxis"],
+                    self.model["NB"], q)
+            CompositeRigidBodyAlgorithmCore(*input).block_until_ready()
+
+        print(timeit.Timer(CompositeRigidBodyAlgorithmCoreWithJit).repeat(repeat=3, number=1000))
+        
+
         q = self.q * np.random.randn(*(7, ))
         input = (self.model["Xtree"], self.model["I"], tuple(self.model["parent"]), tuple(self.model["jtype"]), self.model["jaxis"],
-                 self.model["NB"], q)
+                self.model["NB"], q)
+        fun1 = jit(jax.jacfwd(CompositeRigidBodyAlgorithmCore, argnums=(6,)), static_argnums=(2, 3, 4, 5))
+        H2q, = fun1(*input)
+        H2q.block_until_ready()
 
-        CompositeRigidBodyAlgorithmCore(*input)
+
+
+        def CompositeRigidBodyAlgorithmGradWithJit():
+            q = self.q * np.random.randn(*(7, ))
+            input = (self.model["Xtree"], self.model["I"], tuple(self.model["parent"]), tuple(self.model["jtype"]), self.model["jaxis"],
+                    self.model["NB"], q)
+            H2q, = fun1(*input)
+            H2q.block_until_ready()
+
+        print(timeit.Timer(CompositeRigidBodyAlgorithmGradWithJit).repeat(repeat=3, number=1000))
+
+        q = self.q * np.random.randn(*(7, ))
+        input = (self.model["Xtree"], self.model["I"], tuple(self.model["parent"]), tuple(self.model["jtype"]), self.model["jaxis"],
+                self.model["NB"], q)
+        fun2 = jax.jacfwd(CompositeRigidBodyAlgorithmCore, argnums=(6,))
+        H2q, = fun2(*input)
+        H2q.block_until_ready()
+
+        def CompositeRigidBodyAlgorithmGradWithoutJit():
+            q = self.q * np.random.randn(*(7, ))
+            input = (self.model["Xtree"], self.model["I"], tuple(self.model["parent"]), tuple(self.model["jtype"]), self.model["jaxis"],
+                    self.model["NB"], q)
+            H2q, = fun2(*input)
+            H2q.block_until_ready()
+        
+        print(timeit.Timer(CompositeRigidBodyAlgorithmGradWithoutJit).repeat(repeat=3, number=1))
+
+
+
+        
+
         # H2Xtree,  H2I= jit(jax.jacfwd(CompositeRigidBodyAlgorithmCore, argnums=(0, 1)), static_argnums=(2, 3, 4, 5))(*input)
         # print("====================")
         # for item in H2Xtree:
