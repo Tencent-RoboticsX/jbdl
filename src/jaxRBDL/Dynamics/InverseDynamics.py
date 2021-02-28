@@ -1,24 +1,13 @@
 import numpy as np
 import jax.numpy as jnp
+from jax.api import jit
 from jaxRBDL.Model.JointModel import JointModel
 from jaxRBDL.Math.CrossMotionSpace import CrossMotionSpace
 from jaxRBDL.Math.CrossForceSpace import CrossForceSpace
+from functools import partial
 
-def InverseDynamics(model, q, qdot, qddot):
-    
-    a_grav = model["a_grav"]
-    qdot = qdot.flatten()
-    qddot = qddot.flatten()
-    NB = model["NB"] 
-
-    jtype = model["jtype"]
-    jaxis = model["jaxis"]
-    parent = model["parent"]
-    Xtree = model["Xtree"]
-    I = model["I"]
-
-
-
+@partial(jit, static_argnums=(2, 3, 4, 5))
+def InverseDynamicsCore(Xtree, I, parent, jtype, jaxis, NB, q, qdot, qddot, a_grav):
     S = []
     Xup = []
     v = []
@@ -46,6 +35,23 @@ def InverseDynamics(model, q, qdot, qddot):
             fvp[parent[i] - 1] = fvp[parent[i] - 1] + jnp.matmul(jnp.transpose(Xup[i]), fvp[i])
     tau = jnp.reshape(jnp.array(tau), (NB, 1))
 
+    return tau 
+
+
+def InverseDynamics(model, q, qdot, qddot):
+    
+    a_grav = model["a_grav"]
+    qdot = qdot.flatten()
+    qddot = qddot.flatten()
+    NB = model["NB"] 
+
+    jtype = model["jtype"]
+    jaxis = model["jaxis"]
+    parent = model["parent"]
+    Xtree = model["Xtree"]
+    I = model["I"]
+
+    tau = InverseDynamicsCore(Xtree, I, tuple(parent), tuple(jtype), jaxis, NB, q, qdot, qddot, a_grav)
     return tau 
 
 

@@ -7,20 +7,13 @@ from jaxRBDL.Model.JointModel import JointModel
 from functools import partial
 from jax.api import jit
 from jax import lax
-from jax.ops import index_update, index
 
 
+@partial(jit, static_argnums=(2, 3, 4, 5))
+def CompositeRigidBodyAlgorithmCore(Xtree, I, parent, jtype, jaxis, NB, q):
 
-def CompositeRigidBodyAlgorithm(model: dict, q):
-
-    NB = int(model["NB"])
-    jtype = model["jtype"]
-    jaxis = model['jaxis']
-    parent = model['parent']
-    Xtree = model["Xtree"]
-    IC = model["I"].copy()
-
-    q = q.flatten()
+    IC = I.copy()
+    
     S = []
     Xup = []
 
@@ -46,6 +39,23 @@ def CompositeRigidBodyAlgorithm(model: dict, q):
             j = parent[j] - 1
             H = H.at[i,j].set(jnp.squeeze(jnp.matmul(S[j].transpose(), fh)))
             H = H.at[j,i].set(H[i,j])
+
+    return H
+
+
+
+
+def CompositeRigidBodyAlgorithm(model: dict, q):
+
+    NB = int(model["NB"])
+    jtype = model["jtype"]
+    jaxis = model['jaxis']
+    parent = model['parent']
+    Xtree = model["Xtree"]
+    I = model["I"]
+
+    q = q.flatten()
+    H = CompositeRigidBodyAlgorithmCore(Xtree, I, tuple(parent), tuple(jtype), jaxis, NB, q)
 
     return H
 

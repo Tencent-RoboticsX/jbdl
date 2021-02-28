@@ -7,11 +7,12 @@ import numpy as np
 import math
 import unittest
 from test.support import EnvironmentVarGuard
-from jaxRBDL.Dynamics.CompositeRigidBodyAlgorithm import CompositeRigidBodyAlgorithm
-from jaxRBDL.Dynamics.ForwardDynamics import ForwardDynamics
-from jaxRBDL.Dynamics.ForwardDynamics import ForwardDynamicsCore
-from jaxRBDL.Dynamics.InverseDynamics import InverseDynamics
+from jaxRBDL.Dynamics.CompositeRigidBodyAlgorithm import CompositeRigidBodyAlgorithm, CompositeRigidBodyAlgorithmCore
+from jaxRBDL.Dynamics.ForwardDynamics import ForwardDynamics, ForwardDynamicsCore
+from jaxRBDL.Dynamics.InverseDynamics import InverseDynamics, InverseDynamicsCore
 from jaxRBDL.Utils.ModelWrapper import ModelWrapper
+import time
+import timeit
 
 
 CURRENT_PATH = os.path.dirname(os.path.realpath(__file__))
@@ -53,12 +54,39 @@ class TestDynamics(unittest.TestCase):
         self.env = EnvironmentVarGuard()
         self.env.set('JAX_ENABLE_X64', '1')
         self.env.set('JAX_PLATFORM_NAME', 'cpu')  
+        self.startTime = time.time()
+
+    def tearDown(self):
+        t = time.time() - self.startTime
+        print('%s: %.3f' % (self.id(), t))
 
     def test_CompositeRigidBodyAlgorithm(self):
         input = (self.model, self.q * np.random.randn(*(7, )))
         py_output = CompositeRigidBodyAlgorithm(*input)
         oct_ouput = octave.CompositeRigidBodyAlgorithm(*input)
         self.assertAlmostEqual(np.sum(np.abs(py_output-oct_ouput)), 0.0, 5)
+
+    def test_CompositeRigidBodyAlgorithmGradients(self):
+        # print("Testing CompositeRigidBodyAlgorithmGradients!!!")
+        q = self.q * np.random.randn(*(7, ))
+        input = (self.model["Xtree"], self.model["I"], tuple(self.model["parent"]), tuple(self.model["jtype"]), self.model["jaxis"],
+                 self.model["NB"], q)
+
+        CompositeRigidBodyAlgorithmCore(*input)
+        # H2Xtree,  H2I= jit(jax.jacfwd(CompositeRigidBodyAlgorithmCore, argnums=(0, 1)), static_argnums=(2, 3, 4, 5))(*input)
+        # print("====================")
+        # for item in H2Xtree:
+        #     print(item.shape)
+
+        # print("====================")
+        # for item in H2I:
+        #     print(item.shape)
+            
+        # print("====================")
+        # H2q,  = jit(jax.jacfwd(CompositeRigidBodyAlgorithmCore, argnums=(6,)), static_argnums=(2, 3, 4, 5))(*input)
+        # print(H2q.shape)
+
+
 
     def test_ForwardDynamics(self):
         q =  self.q * np.random.randn(*(7, ))
@@ -70,27 +98,28 @@ class TestDynamics(unittest.TestCase):
         self.assertAlmostEqual(np.sum(np.abs(py_output-oct_output)), 0.0, 3)
 
     def test_ForwardDynamicsGradients(self):
+        # print("Testing ForwardDynamicsGradients!!!")
         q =  self.q * np.random.randn(*(7, ))
         qdot =  self.qdot * np.random.randn(*(7, ))
         tau = self.tau * np.random.randn(*(7, ))
         input = (self.model["Xtree"], self.model["I"], tuple(self.model["parent"]), tuple(self.model["jtype"]), self.model["jaxis"],
                  self.model["NB"], q, qdot, tau, self.model["a_grav"])
         ForwardDynamicsCore(*input)
-        qddot2Xtree,  qddot2I= jit(jax.jacfwd(ForwardDynamicsCore, argnums=(0, 1)), static_argnums=(2, 3, 4, 5))(*input)
-        print("====================")
-        for item in qddot2Xtree:
-            print(item.shape)
+        # qddot2Xtree,  qddot2I= jit(jax.jacfwd(ForwardDynamicsCore, argnums=(0, 1)), static_argnums=(2, 3, 4, 5))(*input)
+        # print("====================")
+        # for item in qddot2Xtree:
+        #     print(item.shape)
 
-        print("====================")
-        for item in qddot2I:
-            print(item.shape)
+        # print("====================")
+        # for item in qddot2I:
+        #     print(item.shape)
             
-        print("====================")
-        qddot2q, qddot2qdot, qddot2tau, qddot2a_grav = jit(jax.jacfwd(ForwardDynamicsCore, argnums=(6,7, 8, 9)), static_argnums=(2, 3, 4, 5))(*input)
-        print(qddot2q.shape)
-        print(qddot2qdot.shape)
-        print(qddot2tau.shape)
-        print(qddot2a_grav.shape)
+        # print("====================")
+        # qddot2q, qddot2qdot, qddot2tau, qddot2a_grav = jit(jax.jacfwd(ForwardDynamicsCore, argnums=(6,7, 8, 9)), static_argnums=(2, 3, 4, 5))(*input)
+        # print(qddot2q.shape)
+        # print(qddot2qdot.shape)
+        # print(qddot2tau.shape)
+        # print(qddot2a_grav.shape)
 
     def test_InverseDynamics(self):
         q = self.q * np.random.randn(*(7, ))
@@ -101,8 +130,37 @@ class TestDynamics(unittest.TestCase):
         py_output = InverseDynamics(*input)
         self.assertAlmostEqual(np.sum(np.abs(py_output-oct_output)), 0.0, 4)
 
+    def test_InverseDynamicsGradients(self):
+        # print("Testing InverseDynamicsGradients!!!")
+        q = self.q * np.random.randn(*(7, ))
+        qdot = self.qdot * np.random.randn(*(7, ))
+        qddot = self.qddot * np.random.randn(*(7, ))
+        input = (self.model["Xtree"], self.model["I"], tuple(self.model["parent"]), tuple(self.model["jtype"]), self.model["jaxis"],
+                 self.model["NB"], q, qdot, qddot, self.model["a_grav"])
+
+        InverseDynamicsCore(*input)
+        # tau2Xtree,  tau2I= jit(jax.jacfwd(InverseDynamicsCore, argnums=(0, 1)), static_argnums=(2, 3, 4, 5))(*input)
+        # print("====================")
+        # for item in tau2Xtree:
+        #     print(item.shape)
+
+        # print("====================")
+        # for item in tau2I:
+        #     print(item.shape)
+            
+        # print("====================")
+        # tau2q, tau2qdot, tau2qddot, tau2a_grav = jit(jax.jacfwd(InverseDynamicsCore, argnums=(6,7, 8, 9)), static_argnums=(2, 3, 4, 5))(*input)
+        # print(tau2q.shape)
+        # print(tau2qdot.shape)
+        # print(tau2qddot.shape)
+        # print(tau2a_grav.shape)
+
+
+
 
 
 
 if __name__ == "__main__":
-    unittest.main()
+    # unittest.main()
+    suite = unittest.TestLoader().loadTestsFromTestCase(TestDynamics)
+    unittest.TextTestRunner(verbosity=0).run(suite)
