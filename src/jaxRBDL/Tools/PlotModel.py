@@ -18,6 +18,7 @@ def PlotModel(model: dict, q: np.ndarray, ax: Axes3D):
     pos_e = []
 
     num = len(idlinkplot)
+
     for i in range(num):
         pos_o.append(CalcBodyToBaseCoordinates(model, q, idlinkplot[i], np.zeros((3,1))))
         pos_e.append(CalcBodyToBaseCoordinates(model, q, idlinkplot[i], linkplot[i]))
@@ -32,6 +33,7 @@ def PlotModel(model: dict, q: np.ndarray, ax: Axes3D):
         pos_contact.append(CalcBodyToBaseCoordinates(model, q, idcontact[i], contactpoint[i]))
     pos_contact = np.concatenate(pos_contact, axis=1)
     
-    ax = PlotLink(pos_o, pos_e, 6, pos_contact, ax)
+    ax = PlotLink(pos_o, pos_e, num, pos_contact, ax)
+    # ax = PlotLink(pos_o, pos_e, 16, pos_contact, ax)
     return ax
 
