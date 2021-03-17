@@ -11,7 +11,6 @@ from jaxRBDL.Tools.PlotCoMInertia import PlotCoMInertia
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.axes3d import Axes3D
 from jaxRBDL.Dynamics.StateFunODE import StateFunODE
-import pyformulas as pf
 import matplotlib
 from jaxRBDL.Utils.ModelWrapper import ModelWrapper
 matplotlib.use('TkAgg')

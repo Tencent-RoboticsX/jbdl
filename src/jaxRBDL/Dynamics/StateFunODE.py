@@ -1,9 +1,4 @@
-import re
 import numpy as np
-from numpy.core.defchararray import array
-from numpy.core.numeric import flatnonzero
-from oct2py import octave
-from scipy.optimize.nonlin import LowRankMatrix
 from jaxRBDL.Dynamics.CompositeRigidBodyAlgorithm import CompositeRigidBodyAlgorithm
 from jaxRBDL.Dynamics.InverseDynamics import InverseDynamics
 from numpy.linalg import inv
