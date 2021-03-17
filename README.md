@@ -10,4 +10,8 @@ Go to scripts directory, and run
 ```
 python test_statefun.py
 ``` 
+or
+```
+python test_wholeMax.py
+```
  
