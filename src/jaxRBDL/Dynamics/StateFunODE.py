@@ -7,6 +7,7 @@ from jaxRBDL.Contact.CalcContactForceDirect import CalcContactForceDirect
 from jaxRBDL.Dynamics.ForwardDynamics import ForwardDynamics
 from jaxRBDL.Kinematics.CalcBodyToBaseCoordinates import CalcBodyToBaseCoordinates
 from jaxRBDL.Contact.ImpulsiveDynamics import ImpulsiveDynamics
+from jaxRBDL.Contact.SolveContactLCP import SolveContactLCP
 from scipy.integrate import solve_ivp
 
 def DynamicsFun(t: float, X: np.ndarray, model: dict, contact_cond: dict, contact_force: dict)->np.ndarray:
@@ -42,7 +43,11 @@ def DynamicsFun(t: float, X: np.ndarray, model: dict, contact_cond: dict, contac
     # print(flag_contact)
     if np.sum(flag_contact) !=0: 
         # lambda, fqp, fpd] = SolveContactLCP(q, qdot, tau, flag_contact);
-        lam, fqp, fc, fcqp, fcpd = CalcContactForceDirect(model, q, qdot, tau, flag_contact, 2)
+        contact_cond = dict()
+        contact_cond["contact_force_lb"] = np.array([-1000.0, -1000.0, 0.0])
+        contact_cond["contact_force_ub"] = np.array([1000.0, 1000.0, 3000.0])
+        lam, fqp, fc, fcqp, fcpd = SolveContactLCP(model, q, qdot, tau, flag_contact, 2, contact_cond, 0.9)
+        # lam, fqp, fc, fcqp, fcpd = CalcContactForceDirect(model, q, qdot, tau, flag_contact, 3)
         contact_force["fc"] = fc
         contact_force["fcqp"] = fcqp
         contact_force["fcpd"] = fcpd
@@ -67,7 +72,7 @@ def EventsFun(t: float, X: np.ndarray, model: dict, contact_cond: dict, contact_
     NB = int(model["NB"])
     NC = int(model["NC"])
    
-    #Get q qdot tau
+    # Get q qdot tau
     q = X[0: NB]
     qdot = X[NB: 2*NB]
     tau = model["tau"]

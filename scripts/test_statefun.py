@@ -60,7 +60,7 @@ pos, vel = CalcPosVelPointToBase(model, q, qdot, idcontact[1], idbase, contactpo
 # q0 = np.array([0,  0.4127, 0, math.pi/6, math.pi/6, -math.pi/3, -math.pi/3]) # stand high
 # q0 = np.array([0,  0.45, 0, -math.pi/6, math.pi/6, math.pi/3, -math.pi/3]) # stand with leg out
 # q0 = np.array([0,  0.4127, 0, math.pi/6, -math.pi/6, -math.pi/3, math.pi/3]) # stand with leg in
-q0 = np.array([0,  0.43, 0, math.pi/6, -math.pi/6, -math.pi/3, math.pi/3]) # stand with leg in
+q0 = np.array([0,  0.5, 0, math.pi/6, -math.pi/6, -math.pi/3, math.pi/3]) # stand with leg in
 # q0 = np.array([0,  0.2382, 0, math.pi/3, math.pi/3, -2*math.pi/3, -2*math.pi/3]) # stand low
 q0 = q0.reshape(-1, 1)
 

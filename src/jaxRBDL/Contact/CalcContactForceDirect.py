@@ -46,6 +46,7 @@ def CalcContactForceDirect(model: dict, q: np.ndarray, qdot: np.ndarray, tau: np
         JcdotQdot = CalcContactJdotQdot(model, q, qdot, flag_contact, nf)
 
         M = np.matmul(np.matmul(Jc, model["Hinv"]), np.transpose(Jc))
+        # print(M)
         tau = tau.reshape(-1, 1)
         d0 = np.matmul(np.matmul(Jc, model["Hinv"]), tau - model["C"])
         d = np.add(d0, JcdotQdot )

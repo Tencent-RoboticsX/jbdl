@@ -53,7 +53,7 @@ setup(
     package_dir={'': 'src'},
     packages=find_packages(where='src'),
     python_requires='>=3.5, <4',
-    install_requires=['numpy',  'wheel', 'jax', 'jaxlib', 'matplotlib'],
+    install_requires=['numpy',  'wheel', 'jax', 'jaxlib', 'matplotlib==3.3.4', 'cvxopt'],
 
     # List additional groups of dependencies here (e.g. development
     # dependencies). Users will be able to install these using the "extras"
