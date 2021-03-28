@@ -1,9 +1,10 @@
 import numpy as np
 from jaxRBDL.Kinematics.CalcPointAcceleraion import CalcPointAcceleration
 
-def CalcContactJdotQdot(model: dict, q: np.ndarray, qdot: np.ndarray, flag_contact: np.ndarray, nf: int=3)->np.ndarray:
+def CalcContactJdotQdot(model: dict, q: np.ndarray, qdot: np.ndarray, flag_contact: np.ndarray)->np.ndarray:
     NC = int(model["NC"])
     NB = int(model["NB"])
+    nf = int(model["nf"])
     q = q.flatten()
     qdot = qdot.flatten()
     flag_contact = flag_contact.flatten()

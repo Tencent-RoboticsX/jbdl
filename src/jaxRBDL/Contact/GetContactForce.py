@@ -1,10 +1,11 @@
 import numpy as np
 
-def GetContactForce(model: dict, fqp: np.ndarray, fpd: np.ndarray, flag_contact: np.ndarray, nf:int):
+def GetContactForce(model: dict, fqp: np.ndarray, fpd: np.ndarray, flag_contact: np.ndarray):
     fqp = fqp.flatten()
     fpd = fpd.flatten()
 
     NC = int(model["NC"])
+    nf = int(model["nf"])
     fc = np.zeros((3*NC,))
     fcqp = np.zeros((3*NC,))
     fcpd = np.zeros((3*NC,))

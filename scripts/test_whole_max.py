@@ -14,26 +14,26 @@ from jaxRBDL.Dynamics.StateFunODE import StateFunODE
 import matplotlib
 from jaxRBDL.Utils.ModelWrapper import ModelWrapper
 matplotlib.use('TkAgg')
-# from jax.config import config
-# config.update('jax_disable_jit', True)
 
 CURRENT_PATH = os.path.dirname(os.path.realpath(__file__))
 print(CURRENT_PATH)
 mdlw = ModelWrapper()
-mdlw.load(os.path.join(CURRENT_PATH, 'half_max_v1.json'))
+mdlw.load(os.path.join(CURRENT_PATH, 'whole_max_v1.json'))
 print(type(mdlw))
 model = mdlw.model
-# print(model["contact_cond"])
 
-q = np.array([0.0,  0.4125, 0.0, math.pi/6, math.pi/6, -math.pi/3, -math.pi/3]) # stand high
-q = np.array([0.0,  0.2382, 0.0, math.pi/3, math.pi/3, -2*math.pi/3, -2*math.pi/3])  # stand low
-q = np.array([0.0,  0.456, -math.pi/2, math.pi/6, 2.7487, 0, -2.0070]) # stand end
+q = np.array([0, 0, 0.27, 0, 0, 0,
+    0, 0.5, -0.8,  # fr
+    0, 0.5, -0.8,  # fl
+    0, 0.5, -0.8,  # br
+    0, 0.5, -0.8]) # bl
+# q = np.array([0.0,  0.4125, 0.0, math.pi/6, math.pi/6, -math.pi/3, -math.pi/3]) # stand high
+# q = np.array([0.0,  0.2382, 0.0, math.pi/3, math.pi/3, -2*math.pi/3, -2*math.pi/3])  # stand low
+# q = np.array([0.0,  0.456, -math.pi/2, math.pi/6, 2.7487, 0, -2.0070]) # stand end
 
-qdot = np.zeros((7, 1))
+qdot = np.zeros((18, 1))
 
-Pcom = CalcWholeBodyCoM(model, q)
-
-
+# Pcom = CalcWholeBodyCoM(model, q)
 # print(Pcom)
 
 plt.figure()
@@ -55,16 +55,22 @@ ax.set_zlim(-0.1, -0.1+0.8)
 
 idcontact = model["idcontact"]
 contactpoint = model["contactpoint"]
-idbase = 3
+idbase = 6
 
-pos, vel = CalcPosVelPointToBase(model, q, qdot, idcontact[0], idbase, contactpoint[0])
-pos, vel = CalcPosVelPointToBase(model, q, qdot, idcontact[1], idbase, contactpoint[1])
+# pos, vel = CalcPosVelPointToBase(model, q, qdot, idcontact[0], idbase, contactpoint[0])
+# pos, vel = CalcPosVelPointToBase(model, q, qdot, idcontact[1], idbase, contactpoint[1])
 
 # q0 = np.array([0,  0.4127, 0, math.pi/6, math.pi/6, -math.pi/3, -math.pi/3]) # stand high
 # q0 = np.array([0,  0.45, 0, -math.pi/6, math.pi/6, math.pi/3, -math.pi/3]) # stand with leg out
 # q0 = np.array([0,  0.4127, 0, math.pi/6, -math.pi/6, -math.pi/3, math.pi/3]) # stand with leg in
-q0 = np.array([0,  0.5, 0, math.pi/6, -math.pi/6, -math.pi/3, math.pi/3]) # stand with leg in
+# q0 = np.array([0,  0.43, 0, math.pi/6, -math.pi/6, -math.pi/3, math.pi/3]) # stand with leg in
 # q0 = np.array([0,  0.2382, 0, math.pi/3, math.pi/3, -2*math.pi/3, -2*math.pi/3]) # stand low
+q0 = np.array([0, 0, 0.5, 0.0, 0, 0,
+    0, 0.5, -0.8,  # fr
+    0, 0.5, -0.8,  # fl
+    0, 0.5, -0.8,  # br
+    0, 0.5, -0.8]) # bl
+
 q0 = q0.reshape(-1, 1)
 
 
@@ -81,9 +87,9 @@ fig.show()
 # plt.show()
 
 
-qd0 = np.zeros((7, 1))
+qd0 = np.zeros((18, 1))
 x0 = np.vstack([q0, qd0])
-u0 = np.zeros((4, 1))
+u0 = np.zeros((12, 1))
 
 xk = x0
 u = u0
@@ -95,24 +101,20 @@ xksv = []
 T = 2e-3
 xksv = []
 
-# Set Contact Conditions.
-# contact_cond = dict()
-# contact_cond["contact_pos_lb"] = np.array([0.0001, 0.0001, 0.0001]).reshape(-1, 1)
-# contact_cond["contact_pos_ub"] = np.array([0.0001, 0.0001, 0.0001]).reshape(-1, 1)
-# contact_cond["contact_vel_lb"] = np.array([-0.05, -0.05, -0.05]).reshape(-1, 1)
-# contact_cond["contact_vel_ub"] = np.array([0.01, 0.01, 0.01]).reshape(-1, 1)
+
 
 for i in range(100):
     print(i)
-    u = kp * (q0[3:7] - xk[3:7]) + kd * (qd0[3:7] - xk[10:14])
+    u = kp * (q0[6:18] - xk[6:18]) + kd * (qd0[6:18] - xk[24:36])
     xk, contact_force = StateFunODE(model, xk.flatten(), u.flatten(), T)
     xk = xk.reshape(-1, 1)
 
     xksv.append(xk)
     ax.clear()
-    PlotModel(model, xk[0:7], ax)
+    PlotModel(model, xk[0:18], ax)
     # fcqp = np.array([0, 0, 1, 0, 0, 1])
-    PlotContactForce(model, xk[0:7], contact_force["fc"], contact_force["fcqp"], contact_force["fcpd"], 'fcqp', ax)
+    # print(contact_force["fcqp"])
+    PlotContactForce(model, xk[0:18], contact_force["fc"], contact_force["fcqp"], contact_force["fcpd"], 'fcqp', ax)
     ax.view_init(elev=0,azim=-90)
     ax.set_xlabel('X')
     ax.set_xlim(-0.3, -0.3+0.6)

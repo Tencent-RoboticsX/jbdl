@@ -4,16 +4,17 @@ from jaxRBDL.Kinematics.CalcPointVelocity import CalcPointVelocity
 
 
 def CalcContactForcePD(model: dict, q: np.ndarray, qdot: np.ndarray, 
-                       flag_contact: np.ndarray, contact_force_kp: np.ndarray,
-                       contact_force_kd: np.ndarray, nf: int=3)->np.ndarray:
+                       flag_contact: np.ndarray)->np.ndarray:
     
     NC = int(model["NC"])
     NB = int(model["NB"])
+    nf = int(model["nf"])
     q = q.flatten()
     qdot = qdot.flatten()
     flag_contact = flag_contact.flatten()
-    contact_force_kp = contact_force_kp.flatten()
-    contact_force_kd = contact_force_kd.flatten()
+    contact_cond = model["contact_cond"]
+    contact_force_kp = contact_cond["contact_force_kp"].flatten()
+    contact_force_kd = contact_cond["contact_force_kd"].flatten()
 
     try: 
         idcontact = np.squeeze(model["idcontact"], axis=0).astype(int)

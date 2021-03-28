@@ -101,29 +101,26 @@ def quadprog(H, f, L=None, k=None, Aeq=None, beq=None, lb=None, ub=None, options
 
 
 def SolveContactLCP(model: dict, q: np.ndarray, qdot: np.ndarray, tau: np.ndarray, \
-    flag_contact: np.ndarray, nf: int,  mu: float):
+    flag_contact: np.ndarray, mu: float):
     
     NC = int(model["NC"])
+    nf = int(model["nf"])
     contact_cond = model["contact_cond"]
     contact_force_lb = contact_cond["contact_force_lb"].flatten()
     contact_force_ub = contact_cond["contact_force_ub"].flatten()
+
     if nf == 2:
         contact_force_lb = contact_force_lb[[0, 2]]
         contact_force_ub = contact_force_ub[[0, 2]]
 
-    # print(contact_force_lb)
-    # print(contact_force_ub)
-    
-    
-    # Get real contact numbers and initial force
     ncp = 0
     for i in range(NC):
         if flag_contact[i]!=0:
             ncp = ncp + 1
     
     # Calculate contact force
-    Jc = CalcContactJacobian(model, q, flag_contact, nf)
-    JcdotQdot = CalcContactJdotQdot(model, q, qdot, flag_contact, nf)
+    Jc = CalcContactJacobian(model, q, flag_contact)
+    JcdotQdot = CalcContactJdotQdot(model, q, qdot, flag_contact)
 
     M = np.matmul(np.matmul(Jc, model["Hinv"]), np.transpose(Jc))
     tau = tau.reshape(*(-1, 1))
@@ -141,29 +138,31 @@ def SolveContactLCP(model: dict, q: np.ndarray, qdot: np.ndarray, tau: np.ndarra
     for i in range(ncp):
         A[i*ncd:(i+1)*ncd, i*nf:(i+1)*nf] = GetA(mu, nf)
         b[i*ncd:(i+1)*ncd, 0] = Getb(contact_force_lb[-1], contact_force_ub[-1], nf)
-        if nf == 2:
-            lb[i*nf:(i+1)*nf, 0] = contact_force_lb
-            ub[i*nf:(i+1)*nf, 0] = contact_force_ub
+        lb[i*nf:(i+1)*nf, 0] = contact_force_lb
+        ub[i*nf:(i+1)*nf, 0] = contact_force_ub
 
     # QP optimize contact force in world space
-    # print(M)
+    print("===========================")
+    print(-np.linalg.solve(M,d))
     fqp, status = quadprog(0.5 * (M+M.transpose()), d, A, b, None, None, lb, ub)
+    # fqp, status = quadprog(0.5 * (M+M.transpose()), d, None, None, None, None, None, None)
+    print(fqp)
     if status != 'optimal':
         print('QP solve failed: status = %', status)
 
     # Calculate contact force from PD controller
-    contact_force_kp = np.array([10000.0, 10000.0, 10000.0])
-    contact_force_kd = np.array([1000.0, 1000.0, 1000.0])
+    # contact_force_kp = np.array([10000.0, 10000.0, 10000.0])
+    # contact_force_kd = np.array([1000.0, 1000.0, 1000.0])
 
     # Calculate contact force from PD controller
-    fpd = CalcContactForcePD(model, q, qdot, flag_contact, contact_force_kp, contact_force_kd, nf)
+    fpd = CalcContactForcePD(model, q, qdot, flag_contact)
 
     # Translate contact force in joint space
     flcp = np.matmul(np.transpose(Jc), fqp)
     # flcp = Jc' * (fqp + fpd);
 
     # Get contact force for plot
-    fc, fcqp, fcpd = GetContactForce(model, fqp, fpd, flag_contact, nf)  
+    fc, fcqp, fcpd = GetContactForce(model, fqp, fpd, flag_contact)  
 
     return flcp, fqp, fc, fcqp, fcpd
 

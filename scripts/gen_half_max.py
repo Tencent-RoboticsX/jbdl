@@ -56,6 +56,8 @@ mdlw.ST = np.array(
     [0., 0., 1., 0.],
     [0., 0., 0., 1.]])
 
+mdlw.nf = 2
+
 mdlw.contact_force_lb = np.array([-1000.0, -1000.0, 0.0]).reshape(-1, 1)
 mdlw.contact_force_ub = np.array([1000.0, 1000.0, 3000.0]).reshape(-1, 1)
 mdlw.contact_force_kp = np.array([10000.0, 10000.0, 10000.0]).reshape(-1, 1)

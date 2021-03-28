@@ -325,6 +325,7 @@ class ModelWrapper(object):
         model = dict()
         model["NB"] = self.NB
         model["NC"] = self.NC
+        model["nf"] = self.nf
         model["a_grav"] = self.a_grav
         model["jtype"] = self.jtype
         model["jaxis"] = self.jaxis

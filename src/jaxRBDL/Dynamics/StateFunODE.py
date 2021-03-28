@@ -37,9 +37,8 @@ def DynamicsFun(t: float, X: np.ndarray, model: dict, contact_force: dict)->np.n
     # print("In Dynamics!!!")
     # print(flag_contact)
     if np.sum(flag_contact) !=0: 
-        # lambda, fqp, fpd] = SolveContactLCP(q, qdot, tau, flag_contact);
-        lam, fqp, fc, fcqp, fcpd = SolveContactLCP(model, q, qdot, tau, flag_contact, 2, 0.9)
-        # lam, fqp, fc, fcqp, fcpd = CalcContactForceDirect(model, q, qdot, tau, flag_contact, 3)
+        lam, fqp, fc, fcqp, fcpd = SolveContactLCP(model, q, qdot, tau, flag_contact, 0.9)
+        # lam, fqp, fc, fcqp, fcpd = CalcContactForceDirect(model, q, qdot, tau, flag_contact)
         contact_force["fc"] = fc
         contact_force["fcqp"] = fcqp
         contact_force["fcpd"] = fcpd
@@ -162,7 +161,7 @@ def StateFunODE(model: dict, xk: np.ndarray, uk: np.ndarray, T: float):
             flag_contact = DetectContact(model, q, qdot)
 
             # Impact dynamics
-            qdot_impulse = ImpulsiveDynamics(model, q, qdot, flag_contact, nf=2);  
+            qdot_impulse = ImpulsiveDynamics(model, q, qdot, flag_contact);  
             qdot_impulse = qdot_impulse.flatten()
 
             # Update initial state

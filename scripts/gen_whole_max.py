@@ -8,6 +8,7 @@ print(CURRENT_PATH)
 mdlw = ModelWrapper()
 mdlw.load(os.path.join(CURRENT_PATH, 'whole_max_v0.json'))
 
+mdlw.nf = 3
 
 mdlw.contact_force_lb = np.array([-1000.0, -1000.0, 0.0]).reshape(-1, 1)
 mdlw.contact_force_ub = np.array([1000.0, 1000.0, 3000.0]).reshape(-1, 1)

@@ -7,8 +7,9 @@ from jaxRBDL.Contact.GetContactForce import GetContactForce
 import scipy.sparse.linalg as spla
 from scipy.sparse.linalg import gmres
 
-def CheckContactForce(model: dict, flag_contact: np.ndarray, fqp: np.ndarray, nf: int):
+def CheckContactForce(model: dict, flag_contact: np.ndarray, fqp: np.ndarray):
     NC = int(model["NC"])
+    nf = int(model["nf"])
     flag_contact = flag_contact.flatten()
 
     flag_recalc = 0
@@ -25,9 +26,10 @@ def CheckContactForce(model: dict, flag_contact: np.ndarray, fqp: np.ndarray, nf
 
     return flag_newcontact, flag_recalc
 
-def CalcContactForceDirect(model: dict, q: np.ndarray, qdot: np.ndarray, tau: np.ndarray, flag_contact: np.ndarray, nf: int):
+def CalcContactForceDirect(model: dict, q: np.ndarray, qdot: np.ndarray, tau: np.ndarray, flag_contact: np.ndarray):
     NB = int(model["NB"])
     NC = int(model["NC"])
+    nf = int(model["nf"])
         
     flag_recalc = 1
     fqp = np.empty((0, 1))
@@ -42,8 +44,8 @@ def CalcContactForceDirect(model: dict, q: np.ndarray, qdot: np.ndarray, tau: np
             break
 
         # Calculate contact force
-        Jc = CalcContactJacobian(model, q, flag_contact, nf)
-        JcdotQdot = CalcContactJdotQdot(model, q, qdot, flag_contact, nf)
+        Jc = CalcContactJacobian(model, q, flag_contact)
+        JcdotQdot = CalcContactJdotQdot(model, q, qdot, flag_contact)
 
         M = np.matmul(np.matmul(Jc, model["Hinv"]), np.transpose(Jc))
         # print(M)
@@ -56,7 +58,7 @@ def CalcContactForceDirect(model: dict, q: np.ndarray, qdot: np.ndarray, tau: np
      
 
         # Check whether the Fz is positive
-        flag_contact, flag_recalc = CheckContactForce(model, flag_contact, fqp, nf)
+        flag_contact, flag_recalc = CheckContactForce(model, flag_contact, fqp)
         if flag_recalc == 0:
             flcp = np.matmul(np.transpose(Jc), fqp)
         
@@ -64,8 +66,8 @@ def CalcContactForceDirect(model: dict, q: np.ndarray, qdot: np.ndarray, tau: np
         contact_force_kd = np.array([1000.0, 1000.0, 1000.0])
 
         # Calculate contact force from PD controller
-        fpd = CalcContactForcePD(model, q, qdot, flag_contact, contact_force_kp, contact_force_kd, nf)
-        fc, fcqp, fcpd = GetContactForce(model, fqp, fpd, flag_contact, nf)  
+        fpd = CalcContactForcePD(model, q, qdot, flag_contact)
+        fc, fcqp, fcpd = GetContactForce(model, fqp, fpd, flag_contact)  
 
 
     return flcp, fqp, fc, fcqp, fcpd

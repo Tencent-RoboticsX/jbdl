@@ -4,10 +4,11 @@ from jaxRBDL.Contact.CalcContactJacobian import CalcContactJacobian
 from numpy.linalg import matrix_rank
 
 
-def ImpulsiveDynamics(model: dict, q: np.ndarray, qdot: np.ndarray, flag_contact:np.ndarray, nf: int=3)->np.ndarray:
+def ImpulsiveDynamics(model: dict, q: np.ndarray, qdot: np.ndarray, flag_contact:np.ndarray)->np.ndarray:
     q = q.flatten()
     qdot = qdot.flatten()
     NB = int(model["NB"])
+    nf = model["nf"]
 
     try: 
         H = np.squeeze(model["H"], axis=0)
@@ -15,7 +16,7 @@ def ImpulsiveDynamics(model: dict, q: np.ndarray, qdot: np.ndarray, flag_contact
         H = model["H"]
 
 
-    Jc = CalcContactJacobian(model, q, flag_contact, nf)
+    Jc = CalcContactJacobian(model, q, flag_contact)
     rankJc = matrix_rank(Jc)
 
     # Calcualet implusive dynamics for qdot after impulsive

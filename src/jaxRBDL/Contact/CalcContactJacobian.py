@@ -1,9 +1,10 @@
 import numpy as np
 from jaxRBDL.Kinematics.CalcPointJacobian import CalcPointJacobian
 
-def CalcContactJacobian(model: dict, q: np.ndarray, flag_contact: np.ndarray, nf: int=3)->np.ndarray:
+def CalcContactJacobian(model: dict, q: np.ndarray, flag_contact: np.ndarray)->np.ndarray:
     NC = int(model["NC"])
     NB = int(model["NB"])
+    nf = int(model["nf"])
     q = q.flatten()
     flag_contact = flag_contact.flatten()
 
