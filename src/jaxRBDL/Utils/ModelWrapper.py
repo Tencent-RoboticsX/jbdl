@@ -1,6 +1,26 @@
 import numpy as np
 import json
 
+def jsonize(py_dict: dict)->dict:
+    json_model = dict()
+    for key, value in py_dict.items():
+        if isinstance(value, np.ndarray):
+            json_model[key] = value.tolist()
+        elif isinstance(value, list):
+            json_list = []
+            for elem in value:
+                if isinstance(elem, np.ndarray):
+                    json_list.append(elem.tolist())
+                else:
+                    json_list.append(elem)
+            json_model[key] = json_list
+        elif isinstance(value, dict):
+            json_model[key] = jsonize(value)
+        else:
+            json_model[key] = value
+    return json_model
+
+
 class ModelWrapper(object):
 
     def __init__(self, model=None):
@@ -108,6 +128,132 @@ class ModelWrapper(object):
         self._model["NB"] = NB
 
     @property
+    def nf(self):
+        nf = int(self._model["nf"])
+        return nf
+
+    @nf.setter
+    def nf(self, nf):
+        self._model["nf"] = nf
+
+    @property
+    def contact_force_lb(self):
+        contact_force_lb = np.array(self._model["contact_cond"]["contact_force_lb"]).reshape(*(-1, 1))
+        return contact_force_lb
+    
+    @contact_force_lb.setter
+    def contact_force_lb(self, contact_force_lb: np.ndarray):
+        if self._model.get("contact_cond") is None:
+            self._model["contact_cond"] = dict()
+        self._model["contact_cond"]["contact_force_lb"] = contact_force_lb.reshape(*(-1, 1))
+
+    @property
+    def contact_force_ub(self):
+        contact_force_ub = np.array(self._model["contact_cond"]["contact_force_ub"]).reshape(*(-1, 1))
+        return contact_force_ub
+    
+    @contact_force_ub.setter
+    def contact_force_ub(self, contact_force_ub: np.ndarray):
+        if self._model.get("contact_cond") is None:
+            self._model["contact_cond"] = dict()
+        self._model["contact_cond"]["contact_force_ub"] = contact_force_ub.reshape(*(-1, 1))
+
+    @property
+    def contact_force_kp(self):
+        contact_force_kp = np.array(self._model["contact_cond"]["contact_force_kp"]).reshape(*(-1, 1))
+        return contact_force_kp
+
+    @contact_force_kp.setter
+    def contact_force_kp(self, contact_force_kp: np.ndarray):
+        if self._model.get("contact_cond") is None:
+            self._model["contact_cond"] = dict()
+        self._model["contact_cond"]["contact_force_kp"] = contact_force_kp.reshape(*(-1, 1))
+
+    @property
+    def contact_force_kd(self):
+        contact_force_kd = np.array(self._model["contact_cond"]["contact_force_kd"]).reshape(*(-1, 1))
+        return contact_force_kd
+
+    @contact_force_kd.setter
+    def contact_force_kd(self, contact_force_kd: np.ndarray):
+        if self._model.get("contact_cond") is None:
+            self._model["contact_cond"] = dict()
+        self._model["contact_cond"]["contact_force_kd"] = contact_force_kd.reshape(*(-1, 1))
+
+    @property
+    def contact_pos_lb(self):
+        contact_pos_lb = np.array(self._model["contact_cond"]["contact_pos_lb"]).reshape(*(-1, 1))
+        return contact_pos_lb
+
+    @contact_pos_lb.setter
+    def contact_pos_lb(self, contact_pos_lb: np.ndarray):
+        if self._model.get("contact_cond") is None:
+            self._model["contact_cond"] = dict()
+        self._model["contact_cond"]["contact_pos_lb"] = contact_pos_lb.reshape(*(-1, 1))
+
+    @property
+    def contact_pos_ub(self):
+        contact_pos_ub = np.array(self._model["contact_cond"]["contact_pos_ub"]).reshape(*(-1, 1))
+        return contact_pos_ub
+
+    @contact_pos_ub.setter
+    def contact_pos_ub(self, contact_pos_ub: np.ndarray):
+        if self._model.get("contact_cond") is None:
+            self._model["contact_cond"] = dict()
+        self._model["contact_cond"]["contact_pos_ub"] = contact_pos_ub.reshape(*(-1, 1))
+
+    @property
+    def contact_vel_lb(self):
+        contact_vel_lb = np.array(self._model["contact_cond"]["contact_vel_lb"]).reshape(*(-1, 1))
+        return contact_vel_lb
+
+    @contact_vel_lb.setter
+    def contact_vel_lb(self, contact_vel_lb: np.ndarray):
+        if self._model.get("contact_cond") is None:
+            self._model["contact_cond"] = dict()
+        self._model["contact_cond"]["contact_vel_lb"] = contact_vel_lb.reshape(*(-1, 1))
+
+    @property
+    def contact_vel_ub(self):
+        contact_vel_ub = np.array(self._model["contact_cond"]["contact_vel_ub"]).reshape(*(-1, 1))
+        return contact_vel_ub
+
+    @contact_vel_ub.setter
+    def contact_vel_ub(self, contact_vel_ub: np.ndarray):
+        if self._model.get("contact_cond") is None:
+            self._model["contact_cond"] = dict()
+        self._model["contact_cond"]["contact_vel_ub"] = contact_vel_ub.reshape(*(-1, 1))
+
+
+      
+
+
+    @property
+    def contact_cond(self):
+        contact_cond = self._model.get("contact_cond", None)
+        return contact_cond
+
+    @contact_cond.setter
+    def contact_cond(self, contact_cond: dict):
+        contact_force_lb = contact_cond.get("contact_force_lb")
+        contact_force_ub = contact_cond.get("contact_force_ub")
+        contact_force_kp = contact_cond.get("contact_force_kp")
+        contact_force_kd = contact_cond.get("contact_force_kd")
+        if contact_force_lb is not None:
+            self.contact_force_lb = contact_force_lb
+        if contact_force_ub is not None:
+            self.contact_force_ub = contact_force_ub
+        if contact_force_kp is not None:
+            self.contact_force_kp = contact_force_kp
+        if contact_force_kd is not None:
+            self.contact_force_kd = contact_force_kd
+
+
+
+
+
+
+    @property
     def NC(self):
         NC = int(self._model["NC"])
         return NC
@@ -194,24 +340,12 @@ class ModelWrapper(object):
         model["Inertia"] = self.Inertia
         model["Mass"] = self.Mass
         model["ST"] = self.ST
+        model["contact_cond"] = self.contact_cond
         return model
 
     @property
     def json(self):
-        json_model = dict()
-        for key, value in self.model.items():
-            if isinstance(value, np.ndarray):
-                json_model[key] = value.tolist()
-            elif isinstance(value, list):
-                json_list = []
-                for elem in value:
-                    if isinstance(elem, np.ndarray):
-                        json_list.append(elem.tolist())
-                    else:
-                        json_list.append(elem)
-                json_model[key] = json_list
-            else:
-                json_model[key] = value
+        json_model = jsonize(self.model)
         return json_model    
 
     def save(self, file_path: str):
@@ -229,6 +363,11 @@ class ModelWrapper(object):
                 model[key] = [np.asarray(elem) for elem in value]
             elif key in ["a_grav", "Mass", "ST"]:
                 model[key] = np.asfarray(value)
+            elif key in ["contact_cond"]:
+                sub_model = dict()
+                for sub_key, sub_value in value.items():
+                    sub_model[sub_key] = np.asfarray(sub_value)
+                model[key] = sub_model
             else:
                 model[key] = value
         self._model = model

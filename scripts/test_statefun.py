@@ -14,13 +14,16 @@ from jaxRBDL.Dynamics.StateFunODE import StateFunODE
 import matplotlib
 from jaxRBDL.Utils.ModelWrapper import ModelWrapper
 matplotlib.use('TkAgg')
+# from jax.config import config
+# config.update('jax_disable_jit', True)
 
 CURRENT_PATH = os.path.dirname(os.path.realpath(__file__))
 print(CURRENT_PATH)
 mdlw = ModelWrapper()
-mdlw.load(os.path.join(CURRENT_PATH, 'MaxHalf_v1.json'))
+mdlw.load(os.path.join(CURRENT_PATH, 'half_max_v1.json'))
 print(type(mdlw))
 model = mdlw.model
+# print(model["contact_cond"])
 
 q = np.array([0.0,  0.4125, 0.0, math.pi/6, math.pi/6, -math.pi/3, -math.pi/3]) # stand high
 q = np.array([0.0,  0.2382, 0.0, math.pi/3, math.pi/3, -2*math.pi/3, -2*math.pi/3])  # stand low
@@ -93,16 +96,16 @@ T = 2e-3
 xksv = []
 
 # Set Contact Conditions.
-contact_cond = dict()
-contact_cond["contact_pos_lb"] = np.array([0.0001, 0.0001, 0.0001]).reshape(-1, 1)
-contact_cond["contact_pos_ub"] = np.array([0.0001, 0.0001, 0.0001]).reshape(-1, 1)
-contact_cond["contact_vel_lb"] = np.array([-0.05, -0.05, -0.05]).reshape(-1, 1)
-contact_cond["contact_vel_ub"] = np.array([0.01, 0.01, 0.01]).reshape(-1, 1)
+# contact_cond = dict()
+# contact_cond["contact_pos_lb"] = np.array([0.0001, 0.0001, 0.0001]).reshape(-1, 1)
+# contact_cond["contact_pos_ub"] = np.array([0.0001, 0.0001, 0.0001]).reshape(-1, 1)
+# contact_cond["contact_vel_lb"] = np.array([-0.05, -0.05, -0.05]).reshape(-1, 1)
+# contact_cond["contact_vel_ub"] = np.array([0.01, 0.01, 0.01]).reshape(-1, 1)
 
 for i in range(100):
     print(i)
     u = kp * (q0[3:7] - xk[3:7]) + kd * (qd0[3:7] - xk[10:14])
-    xk, contact_force = StateFunODE(model, xk.flatten(), u.flatten(), T, contact_cond)
+    xk, contact_force = StateFunODE(model, xk.flatten(), u.flatten(), T)
     xk = xk.reshape(-1, 1)
 
     xksv.append(xk)

@@ -10,7 +10,7 @@ from jaxRBDL.Contact.ImpulsiveDynamics import ImpulsiveDynamics
 from jaxRBDL.Contact.SolveContactLCP import SolveContactLCP
 from scipy.integrate import solve_ivp
 
-def DynamicsFun(t: float, X: np.ndarray, model: dict, contact_cond: dict, contact_force: dict)->np.ndarray:
+def DynamicsFun(t: float, X: np.ndarray, model: dict, contact_force: dict)->np.ndarray:
     # print(X.shape)
     
     NB = int(model["NB"])
@@ -30,23 +30,15 @@ def DynamicsFun(t: float, X: np.ndarray, model: dict, contact_cond: dict, contac
     model["C"] = InverseDynamics(model, q, qdot, np.zeros((NB, 1)))
     model["Hinv"] = inv(model["H"])
 
-    # # Set Contact Conditions.
-    # contact_cond = dict()
-    # contact_cond["contact_pos_lb"] = np.array([0.0001, 0.0001, 0.0001])
-    # contact_cond["contact_pos_ub"] = np.array([0.0001, 0.0001, 0.0001])
-    # contact_cond["contact_vel_lb"] = np.array([-0.05, -0.05, -0.05])
-    # contact_cond["contact_vel_ub"] = np.array([0.01, 0.01, 0.01])
+
 
     # Calculate contact force in joint space
-    flag_contact = DetectContact(model, q, qdot, contact_cond)
+    flag_contact = DetectContact(model, q, qdot)
     # print("In Dynamics!!!")
     # print(flag_contact)
     if np.sum(flag_contact) !=0: 
         # lambda, fqp, fpd] = SolveContactLCP(q, qdot, tau, flag_contact);
-        contact_cond = dict()
-        contact_cond["contact_force_lb"] = np.array([-1000.0, -1000.0, 0.0])
-        contact_cond["contact_force_ub"] = np.array([1000.0, 1000.0, 3000.0])
-        lam, fqp, fc, fcqp, fcpd = SolveContactLCP(model, q, qdot, tau, flag_contact, 2, contact_cond, 0.9)
+        lam, fqp, fc, fcqp, fcpd = SolveContactLCP(model, q, qdot, tau, flag_contact, 2, 0.9)
         # lam, fqp, fc, fcqp, fcpd = CalcContactForceDirect(model, q, qdot, tau, flag_contact, 3)
         contact_force["fc"] = fc
         contact_force["fcqp"] = fcqp
@@ -68,7 +60,7 @@ def DynamicsFun(t: float, X: np.ndarray, model: dict, contact_cond: dict, contac
 
     return Xdot
 
-def EventsFun(t: float, X: np.ndarray, model: dict, contact_cond: dict, contact_force: dict=dict()):
+def EventsFun(t: float, X: np.ndarray, model: dict, contact_force: dict=dict()):
     NB = int(model["NB"])
     NC = int(model["NC"])
    
@@ -89,7 +81,7 @@ def EventsFun(t: float, X: np.ndarray, model: dict, contact_cond: dict, contact_
         contactpoint = model["contactpoint"]
 
     # Detect contact
-    flag_contact = DetectContact(model, q, qdot, contact_cond)
+    flag_contact = DetectContact(model, q, qdot)
     # print("In EventsFun!!!")
     # print(flag_contact)
     value_list = []
@@ -104,7 +96,7 @@ def EventsFun(t: float, X: np.ndarray, model: dict, contact_cond: dict, contact_
 
 
 
-def StateFunODE(model: dict, xk: np.ndarray, uk: np.ndarray, T: float, contact_cond: dict):
+def StateFunODE(model: dict, xk: np.ndarray, uk: np.ndarray, T: float):
 
     NB = int(model["NB"])
     NC = int(model["NC"])
@@ -127,12 +119,12 @@ def StateFunODE(model: dict, xk: np.ndarray, uk: np.ndarray, T: float, contact_c
 
     te = t0
 
-    def hit_ground(t, x, model, contact_cond, contact_force, idx=0):
-        res = EventsFun(t, x, model, contact_cond, contact_force)
+    def hit_ground(t, x, model,  contact_force, idx=0):
+        res = EventsFun(t, x, model, contact_force)
         res = res.flatten()
         return res[idx]
     
-    event_list = [lambda t, x, model, contact_cond, contact_force:  hit_ground(t, x, model, contact_cond, contact_force, idx=i) for i in range(NC)]
+    event_list = [lambda t, x, model,  contact_force:  hit_ground(t, x, model, contact_force, idx=i) for i in range(NC)]
 
     for event in event_list:
         event.terminal = True
@@ -147,7 +139,7 @@ def StateFunODE(model: dict, xk: np.ndarray, uk: np.ndarray, T: float, contact_c
     while status != 0:
         # ODE calculate 
         sol = solve_ivp(DynamicsFun, tspan, x0.flatten(), method='RK45', events=event_list, \
-            args=(model, contact_cond, contact_force), rtol=1e-3, atol=1e-4)
+            args=(model, contact_force), rtol=1e-3, atol=1e-4)
         status = sol.status
         assert status != -1, "Integration Failed!!!"
 
@@ -167,7 +159,7 @@ def StateFunODE(model: dict, xk: np.ndarray, uk: np.ndarray, T: float, contact_c
             qdot = xe[NB:2* NB]
 
             # Detect contact
-            flag_contact = DetectContact(model, q, qdot, contact_cond)
+            flag_contact = DetectContact(model, q, qdot)
 
             # Impact dynamics
             qdot_impulse = ImpulsiveDynamics(model, q, qdot, flag_contact, nf=2);  

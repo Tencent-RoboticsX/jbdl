@@ -101,9 +101,10 @@ def quadprog(H, f, L=None, k=None, Aeq=None, beq=None, lb=None, ub=None, options
 
 
 def SolveContactLCP(model: dict, q: np.ndarray, qdot: np.ndarray, tau: np.ndarray, \
-    flag_contact: np.ndarray, nf: int, contact_cond: dict, mu: float):
+    flag_contact: np.ndarray, nf: int,  mu: float):
     
     NC = int(model["NC"])
+    contact_cond = model["contact_cond"]
     contact_force_lb = contact_cond["contact_force_lb"].flatten()
     contact_force_ub = contact_cond["contact_force_ub"].flatten()
     if nf == 2:
