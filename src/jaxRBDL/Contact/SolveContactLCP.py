@@ -142,7 +142,9 @@ def SolveContactLCP(model: dict, q: np.ndarray, qdot: np.ndarray, tau: np.ndarra
         ub[i*nf:(i+1)*nf, 0] = contact_force_ub
 
     # QP optimize contact force in world space
-    fqp, status = quadprog(0.5 * (M+M.transpose()), d, A, b, None, None, lb, ub)
+    H = np.asfarray(0.5 * (M+M.transpose()))
+    d = np.asfarray(d)
+    fqp, status = quadprog(H, d, A, b, None, None, lb, ub)
     
     if status != 'optimal':
         print('QP solve failed: status = %', status)

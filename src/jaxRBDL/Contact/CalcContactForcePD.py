@@ -11,7 +11,7 @@ def CalcContactForcePD(model: dict, q: np.ndarray, qdot: np.ndarray,
     nf = int(model["nf"])
     q = q.flatten()
     qdot = qdot.flatten()
-    flag_contact = flag_contact.flatten()
+    flag_contact = flag_contact
     contact_cond = model["contact_cond"]
     contact_force_kp = contact_cond["contact_force_kp"].flatten()
     contact_force_kd = contact_cond["contact_force_kd"].flatten()

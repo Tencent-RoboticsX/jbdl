@@ -37,8 +37,8 @@ def DynamicsFun(t: float, X: np.ndarray, model: dict, contact_force: dict)->np.n
     # print("In Dynamics!!!")
     # print(flag_contact)
     if np.sum(flag_contact) !=0: 
-        lam, fqp, fc, fcqp, fcpd = SolveContactLCP(model, q, qdot, tau, flag_contact, 0.9)
-        # lam, fqp, fc, fcqp, fcpd = CalcContactForceDirect(model, q, qdot, tau, flag_contact)
+        # lam, fqp, fc, fcqp, fcpd = SolveContactLCP(model, q, qdot, tau, flag_contact, 0.9)
+        lam, fqp, fc, fcqp, fcpd = CalcContactForceDirect(model, q, qdot, tau, flag_contact)
         contact_force["fc"] = fc
         contact_force["fcqp"] = fcqp
         contact_force["fcpd"] = fcpd
@@ -49,17 +49,18 @@ def DynamicsFun(t: float, X: np.ndarray, model: dict, contact_force: dict)->np.n
         contact_force["fcqp"] = np.zeros((3*NC, 1))
         contact_force["fcpd"] = np.zeros((3*NC, 1))
 
-
+    print("11111111111111111111")
     # Forward dynamics
     Tau = tau + lam
     qddot = ForwardDynamics(model, q, qdot, Tau).flatten()
 
     # Return Xdot
     Xdot = np.asfarray(np.hstack([qdot, qddot]))
-
+    print("2222222222222222222222")
     return Xdot
 
 def EventsFun(t: float, X: np.ndarray, model: dict, contact_force: dict=dict()):
+    print("6666666666666666666666")
     NB = int(model["NB"])
     NC = int(model["NC"])
    
@@ -71,24 +72,22 @@ def EventsFun(t: float, X: np.ndarray, model: dict, contact_force: dict=dict()):
     value = np.ones((NC, 1))
     isterminal = np.ones((NC, 1))
     direction = -np.ones((NC, 1))
-
-    try: 
-        idcontact = np.squeeze(model["idcontact"], axis=0).astype(int)
-        contactpoint = np.squeeze(model["contactpoint"], axis=0)
-    except:
-        idcontact = model["idcontact"]
-        contactpoint = model["contactpoint"]
-
+    idcontact = model["idcontact"]
+    contactpoint = model["contactpoint"]
+    
+    print("77777777777777777777777777")
     # Detect contact
     flag_contact = DetectContact(model, q, qdot)
     # print("In EventsFun!!!")
     # print(flag_contact)
+    print("8888888888888888888")
     value_list = []
     for i in range(NC):
         if flag_contact[i]==2: # Impact
             # Calculate foot height 
             endpos = CalcBodyToBaseCoordinates(model, q, idcontact[i], contactpoint[i])
             value[i,0] = endpos[2, 0]
+    print("9999999999999999999")
 
     return value
 
@@ -118,16 +117,25 @@ def StateFunODE(model: dict, xk: np.ndarray, uk: np.ndarray, T: float):
 
     te = t0
 
-    def hit_ground(t, x, model,  contact_force, idx=0):
-        res = EventsFun(t, x, model, contact_force)
-        res = res.flatten()
-        return res[idx]
+    # def hit_ground(t, x, model,  contact_force, idx=0):
+    #     res = EventsFun(t, x, model, contact_force)
+    #     res = res.flatten()
+    #     return res[idx]
     
-    event_list = [lambda t, x, model,  contact_force:  hit_ground(t, x, model, contact_force, idx=i) for i in range(NC)]
+    # event_list = [lambda t, x, model,  contact_force:  hit_ground(t, x, model, contact_force, idx=i) for i in range(NC)]
 
-    for event in event_list:
-        event.terminal = True
-        event.direction = -1
+    def event(t, x, model, contact_force):
+        res = EventsFun(t, x, model, contact_force)
+        res = np.min(res.flatten())
+        return res
+
+    event.terminal = True
+    event.direction = -1
+
+
+    # for event in event_list:
+    #     event.terminal = True
+    #     event.direction = -1
 
     # t_events = [np.array([], dtype=float) for i in range(NC)]
     
@@ -136,8 +144,9 @@ def StateFunODE(model: dict, xk: np.ndarray, uk: np.ndarray, T: float):
     contact_force = dict()
 
     while status != 0:
+        print("00000000000000000000000")
         # ODE calculate 
-        sol = solve_ivp(DynamicsFun, tspan, x0.flatten(), method='RK45', events=event_list, \
+        sol = solve_ivp(DynamicsFun, tspan, x0.flatten(), method='RK45', events=event, \
             args=(model, contact_force), rtol=1e-3, atol=1e-4)
         status = sol.status
         assert status != -1, "Integration Failed!!!"
@@ -157,16 +166,20 @@ def StateFunODE(model: dict, xk: np.ndarray, uk: np.ndarray, T: float):
             q = xe[0:NB]
             qdot = xe[NB:2* NB]
 
+            print("33333333333333333333333")
             # Detect contact
             flag_contact = DetectContact(model, q, qdot)
 
             # Impact dynamics
+            print("4444444444444444444444444")
+            print(flag_contact)
             qdot_impulse = ImpulsiveDynamics(model, q, qdot, flag_contact);  
             qdot_impulse = qdot_impulse.flatten()
 
             # Update initial state
             x0 = np.hstack([q, qdot_impulse])
             tspan = (te, tf)
+            print("5555555555555555555555555")
 
     xk = sol.y[:, -1]
     return xk, contact_force
