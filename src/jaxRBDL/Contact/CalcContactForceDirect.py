@@ -43,7 +43,7 @@ def CalcContactForceDirectCore(Xtree, q, qdot, contactpoint, H, tau, C, idcontac
     # d0 = jnp.matmul(np.matmul(Jc, Hinv), tau - C)
     d = jnp.add(d0, JcdotQdot)
     fqp = -jnp.linalg.solve(M,d)
-    flcp = jnp.matmul(np.transpose(Jc), fqp)
+    flcp = jnp.matmul(jnp.transpose(Jc), fqp)
     return flcp, fqp
         
 def CalcContactForceDirect(model: dict, q: np.ndarray, qdot: np.ndarray, tau: np.ndarray, flag_contact: np.ndarray):

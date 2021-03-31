@@ -1,63 +1,86 @@
 import numpy as np
-from jaxRBDL.Dynamics.CompositeRigidBodyAlgorithm import CompositeRigidBodyAlgorithm
-from jaxRBDL.Dynamics.InverseDynamics import InverseDynamics
+from jaxRBDL.Dynamics.CompositeRigidBodyAlgorithm import CompositeRigidBodyAlgorithm, CompositeRigidBodyAlgorithmCore
+from jaxRBDL.Dynamics.InverseDynamics import InverseDynamics, InverseDynamicsCore
 from numpy.linalg import inv
 from jaxRBDL.Contact.DetectContact import DetectContact
 from jaxRBDL.Contact.CalcContactForceDirect import CalcContactForceDirect
-from jaxRBDL.Dynamics.ForwardDynamics import ForwardDynamics
+from jaxRBDL.Dynamics.ForwardDynamics import ForwardDynamics, ForwardDynamicsCore
 from jaxRBDL.Kinematics.CalcBodyToBaseCoordinates import CalcBodyToBaseCoordinates
 from jaxRBDL.Contact.ImpulsiveDynamics import ImpulsiveDynamics
 from jaxRBDL.Contact.SolveContactLCP import SolveContactLCP
+from jaxRBDL.Contact.SolveContactSimpleLCP import SolveContactSimpleLCP, SolveContactSimpleLCPCore
 from scipy.integrate import solve_ivp
+import jax.numpy as jnp
+from jaxRBDL.Contact.GetContactForce import GetContactForce
+from jax.api import jit
+from functools import partial
+
+@partial(jit, static_argnums=(7, 8, 9, 10, 11, 12, 13, 14, 15))
+def DynamicsFunCore(Xtree, I, q, qdot, contactpoint, tau, a_grav, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, rankJc):
+    H =  CompositeRigidBodyAlgorithmCore(Xtree, I, parent, jtype, jaxis, NB, q)
+    C =  InverseDynamicsCore(Xtree, I, parent, jtype, jaxis, NB, q, qdot, jnp.zeros_like(q), a_grav)
+    lam = jnp.zeros((NB, ))
+    fqp = jnp.zeros((rankJc, 1))
+
+    if np.sum(flag_contact) !=0: 
+        lam, fqp = SolveContactSimpleLCPCore(Xtree, q, qdot, contactpoint, H, tau, C, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
+
+
+    ttau = tau + lam
+    qddot = ForwardDynamicsCore(Xtree, I, parent, jtype, jaxis, NB, q, qdot, ttau, a_grav)
+    xdot = jnp.hstack([qdot, qddot])
+    return xdot, fqp, H
 
 def DynamicsFun(t: float, X: np.ndarray, model: dict, contact_force: dict)->np.ndarray:
     # print(X.shape)
     
-    NB = int(model["NB"])
     NC = int(model["NC"])
-    ST = model["ST"]
+    NB = int(model["NB"])
+    nf = int(model["nf"])
 
-
-
-    # Get q qdot tau
     q = X[0:NB]
     qdot = X[NB: 2 * NB]
     tau = model["tau"]
 
+    NC = int(model["NC"])
+    NB = int(model["NB"])
+    nf = int(model["nf"])
+    Xtree = model["Xtree"]
+    contactpoint = model["contactpoint"],
+    idcontact = tuple(model["idcontact"])
+    parent = tuple(model["parent"])
+    jtype = tuple(model["jtype"])
+    jaxis = model["jaxis"]
+    contactpoint = model["contactpoint"]
+    I = model["I"]
+    a_grav = model["a_grav"]
 
-    # Calcualte H C 
-    model["H"] = CompositeRigidBodyAlgorithm(model, q)
-    model["C"] = InverseDynamics(model, q, qdot, np.zeros((NB, 1)))
-    model["Hinv"] = inv(model["H"])
 
-
-
-    # Calculate contact force in joint space
+    # Calculate flag_contact
     flag_contact = DetectContact(model, q, qdot)
-    # print("In Dynamics!!!")
-    # print(flag_contact)
+    rankJc = int(np.sum( [1 for item in flag_contact if item != 0]) * model["nf"])
+
+
+
+    # Dynamics Function Core
+    xdot, fqp, H = DynamicsFunCore(Xtree, I, q, qdot, contactpoint, tau, a_grav, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, rankJc)
+    model["H"] = H
+    # Calculate contact force fot plotting.
+    fc = np.zeros((3*NC, 1))
+    fcqp = np.zeros((3*NC, 1))  
+    fcpd = np.zeros((3*NC, 1))
+
     if np.sum(flag_contact) !=0: 
-        # lam, fqp, fc, fcqp, fcpd = SolveContactLCP(model, q, qdot, tau, flag_contact, 0.9)
-        lam, fqp, fc, fcqp, fcpd = CalcContactForceDirect(model, q, qdot, tau, flag_contact)
-        contact_force["fc"] = fc
-        contact_force["fcqp"] = fcqp
-        contact_force["fcpd"] = fcpd
-    else:
-        # print("No Conatact")
-        lam = np.zeros((NB, 1))
-        contact_force["fc"] = np.zeros((3*NC, 1))
-        contact_force["fcqp"] = np.zeros((3*NC, 1))
-        contact_force["fcpd"] = np.zeros((3*NC, 1))
+        fpd = np.zeros((3*NC, 1))
+        fc, fcqp, fcpd = GetContactForce(model, fqp, fpd, flag_contact)
 
-    print("11111111111111111111")
-    # Forward dynamics
-    Tau = tau + lam
-    qddot = ForwardDynamics(model, q, qdot, Tau).flatten()
+    contact_force["fc"] = fc
+    contact_force["fcqp"] = fcqp
+    contact_force["fcpd"] = fcpd
 
-    # Return Xdot
-    Xdot = np.asfarray(np.hstack([qdot, qddot]))
-    print("2222222222222222222222")
-    return Xdot
+    return xdot
+
+
 
 def EventsFun(t: float, X: np.ndarray, model: dict, contact_force: dict=dict()):
     print("6666666666666666666666")

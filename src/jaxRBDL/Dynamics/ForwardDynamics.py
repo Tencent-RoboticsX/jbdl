@@ -58,7 +58,7 @@ def ForwardDynamicsCore(Xtree, I, parent, jtype, jaxis, NB, q, qdot, tau, a_grav
         
         a[i] = a[i] + jnp.multiply(S[i],  qddot[i])
 
-    qddot = jnp.reshape(jnp.stack(qddot), (NB, 1))
+    qddot = jnp.reshape(jnp.stack(qddot), (NB, ))
     return qddot
 
 def ForwardDynamics(model, q, qdot, tau):    
