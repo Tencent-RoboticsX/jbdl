@@ -8,10 +8,6 @@ to install jaxRBDL.
 ## Examples.
 Go to scripts directory, and run
 ```
-python test_statefun.py
-``` 
-or
-```
-python test_wholeMax.py
+python test_whole_max.py
 ```
  
