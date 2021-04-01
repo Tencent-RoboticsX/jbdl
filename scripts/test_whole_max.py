@@ -42,7 +42,7 @@ def jit_compiled(model):
         0, 0.5, -0.8,  # br
         0, 0.5, -0.8]) # bl
     qdot = np.ones(NB)
-    qddot = np.ones(NB)
+    # qddot = np.ones(NB)
     tau = np.concatenate([np.zeros(6), np.ones(NB-6)])
     for flag_contact in flag_contact_list:
         print("Jit compiled for %s ..." % str(flag_contact))
