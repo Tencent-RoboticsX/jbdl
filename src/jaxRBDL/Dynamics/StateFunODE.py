@@ -63,8 +63,8 @@ def DynamicsFun(t: float, X: np.ndarray, model: dict, contact_force: dict)->np.n
 
 
     # Dynamics Function Core
-    print("111111111111111111111")
-    print(flag_contact)
+    # print("111111111111111111111")
+    # print(flag_contact)
     xdot, fqp, H = DynamicsFunCore(Xtree, I, q, qdot, contactpoint, tau, a_grav, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, rankJc)
     model["H"] = H
     # Calculate contact force fot plotting.
@@ -93,7 +93,7 @@ def EventsFunCore(Xtree, q, contactpoint, idcontact, flag_contact, parent, jtype
     return value
 
 def EventsFun(t: float, x: np.ndarray, model: dict, contact_force: dict=dict()):
-    print("6666666666666666666666")
+    # print("6666666666666666666666")
     NB = int(model["NB"])
     NC = int(model["NC"])
    
@@ -111,11 +111,11 @@ def EventsFun(t: float, x: np.ndarray, model: dict, contact_force: dict=dict()):
 
 
     
-    print("77777777777777777777777777")
+    # print("77777777777777777777777777")
     # Detect contact
     flag_contact = DetectContact(model, q, qdot)
     # print("In EventsFun!!!")
-    print(flag_contact)
+    # print(flag_contact)
     # print("8888888888888888888")
 
     value = EventsFunCore(Xtree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NC)
@@ -235,10 +235,11 @@ def StateFunODE(model: dict, xk: np.ndarray, uk: np.ndarray, T: float):
             # print("33333333333333333333333")
             # Detect contact
             flag_contact = DetectContact(model, q, qdot)
+            # print(flag_contact)
 
             # Impact dynamics
             # print("4444444444444444444444444")
-            print(flag_contact)
+            # print(flag_contact)
             qdot_impulse = ImpulsiveDynamics(model, q, qdot, flag_contact);  
             qdot_impulse = qdot_impulse.flatten()
 

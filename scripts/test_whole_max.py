@@ -13,135 +13,97 @@ from mpl_toolkits.mplot3d.axes3d import Axes3D
 from jaxRBDL.Dynamics.StateFunODE import StateFunODE
 import matplotlib
 from jaxRBDL.Utils.ModelWrapper import ModelWrapper
+from jaxRBDL.Dynamics.StateFunODE import DynamicsFunCore, EventsFunCore
+from jaxRBDL.Contact.DetectContact import DetectContactCore
+from jaxRBDL.Contact.ImpulsiveDynamics import ImpulsiveDynamicsCore
+import time
 # matplotlib.use('TkAgg')
-# import platform
-# if platform.system() == 'Darwin':
-#     matplotlib.use('MacOSX')
 
 CURRENT_PATH = os.path.dirname(os.path.realpath(__file__))
-print(CURRENT_PATH)
-mdlw = ModelWrapper()
-mdlw.load(os.path.join(CURRENT_PATH, 'whole_max_v1.json'))
-print(type(mdlw))
-model = mdlw.model
 
-q = np.array([0, 0, 0.27, 0, 0, 0,
-    0, 0.5, -0.8,  # fr
-    0, 0.5, -0.8,  # fl
-    0, 0.5, -0.8,  # br
-    0, 0.5, -0.8]) # bl
-# q = np.array([0.0,  0.4125, 0.0, math.pi/6, math.pi/6, -math.pi/3, -math.pi/3]) # stand high
-# q = np.array([0.0,  0.2382, 0.0, math.pi/3, math.pi/3, -2*math.pi/3, -2*math.pi/3])  # stand low
-# q = np.array([0.0,  0.456, -math.pi/2, math.pi/6, 2.7487, 0, -2.0070]) # stand end
+def jit_compiled(model):
+    NC = int(model["NC"])
+    NB = int(model["NB"])
+    nf = int(model["nf"])
+    Xtree = model["Xtree"]
+    contactpoint = model["contactpoint"],
+    idcontact = tuple(model["idcontact"])
+    parent = tuple(model["parent"])
+    jtype = tuple(model["jtype"])
+    jaxis = model["jaxis"]
+    contactpoint = model["contactpoint"]
+    a_grav = model["a_grav"]
+    flag_contact_list = [(0, 0, 0, 0), (1, 1, 1, 1), (2, 2, 2, 2)]
+    I = model["I"]
+    q = np.array([
+        0, 0, 0.27, 0, 0, 0, # base
+        0, 0.5, -0.8,  # fr
+        0, 0.5, -0.8,  # fl
+        0, 0.5, -0.8,  # br
+        0, 0.5, -0.8]) # bl
+    qdot = np.ones(NB)
+    qddot = np.ones(NB)
+    tau = np.concatenate([np.zeros(6), np.ones(NB-6)])
+    for flag_contact in flag_contact_list:
+        print("Jit compiled for %s ..." % str(flag_contact))
+        start_time = time.time()
+        rankJc = int(np.sum( [1 for item in flag_contact if item != 0]) * model["nf"])
+        xdot, fqp, H = DynamicsFunCore(Xtree, I, q, qdot, contactpoint, tau, a_grav, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, rankJc)
+        value = EventsFunCore(Xtree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NC)
+        end_pos, end_vel = DetectContactCore(Xtree, q, qdot, contactpoint, idcontact, parent, jtype, jaxis, NC)
+        qdot_impulse = ImpulsiveDynamicsCore(Xtree, q, qdot, contactpoint, H, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, rankJc)
+        H.block_until_ready()
+        fqp.block_until_ready()
+        xdot.block_until_ready()
+        value.block_until_ready()
+        [pos.block_until_ready() for pos in end_pos]
+        [vel.block_until_ready() for vel in end_vel]
+        qdot_impulse.block_until_ready()
+        duarion = time.time() - start_time
+        print("Jit compiled time for %s is %s." % (str(flag_contact), duarion))
 
-qdot = np.zeros((18, 1))
-
-# fig = plt.gcf()
-# ax = Axes3D(fig)
-# ax.set_ylim3d(-1.0, 1.0)
-# PlotModel(model, q, ax)
-# PlotCoMInertia(model, q, ax)
-# ax.view_init(elev=0,azim=-90)
-# ax.set_xlabel('X')
-# ax.set_xlim(-0.3, -0.3+0.8)
-# ax.set_ylabel('Y')
-# ax.set_ylim(-0.15, -0.15+0.8)
-# ax.set_zlabel('Z')
-# ax.set_zlim(-0.1, -0.1+0.8)
-# plt.show()
-
-idcontact = model["idcontact"]
-contactpoint = model["contactpoint"]
-# idbase = 6
-
-# pos, vel = CalcPosVelPointToBase(model, q, qdot, idcontact[0], idbase, contactpoint[0])
-# pos, vel = CalcPosVelPointToBase(model, q, qdot, idcontact[1], idbase, contactpoint[1])
-
-# q0 = np.array([0,  0.4127, 0, math.pi/6, math.pi/6, -math.pi/3, -math.pi/3]) # stand high
-# q0 = np.array([0,  0.45, 0, -math.pi/6, math.pi/6, math.pi/3, -math.pi/3]) # stand with leg out
-# q0 = np.array([0,  0.4127, 0, math.pi/6, -math.pi/6, -math.pi/3, math.pi/3]) # stand with leg in
-# q0 = np.array([0,  0.43, 0, math.pi/6, -math.pi/6, -math.pi/3, math.pi/3]) # stand with leg in
-# q0 = np.array([0,  0.2382, 0, math.pi/3, math.pi/3, -2*math.pi/3, -2*math.pi/3]) # stand low
-q0 = np.array([0, 0, 0.5, 0.0, 0, 0,
-    0, 0.5, -0.8,  # fr
-    0, 0.5, -0.8,  # fl
-    0, 0.5, -0.8,  # br
-    0, 0.5, -0.8]) # bl
+         
 
 
+if __name__ == "__main__":
+    mdlw = ModelWrapper()
+    mdlw.load(os.path.join(CURRENT_PATH, 'whole_max_v1.json'))
+    model = mdlw.model
+    jit_compiled(model)
 
-plt.ion()
-plt.figure()
-fig = plt.gcf()
-ax = Axes3D(fig)  
+    idcontact = model["idcontact"]
+    contactpoint = model["contactpoint"]
+    q0 = np.array([0, 0, 0.5, 0.0, 0, 0,
+        0, 0.5, -0.8,  # fr
+        0, 0.5, -0.8,  # fl
+        0, 0.5, -0.8,  # br
+        0, 0.5, -0.8]) # bl
 
-# for i in range(100):
-#     print(i)
+    q0 = q0.reshape(-1, 1)
+    qd0 = np.zeros((18, 1))
+    x0 = np.vstack([q0, qd0])
+    u0 = np.zeros((12, 1))
 
-#     q0 = np.array([0, 0, 0.6 - i * 0.001, 0.0, 0, 0,
-#         0, 0.5, -0.8,  # fr
-#         0, 0.5, -0.8,  # fl
-#         0, 0.5, -0.8,  # br
-#         0, 0.5, -0.8]) # bl
-
-#     ax = plt.gca()
-#     ax.clear()
-#     PlotModel(model, q0, ax)
-#     ax.view_init(elev=0,azim=-90)
-#     ax.set_xlabel('X')
-#     ax.set_xlim(-0.3, -0.3+0.6)
-#     ax.set_ylabel('Y')
-#     ax.set_ylim(-0.15, -0.15+0.6)
-#     ax.set_zlabel('Z')
-#     ax.set_zlim(-0.1, -0.1+0.6)
-#     plt.pause(0.001)
-#     plt.show()
-
-ax = plt.gca()
-ax.clear()
-PlotModel(model, q0, ax)
-ax.view_init(elev=0,azim=-90)
-ax.set_xlabel('X')
-ax.set_xlim(-0.3, -0.3+0.6)
-ax.set_ylabel('Y')
-ax.set_ylim(-0.15, -0.15+0.6)
-ax.set_zlabel('Z')
-ax.set_zlim(-0.1, -0.1+0.6)
-plt.pause(0.001)
-plt.show()
-
-q0 = q0.reshape(-1, 1)
-
-qd0 = np.zeros((18, 1))
-x0 = np.vstack([q0, qd0])
-u0 = np.zeros((12, 1))
-
-xk = x0
-u = u0
-kp = 200
-kd = 3
-kp = 50
-kd = 1
-xksv = []
-T = 2e-3
-xksv = []
+    xk = x0
+    u = u0
+    kp = 200
+    kd = 3
+    kp = 50
+    kd = 1
+    xksv = []
+    T = 2e-3
+    xksv = []
 
 
+    
 
-for i in range(1000):
-    print(i)
-    u = kp * (q0[6:18] - xk[6:18]) + kd * (qd0[6:18] - xk[24:36])
-    xk, contact_force = StateFunODE(model, xk.flatten(), u.flatten(), T)
-    xk = xk.reshape(-1, 1)
-
-    xksv.append(xk)
-    print(xk)
-    # ax = plt.gca()
+    plt.ion()
+    plt.figure()
+    fig = plt.gcf()
+    ax = Axes3D(fig)  
+    ax = plt.gca()
     ax.clear()
-    PlotModel(model, xk[0:18], ax)
-    # fcqp = np.array([0, 0, 1, 0, 0, 1])
-    # print(contact_force["fcqp"])
-    PlotContactForce(model, xk[0:18], contact_force["fc"], contact_force["fcqp"], contact_force["fcpd"], 'fcqp', ax)
+    PlotModel(model, q0, ax)
     ax.view_init(elev=0,azim=-90)
     ax.set_xlabel('X')
     ax.set_xlim(-0.3, -0.3+0.6)
@@ -149,10 +111,28 @@ for i in range(1000):
     ax.set_ylim(-0.15, -0.15+0.6)
     ax.set_zlabel('Z')
     ax.set_zlim(-0.1, -0.1+0.6)
-    ax.set_title('Frame')
     plt.pause(0.001)
-    # fig.canvas.draw() 
     plt.show()
 
+    for i in range(1000):
+        print(i)
+        u = kp * (q0[6:18] - xk[6:18]) + kd * (qd0[6:18] - xk[24:36])
+        xk, contact_force = StateFunODE(model, xk.flatten(), u.flatten(), T)
+        xk = xk.reshape(-1, 1)
+        xksv.append(xk)
+        ax.clear()
+        PlotModel(model, xk[0:18], ax)
+        PlotContactForce(model, xk[0:18], contact_force["fc"], contact_force["fcqp"], contact_force["fcpd"], 'fcqp', ax)
+        ax.view_init(elev=0,azim=-90)
+        ax.set_xlabel('X')
+        ax.set_xlim(-0.3, -0.3+0.6)
+        ax.set_ylabel('Y')
+        ax.set_ylim(-0.15, -0.15+0.6)
+        ax.set_zlabel('Z')
+        ax.set_zlim(-0.1, -0.1+0.6)
+        ax.set_title('Frame')
+        plt.pause(0.001)
+        plt.show()
 
-plt.ioff()
+
+    plt.ioff()
