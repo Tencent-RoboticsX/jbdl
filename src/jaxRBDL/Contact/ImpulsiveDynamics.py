@@ -42,7 +42,7 @@ def ImpulsiveDynamics(model: dict, q: np.ndarray, qdot: np.ndarray, flag_contact
     contactpoint = model["contactpoint"]
     flag_contact = flag_contact
     H = model["H"]
-    rankJc = np.sum( [1 for item in flag_contact if item != 0]) * model["nf"]
+    rankJc = int(np.sum( [1 for item in flag_contact if item != 0]) * model["nf"])
 
     qdot_impulse = ImpulsiveDynamicsCore(Xtree, q, qdot, contactpoint, H, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, rankJc)
     return qdot_impulse

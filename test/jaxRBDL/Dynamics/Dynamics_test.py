@@ -11,7 +11,7 @@ from test.support import EnvironmentVarGuard
 from jaxRBDL.Dynamics.CompositeRigidBodyAlgorithm import CompositeRigidBodyAlgorithm, CompositeRigidBodyAlgorithmCore
 from jaxRBDL.Dynamics.ForwardDynamics import ForwardDynamics, ForwardDynamicsCore
 from jaxRBDL.Dynamics.InverseDynamics import InverseDynamics, InverseDynamicsCore
-from jaxRBDL.Dynamics.StateFunODE import DynamicsFunCore
+from jaxRBDL.Dynamics.StateFunODE import DynamicsFunCore, EventsFunCore
 from jaxRBDL.Utils.ModelWrapper import ModelWrapper
 import time
 import timeit
@@ -67,11 +67,9 @@ class TestDynamics(unittest.TestCase):
         t = time.time() - self.startTime
         print('%s: %.3f' % (self.id(), t))
 
-    def test_DynamicsFunCore(self):
+    def test_EventsFunCore(self):
         model = self.model
         NC = int(model["NC"])
-        NB = int(model["NB"])
-        nf = int(model["nf"])
         Xtree = model["Xtree"]
         contactpoint = model["contactpoint"],
         idcontact = tuple(model["idcontact"])
@@ -79,31 +77,58 @@ class TestDynamics(unittest.TestCase):
         jtype = tuple(model["jtype"])
         jaxis = model["jaxis"]
         contactpoint = model["contactpoint"]
-        flag_contact = (1, 1, 1, 1)
-        I = model["I"]
+        flag_contact = (0, 2, 2, 2)
         q = self.q
-        qdot = self.qdot
-        tau = self.tau
-        a_grav = model["a_grav"]
-        rankJc = int(np.sum( [1 for item in flag_contact if item != 0]) * model["nf"])
+        input = (Xtree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NC)
+        print(EventsFunCore(*input))
 
-        input = (Xtree, I, q, qdot, contactpoint, tau, a_grav, \
-            idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, rankJc)
+        def EventsFunCoreWithJit():
+            input = (Xtree, q * np.random.randn(*q.shape), contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NC)
+            EventsFunCore(*input)
 
-        print(DynamicsFunCore(*input))
+        print(timeit.Timer(EventsFunCoreWithJit).repeat(repeat=3, number=1000))
 
-        def DynamicsFunCoreWithJit():
-            q = self.q * np.random.randn(*self.q.shape)
-            qdot =  self.qdot * np.random.randn(*self.qdot.shape)
-            input = (Xtree, I, q, qdot, contactpoint, tau, a_grav, \
-                idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, rankJc)
-            DynamicsFunCore(*input)
+        # from jax import make_jaxpr
 
-        print(timeit.Timer(DynamicsFunCoreWithJit).repeat(repeat=3, number=1000))
+        # print(make_jaxpr(EventsFunCore, static_argnums=(3, 4, 5, 6, 7, 8))(*input))
+        
+
+    # def test_DynamicsFunCore(self):
+    #     model = self.model
+    #     NC = int(model["NC"])
+    #     NB = int(model["NB"])
+    #     nf = int(model["nf"])
+    #     Xtree = model["Xtree"]
+    #     contactpoint = model["contactpoint"],
+    #     idcontact = tuple(model["idcontact"])
+    #     parent = tuple(model["parent"])
+    #     jtype = tuple(model["jtype"])
+    #     jaxis = model["jaxis"]
+    #     contactpoint = model["contactpoint"]
+    #     flag_contact = (1, 1, 1, 1)
+    #     I = model["I"]
+    #     q = self.q
+    #     qdot = self.qdot
+    #     tau = self.tau
+    #     a_grav = model["a_grav"]
+    #     rankJc = int(np.sum( [1 for item in flag_contact if item != 0]) * model["nf"])
+
+    #     input = (Xtree, I, q, qdot, contactpoint, tau, a_grav, \
+    #         idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, rankJc)
+
+    #     print(DynamicsFunCore(*input))
+
+    #     def DynamicsFunCoreWithJit():
+    #         q = self.q * np.random.randn(*self.q.shape)
+    #         qdot =  self.qdot * np.random.randn(*self.qdot.shape)
+    #         input = (Xtree, I, q, qdot, contactpoint, tau, a_grav, \
+    #             idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, rankJc)
+    #         DynamicsFunCore(*input)
+
+    #     print(timeit.Timer(DynamicsFunCoreWithJit).repeat(repeat=3, number=1000))
 
         
-        # from jax import make_jaxpr
-        # print(make_jaxpr(DynamicsFunCore, static_argnums=(7, 8, 9, 10, 11, 12, 13, 14, 15))(*input))
+
     # def test_CompositeRigidBodyAlgorithm(self):
     #     input = (self.model, self.q)
     #     CompositeRigidBodyAlgorithm(*input)

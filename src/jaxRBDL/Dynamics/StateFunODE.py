@@ -5,7 +5,7 @@ from numpy.linalg import inv
 from jaxRBDL.Contact.DetectContact import DetectContact
 from jaxRBDL.Contact.CalcContactForceDirect import CalcContactForceDirect
 from jaxRBDL.Dynamics.ForwardDynamics import ForwardDynamics, ForwardDynamicsCore
-from jaxRBDL.Kinematics.CalcBodyToBaseCoordinates import CalcBodyToBaseCoordinates
+from jaxRBDL.Kinematics.CalcBodyToBaseCoordinates import CalcBodyToBaseCoordinates, CalcBodyToBaseCoordinatesCore
 from jaxRBDL.Contact.ImpulsiveDynamics import ImpulsiveDynamics
 from jaxRBDL.Contact.SolveContactLCP import SolveContactLCP
 from jaxRBDL.Contact.SolveContactSimpleLCP import SolveContactSimpleLCP, SolveContactSimpleLCPCore
@@ -63,6 +63,8 @@ def DynamicsFun(t: float, X: np.ndarray, model: dict, contact_force: dict)->np.n
 
 
     # Dynamics Function Core
+    print("111111111111111111111")
+    print(flag_contact)
     xdot, fqp, H = DynamicsFunCore(Xtree, I, q, qdot, contactpoint, tau, a_grav, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, rankJc)
     model["H"] = H
     # Calculate contact force fot plotting.
@@ -80,39 +82,80 @@ def DynamicsFun(t: float, X: np.ndarray, model: dict, contact_force: dict)->np.n
 
     return xdot
 
+@partial(jit, static_argnums=(3, 4, 5, 6, 7, 8))
+def EventsFunCore(Xtree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NC):
+    value = jnp.ones((NC,))
+    for i in range(NC):
+        if flag_contact[i]==2: # Impact
+            # Calculate foot height 
+            endpos = CalcBodyToBaseCoordinatesCore(Xtree, parent, jtype, jaxis, idcontact[i], q, contactpoint[i])
+            value = value.at[i].set(endpos[2, 0])
+    return value
 
-
-def EventsFun(t: float, X: np.ndarray, model: dict, contact_force: dict=dict()):
+def EventsFun(t: float, x: np.ndarray, model: dict, contact_force: dict=dict()):
     print("6666666666666666666666")
     NB = int(model["NB"])
     NC = int(model["NC"])
    
     # Get q qdot tau
-    q = X[0: NB]
-    qdot = X[NB: 2*NB]
-    tau = model["tau"]
+    q = x[0: NB]
+    qdot = x[NB: 2*NB]
 
-    value = np.ones((NC, 1))
-    isterminal = np.ones((NC, 1))
-    direction = -np.ones((NC, 1))
-    idcontact = model["idcontact"]
+    Xtree = model["Xtree"]
+    idcontact = tuple(model["idcontact"])
     contactpoint = model["contactpoint"]
+    # print(contactpoint)
+    parent = tuple(model["parent"])
+    jtype = tuple(model["jtype"])
+    jaxis = model["jaxis"]
+
+
     
     print("77777777777777777777777777")
     # Detect contact
     flag_contact = DetectContact(model, q, qdot)
     # print("In EventsFun!!!")
-    # print(flag_contact)
-    print("8888888888888888888")
-    value_list = []
-    for i in range(NC):
-        if flag_contact[i]==2: # Impact
-            # Calculate foot height 
-            endpos = CalcBodyToBaseCoordinates(model, q, idcontact[i], contactpoint[i])
-            value[i,0] = endpos[2, 0]
-    print("9999999999999999999")
+    print(flag_contact)
+    # print("8888888888888888888")
+
+    value = EventsFunCore(Xtree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NC)
+
+    # print("9999999999999999999")
 
     return value
+
+
+# def EventsFun(t: float, X: np.ndarray, model: dict, contact_force: dict=dict()):
+#     print("6666666666666666666666")
+#     NB = int(model["NB"])
+#     NC = int(model["NC"])
+   
+#     # Get q qdot tau
+#     q = X[0: NB]
+#     qdot = X[NB: 2*NB]
+#     tau = model["tau"]
+
+#     value = np.ones((NC, 1))
+#     isterminal = np.ones((NC, 1))
+#     direction = -np.ones((NC, 1))
+#     idcontact = model["idcontact"]
+#     contactpoint = model["contactpoint"]
+    
+#     print("77777777777777777777777777")
+#     # Detect contact
+#     flag_contact = DetectContact(model, q, qdot)
+#     # print("In EventsFun!!!")
+#     # print(flag_contact)
+#     print("8888888888888888888")
+#     value_list = []
+#     for i in range(NC):
+#         if flag_contact[i]==2: # Impact
+#             # Calculate foot height 
+#             endpos = CalcBodyToBaseCoordinates(model, q, idcontact[i], contactpoint[i])
+#             value[i,0] = endpos[2, 0]
+#     print("9999999999999999999")
+
+#     return value
 
 
 
@@ -149,7 +192,7 @@ def StateFunODE(model: dict, xk: np.ndarray, uk: np.ndarray, T: float):
 
     def event(t, x, model, contact_force):
         res = EventsFun(t, x, model, contact_force)
-        res = np.min(res.flatten())
+        res = np.min(res)
         return res
 
     event.terminal = True
@@ -167,7 +210,7 @@ def StateFunODE(model: dict, xk: np.ndarray, uk: np.ndarray, T: float):
     contact_force = dict()
 
     while status != 0:
-        print("00000000000000000000000")
+        # print("00000000000000000000000")
         # ODE calculate 
         sol = solve_ivp(DynamicsFun, tspan, x0.flatten(), method='RK45', events=event, \
             args=(model, contact_force), rtol=1e-3, atol=1e-4)
@@ -189,12 +232,12 @@ def StateFunODE(model: dict, xk: np.ndarray, uk: np.ndarray, T: float):
             q = xe[0:NB]
             qdot = xe[NB:2* NB]
 
-            print("33333333333333333333333")
+            # print("33333333333333333333333")
             # Detect contact
             flag_contact = DetectContact(model, q, qdot)
 
             # Impact dynamics
-            print("4444444444444444444444444")
+            # print("4444444444444444444444444")
             print(flag_contact)
             qdot_impulse = ImpulsiveDynamics(model, q, qdot, flag_contact);  
             qdot_impulse = qdot_impulse.flatten()
@@ -202,7 +245,7 @@ def StateFunODE(model: dict, xk: np.ndarray, uk: np.ndarray, T: float):
             # Update initial state
             x0 = np.hstack([q, qdot_impulse])
             tspan = (te, tf)
-            print("5555555555555555555555555")
+            # print("5555555555555555555555555")
 
     xk = sol.y[:, -1]
     return xk, contact_force
