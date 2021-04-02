@@ -14,7 +14,7 @@ from jaxRBDL.Dynamics.StateFunODE import StateFunODE
 import matplotlib
 from jaxRBDL.Utils.ModelWrapper import ModelWrapper
 from jaxRBDL.Dynamics.StateFunODE import DynamicsFunCore, EventsFunCore
-from jaxRBDL.Contact.DetectContact import DetectContactCore
+from jaxRBDL.Contact.DetectContact import DetectContact, DetectContactCore
 from jaxRBDL.Contact.ImpulsiveDynamics import ImpulsiveDynamicsCore
 import time
 # matplotlib.use('TkAgg')
@@ -32,6 +32,10 @@ def jit_compiled(model):
     jtype = tuple(model["jtype"])
     jaxis = model["jaxis"]
     contactpoint = model["contactpoint"]
+    contact_cond = model["contact_cond"]
+    contact_pos_lb = contact_cond["contact_pos_lb"]
+    contact_vel_lb = contact_cond["contact_vel_lb"]
+    contact_vel_ub = contact_cond["contact_vel_ub"]
     a_grav = model["a_grav"]
     flag_contact_list = [(0, 0, 0, 0), (1, 1, 1, 1), (2, 2, 2, 2)]
     I = model["I"]
@@ -50,14 +54,17 @@ def jit_compiled(model):
         rankJc = int(np.sum( [1 for item in flag_contact if item != 0]) * model["nf"])
         xdot, fqp, H = DynamicsFunCore(Xtree, I, q, qdot, contactpoint, tau, a_grav, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, rankJc)
         value = EventsFunCore(Xtree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NC)
-        end_pos, end_vel = DetectContactCore(Xtree, q, qdot, contactpoint, idcontact, parent, jtype, jaxis, NC)
+        flag_contact_calc = DetectContactCore(Xtree, q, qdot, contactpoint, contact_pos_lb, contact_vel_lb, contact_vel_ub,  idcontact, parent, jtype, jaxis, NC)
         qdot_impulse = ImpulsiveDynamicsCore(Xtree, q, qdot, contactpoint, H, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, rankJc)
         H.block_until_ready()
         fqp.block_until_ready()
         xdot.block_until_ready()
         value.block_until_ready()
-        [pos.block_until_ready() for pos in end_pos]
-        [vel.block_until_ready() for vel in end_vel]
+        flag_contact_calc.block_until_ready()
+        
+
+        # flag_contact = DetectContact(model, q, qdot)
+        # print(flag_contact)
         qdot_impulse.block_until_ready()
         duarion = time.time() - start_time
         print("Jit compiled time for %s is %s." % (str(flag_contact), duarion))

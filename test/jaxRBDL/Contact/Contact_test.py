@@ -10,7 +10,7 @@ from jaxRBDL.Contact.CalcContactJdotQdot import CalcContactJdotQdotCore, CalcCon
 from jaxRBDL.Kinematics.CalcPointJacobian import CalcPointJacobianCore
 from jaxRBDL.Dynamics.CompositeRigidBodyAlgorithm import CompositeRigidBodyAlgorithm
 from jaxRBDL.Dynamics.InverseDynamics import InverseDynamics
-from jaxRBDL.Contact.DetectContact import DetectContact, DetectContactCore, DeterminContactType
+from jaxRBDL.Contact.DetectContact import DetectContact_v0, DetectContact, DetectContactCore, DeterminContactType, DeterminContactTypeCore
 from jaxRBDL.Contact.SolveContactSimpleLCP import QuadLoss, NonNegativeZProjector, SolveContactSimpleLCPCore, SolveContactSimpleLCP
 import numpy as np
 from test.support import EnvironmentVarGuard
@@ -147,12 +147,17 @@ class TestContact(unittest.TestCase):
         # print(timeit.Timer(CalcContactForceDirectWithJit).repeat(repeat=3, number=1))
 
     def test_DetectContact(self):
-        pass
-        # model = self.model
-        # q = self.q
-        # qdot = self.qdot
-        # input = (model, q, qdot)
-        # DetectContact(*input)
+
+        model = self.model
+        q = self.q
+        qdot =  self.qdot
+        input = (model, q, qdot)
+        for i in range(1000):
+            input = (model, q * np.random.randn(*q.shape), qdot * np.random.randn(*qdot.shape))
+            flag_contact_v0 = DetectContact_v0(*input)
+            flag_contact_v1 = DetectContact(*input)
+            self.assertEqual(np.sum(np.abs(np.array(flag_contact_v0)-np.array(flag_contact_v1))), 0.0)
+
 
         # def TimeDetectContac():
         #     q = self.q * np.random.randn(*self.q.shape)
@@ -165,12 +170,22 @@ class TestContact(unittest.TestCase):
 
         # model = self.model
         # contact_cond = model["contact_cond"]
-        # input_1 = (pos, vel, contact_pos_lb, contact_vel_lb, contact_vel_ub)
+       
 
-        # input_2 = (model["Xtree"], self.q, self.qdot, model["contactpoint"],
+        # input_2 = (model["Xtree"], q, qdot, model["contactpoint"],
         #             tuple(model["idcontact"]), 
         #             tuple(model["parent"]), tuple(model["jtype"]), model["jaxis"],
         #             model["NC"])
+
+        # pos, vel = DetectContactCore(*input_2)
+        # print(pos)
+        # print(vel)
+        # input_1 = (pos, vel, \
+        #     contact_cond["contact_pos_lb"],
+        #     contact_cond["contact_vel_lb"],
+        #     contact_cond["contact_vel_ub"])
+        # print(DeterminContactTypeCore(*input_1))
+
         # from jax import make_jaxpr
         # print(make_jaxpr(DetectContactCore, static_argnums=(4, 5, 6, 7, 8, 9, 10, 11))(*input_2))
 
@@ -180,7 +195,7 @@ class TestContact(unittest.TestCase):
         # print(list(map(partial(DeterminContactType, contact_cond=contact_cond), end_pos, end_vel)))
 
 
-        # DetectContactCore(*input_2)
+
     
     def test_ImpulsiveDynamics(self):
         pass
@@ -211,46 +226,34 @@ class TestContact(unittest.TestCase):
         # print(timeit.Timer(ImpulsiveDynamicsWithJit).repeat(repeat=3, number=1000))
 
     def test_SolveContactSimpleLCP(self):
-        # M = np.eye(10)
-        # d = np.ones(10)
-        # lam = jnp.array([1., -1] * 5)
-        # print(M)
-        # print(d)
-        # print(lam)
-        # print(0.5*np.sum(lam**2) + np.sum(lam))
+        pass
+        # model = self.model
+        # NB = model["NB"]
+        # q = self.q
+        # qdot = self.qdot
+        # tau = self.tau
+        # flag_contact = (1, 1, 1, 1)
+        # input_CRBA = (model, q)
+        # model["H"] = CompositeRigidBodyAlgorithm(*input_CRBA)
+        # model["C"] = InverseDynamics(model, q, qdot, np.zeros((NB, 1)))
 
-        # print(QuadLoss(M, d, lam))
-        # print(lam)
-        # print(NonNegativeZProjector(lam, 2))
-        model = self.model
-        NB = model["NB"]
-        q = self.q
-        qdot = self.qdot
-        tau = self.tau
-        flag_contact = (1, 1, 1, 1)
-        input_CRBA = (model, q)
-        model["H"] = CompositeRigidBodyAlgorithm(*input_CRBA)
-        model["C"] = InverseDynamics(model, q, qdot, np.zeros((NB, 1)))
+        # input_core = (model["Xtree"], self.q, self.qdot, model["contactpoint"],
+        #         model["H"], tau, model["C"], tuple(model["idcontact"]), tuple(flag_contact),
+        #             tuple(model["parent"]), tuple(model["jtype"]), model["jaxis"],
+        #             model["NB"], model["NC"], model["nf"])
 
-        input_core = (model["Xtree"], self.q, self.qdot, model["contactpoint"],
-                model["H"], tau, model["C"], tuple(model["idcontact"]), tuple(flag_contact),
-                    tuple(model["parent"]), tuple(model["jtype"]), model["jaxis"],
-                    model["NB"], model["NC"], model["nf"])
 
-        # print(CalcContactSimpleLCPCore(*input))
-        # from jax import make_jaxpr
-        # print(make_jaxpr(SolveContactSimpleLCPCore, static_argnums=(7, 8, 9, 10, 11, 12, 13, 14 ))(*input))
-        input = (model, q, qdot, tau, flag_contact)
+        # input = (model, q, qdot, tau, flag_contact)
 
-        def CalContactSimpleLCPWithJit():
-            SolveContactSimpleLCP(*input)
+        # def CalContactSimpleLCPWithJit():
+        #     SolveContactSimpleLCP(*input)
 
-        print(timeit.Timer(CalContactSimpleLCPWithJit).repeat(repeat=3, number=1))
+        # print(timeit.Timer(CalContactSimpleLCPWithJit).repeat(repeat=3, number=1))
 
-        def CalContactSimpleLCPCoreWithJit():
-            SolveContactSimpleLCPCore(*input_core)
+        # def CalContactSimpleLCPCoreWithJit():
+        #     SolveContactSimpleLCPCore(*input_core)
 
-        print(timeit.Timer(CalContactSimpleLCPCoreWithJit).repeat(repeat=3, number=1))
+        # print(timeit.Timer(CalContactSimpleLCPCoreWithJit).repeat(repeat=3, number=1))
 
 
         
