@@ -27,14 +27,14 @@ def DeterminContactTypeCore(pos, vel, contact_pos_lb, contact_vel_lb, contact_ve
     contact_pos_lb_z = contact_pos_lb[2]
     contact_vel_lb_z = contact_vel_lb[2]
     contact_vel_ub_z = contact_vel_ub[2]
-    # print(pos_z)
-    # print(vel_z)
-    # print(contact_pos_lb_z)
-    # print(contact_vel_ub_z)
-    # print(contact_vel_lb_z)
-    contact_type = jnp.maximum(jnp.sign(contact_pos_lb_z - pos_z), 0.0) \
-        * jnp.maximum(jnp.sign(contact_vel_ub_z - vel_z), 0.0)
-    contact_type = contact_type * (jnp.maximum(jnp.sign(contact_vel_lb_z - vel_z), 0) + 1.0)
+
+    # contact_type = jnp.maximum(jnp.sign(contact_pos_lb_z - pos_z), 0.0) \
+    #     * jnp.maximum(jnp.sign(contact_vel_ub_z - vel_z), 0.0)
+    # contact_type = contact_type * (jnp.maximum(jnp.sign(contact_vel_lb_z - vel_z), 0) + 1.0)
+
+    contact_type = jnp.heaviside(contact_pos_lb_z - pos_z, 0.0) \
+        * jnp.heaviside(contact_vel_ub_z - vel_z, 0.0)
+    contact_type = contact_type * (jnp.heaviside(contact_vel_lb_z - vel_z, 0) + 1.0)   
 
 
     return contact_type
