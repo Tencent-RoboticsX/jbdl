@@ -19,6 +19,7 @@ from jaxRBDL.Contact.ImpulsiveDynamics import ImpulsiveDynamicsCore
 import time
 # matplotlib.use('TkAgg')
 
+
 CURRENT_PATH = os.path.dirname(os.path.realpath(__file__))
 
 def jit_compiled(model):
