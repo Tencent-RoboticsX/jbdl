@@ -22,6 +22,7 @@ import time
 
 CURRENT_PATH = os.path.dirname(os.path.realpath(__file__))
 
+
 def jit_compiled(model):
     NC = int(model["NC"])
     NB = int(model["NB"])
