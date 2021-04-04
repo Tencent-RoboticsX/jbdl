@@ -7,7 +7,7 @@ from jaxRBDL.Kinematics.CalcPointAcceleraion import CalcPointAccelerationCore
 from jaxRBDL.Utils.ModelWrapper import ModelWrapper
 from jaxRBDL.Contact.CalcContactJacobian import CalcContactJacobian, CalcContactJacobianCore
 from jaxRBDL.Contact.CalcContactJdotQdot import CalcContactJdotQdotCore, CalcContactJdotQdot
-from jaxRBDL.Kinematics.CalcPointJacobian import CalcPointJacobianCore
+from jaxRBDL.Kinematics.calc_point_jacobian import calc_point_jacobian_core
 from jaxRBDL.Dynamics.CompositeRigidBodyAlgorithm import CompositeRigidBodyAlgorithm
 from jaxRBDL.Dynamics.InverseDynamics import InverseDynamics
 from jaxRBDL.Contact.DetectContact import DetectContact_v0, DetectContact, DetectContactCore, DeterminContactType, DeterminContactTypeCore

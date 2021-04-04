@@ -7,37 +7,37 @@ from jax.api import jit
 from functools import partial
 
 @partial(jit, static_argnums=(1, 2, 3, 4, 5))
-def CalcPointJacobianCore(Xtree, parent, jtype, jaxis, NB, body_id, q, point_pos):
+def calc_point_jacobian_core(x_tree, parent, jtype, jaxis, NB, body_id, q, point_pos):
     S = []
-    Xup = []
-    X0 = []
+    x_up = []
+    x0 = []
 
     for i in range(body_id):
-        XJ, Si = JointModel(jtype[i], jaxis[i], q[i])
+        x_joint, Si = JointModel(jtype[i], jaxis[i], q[i])
         S.append(Si)
-        Xup.append(jnp.matmul(XJ, Xtree[i]))
+        x_up.append(jnp.matmul(x_joint, x_tree[i]))
         if parent[i] == 0:
-            X0.append(Xup[i])
+            x0.append(x_up[i])
         else:
-            X0.append(jnp.matmul(Xup[i], X0[parent[i]-1]))
+            x0.append(jnp.matmul(x_up[i], x0[parent[i]-1]))
 
-    XT_point = Xtrans(point_pos)
-    X0_point = jnp.matmul(XT_point, X0[body_id-1])
+    point_trans = Xtrans(point_pos)
+    x_end_point = jnp.matmul(point_trans, x0[body_id-1])
 
     j_p = body_id - 1
     BJ = jnp.zeros((6, NB))
     while j_p != -1:
-        Xe = jnp.matmul(X0_point, InverseMotionSpace(X0[j_p]))
+        Xe = jnp.matmul(x_end_point, InverseMotionSpace(x0[j_p]))
         BJ = BJ.at[:, [j_p, ]].set(jnp.matmul(Xe, S[j_p]))
         j_p = parent[j_p] - 1
 
-    E0 = jnp.transpose(X0_point[0:3, 0:3])
+    E0 = jnp.transpose(x_end_point[0:3, 0:3])
     J = jnp.matmul(jnp.matmul(E0, jnp.hstack([ jnp.zeros((3, 3)), jnp.eye(3)])), BJ)
 
     return J
 
 
-def CalcPointJacobian(model: dict, q: np.ndarray, body_id: int, point_pos: np.ndarray)->np.ndarray:
+def calc_point_jacobian(model: dict, q: np.ndarray, body_id: int, point_pos: np.ndarray)->np.ndarray:
     q = q.flatten()
     point_pos = point_pos.flatten()
     jtype = model['jtype']
@@ -46,5 +46,5 @@ def CalcPointJacobian(model: dict, q: np.ndarray, body_id: int, point_pos: np.nd
     NB = model["NB"]
     Xtree = model['Xtree']
 
-    J = CalcPointJacobianCore(Xtree, tuple(parent), tuple(jtype), jaxis, NB, body_id, q, point_pos)
+    J = calc_point_jacobian_core(Xtree, tuple(parent), tuple(jtype), jaxis, NB, body_id, q, point_pos)
     return J

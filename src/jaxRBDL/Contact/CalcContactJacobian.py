@@ -1,6 +1,6 @@
 from functools import partial
 import numpy as np
-from jaxRBDL.Kinematics.CalcPointJacobian import CalcPointJacobian, CalcPointJacobianCore
+from jaxRBDL.Kinematics import calc_point_jacobian_core
 import jax.numpy as jnp
 from jax.api import jit
 from jax import lax
@@ -19,7 +19,7 @@ def CalcContactJacobianCoreJitFlag(Xtree, q, contactpoint, idcontact, flag_conta
 
     #     fbool, body_id, point_pos = xs
     #     # body_id is not static
-    #     ys = fbool * CalcPointJacobianCore(Xtree, parent, jtype, jaxis, NB, body_id, q, point_pos)
+    #     ys = fbool * calc_point_jacobian_core(Xtree, parent, jtype, jaxis, NB, body_id, q, point_pos)
     #     return carry, ys
 
     # J = lax.scan(f, carry, xs)
@@ -32,7 +32,7 @@ def CalcContactJacobianCoreJitFlag(Xtree, q, contactpoint, idcontact, flag_conta
         Jci = jnp.empty((0, NB))
    
         # Calculate Jacobian
-        J = fbool_contact[i] * CalcPointJacobianCore(Xtree, parent, jtype, jaxis, NB, idcontact[i], q, contactpoint[i])
+        J = fbool_contact[i] * calc_point_jacobian_core(Xtree, parent, jtype, jaxis, NB, idcontact[i], q, contactpoint[i])
 
         # Make Jacobian full rank according to contact model
         if nf == 2:
@@ -50,7 +50,7 @@ def CalcContactJacobianCore(Xtree, q, contactpoint, idcontact, flag_contact, par
         Jci = jnp.empty((0, NB))
         if flag_contact[i] != 0.0:
             # Calculate Jacobian
-            J = CalcPointJacobianCore(Xtree, parent, jtype, jaxis, NB, idcontact[i], q, contactpoint[i])
+            J = calc_point_jacobian_core(Xtree, parent, jtype, jaxis, NB, idcontact[i], q, contactpoint[i])
 
             # Make Jacobian full rank according to contact model
             if nf == 2:
@@ -91,7 +91,7 @@ def CalcContactJacobian(model: dict, q: np.ndarray, flag_contact: np.ndarray)->n
 #         Jci = np.empty((0, NB))
 #         if flag_contact[i] != 0.0:
 #             # Calculate Jacobian
-#             J = CalcPointJacobian(model, q, idcontact[i], contactpoint[i])
+#             J = calc_point_jacobian(model, q, idcontact[i], contactpoint[i])
 
 #             # Make Jacobian full rank according to contact model
 #             if nf == 2:

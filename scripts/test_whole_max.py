@@ -18,7 +18,7 @@ from jaxRBDL.Dynamics.StateFunODE import DynamicsFunCore, EventsFunCore
 from jaxRBDL.Contact.DetectContact import DetectContact, DetectContactCore
 from jaxRBDL.Contact.ImpulsiveDynamics import ImpulsiveDynamicsCore
 from jaxRBDL.Dynamics.CompositeRigidBodyAlgorithm import CompositeRigidBodyAlgorithmCore
-from jaxRBDL.Kinematics.CalcPointJacobian import CalcPointJacobianCore
+from jaxRBDL.Kinematics import *
 from jaxRBDL.Kinematics.CalcPointAcceleraion import CalcPointAccelerationCore
 from jaxRBDL.Kinematics import calc_body_to_base_coordinates_core
 from jaxRBDL.Dynamics.ForwardDynamics import ForwardDynamicsCore
@@ -60,10 +60,11 @@ def jit_compiled(model):
     start_time = time.time()
     for body_id, point_pos in zip(idcontact, contactpoint):
         print(body_id, point_pos)
-        J = CalcPointJacobianCore(Xtree, parent, jtype, jaxis, NB, body_id, q, point_pos)
+        J = calc_point_jacobian_core(Xtree, parent, jtype, jaxis, NB, body_id, q, point_pos)
+        J.block_until_ready()
         acc = CalcPointAccelerationCore(Xtree, parent, jtype, jaxis, body_id, q, qdot, qddot, point_pos)
         end_pos = calc_body_to_base_coordinates_core(Xtree, parent, jtype, jaxis, body_id, q, point_pos)
-        J.block_until_ready()
+
         acc.block_until_ready()
         end_pos.block_until_ready()
     duarion = time.time() - start_time
