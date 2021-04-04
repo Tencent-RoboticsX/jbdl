@@ -1,5 +1,6 @@
 import numpy as np
 from jaxRBDL.Kinematics.CalcBodyToBaseCoordinates import CalcBodyToBaseCoordinates
+from jaxRBDL.Kinematics.calc_body_to_base_coordinates import calc_body_to_base_coordinates
 from jaxRBDL.Kinematics.CalcPointVelocity import CalcPointVelocity
 
 
@@ -36,7 +37,8 @@ def CalcContactForcePD(model: dict, q: np.ndarray, qdot: np.ndarray,
         for i in range(NC):
             if flag_contact[i] != 0:
                 # Calcualte pos and vel of foot endpoint
-                endpos[:, i:i+1] = CalcBodyToBaseCoordinates(model, q, idcontact[i], contactpoint[i])
+                # endpos[:, i:i+1] = CalcBodyToBaseCoordinates(model, q, idcontact[i], contactpoint[i])
+                endpos[:, i:i+1] = calc_body_to_base_coordinates(model, q, idcontact[i], contactpoint[i])
                 endvel[:, i:i+1] = CalcPointVelocity(model, q, qdot, idcontact[i], contactpoint[i])
                 
                 # Calculate contact force by PD controller

@@ -4,7 +4,7 @@ import numpy as np
 import jax.numpy as jnp
 from jaxRBDL.Model.JointModel import JointModel
 from jaxRBDL.Math.Xtrans import Xtrans
-from jaxRBDL.Kinematics.TransformToPosition import TransformToPosition
+from jaxRBDL.Kinematics import transform_to_position
 from functools import partial
 
 @partial(jit, static_argnums=(1, 2, 3, 4))
@@ -20,7 +20,7 @@ def CalcBodyToBaseCoordinatesCore(Xtree, parent, jtype, jaxis, body_id, q, point
     
     XT_point = Xtrans(point_pos)
     X0_point =  jnp.matmul(XT_point, X0[body_id - 1])
-    pos = TransformToPosition(X0_point)
+    pos = transform_to_position(X0_point)
     return pos
 
 
