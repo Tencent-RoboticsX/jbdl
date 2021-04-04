@@ -31,7 +31,7 @@ def CheckContactForce(model: dict, flag_contact: np.ndarray, fqp: np.ndarray):
     flag_newcontact = tuple(flag_newcontact)
     return flag_newcontact, flag_recalc
 
-@partial(jit, static_argnums=(7, 8, 9, 10, 11, 12, 13, 14))
+# @partial(jit, static_argnums=(7, 8, 9, 10, 11, 12, 13, 14))
 def CalcContactForceDirectCore(Xtree, q, qdot, contactpoint, H, tau, C, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf):
     Jc = CalcContactJacobianCore(Xtree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
     JcdotQdot = CalcContactJdotQdotCore(Xtree, q, qdot, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
@@ -44,6 +44,7 @@ def CalcContactForceDirectCore(Xtree, q, qdot, contactpoint, H, tau, C, idcontac
     d = jnp.add(d0, JcdotQdot)
     fqp = -jnp.linalg.solve(M,d)
     flcp = jnp.matmul(jnp.transpose(Jc), fqp)
+    flcp = jnp.reshape(flcp, (-1,))
     return flcp, fqp
         
 def CalcContactForceDirect(model: dict, q: np.ndarray, qdot: np.ndarray, tau: np.ndarray, flag_contact: np.ndarray):

@@ -9,6 +9,7 @@ from jaxRBDL.Kinematics.CalcBodyToBaseCoordinates import CalcBodyToBaseCoordinat
 from jaxRBDL.Contact.ImpulsiveDynamics import ImpulsiveDynamics
 from jaxRBDL.Contact.SolveContactLCP import SolveContactLCP
 from jaxRBDL.Contact.SolveContactSimpleLCP import SolveContactSimpleLCP, SolveContactSimpleLCPCore
+from jaxRBDL.Contact.CalcContactForceDirect import CalcContactForceDirectCore
 from scipy.integrate import solve_ivp
 import jax.numpy as jnp
 from jaxRBDL.Contact.GetContactForce import GetContactForce
@@ -24,10 +25,13 @@ def DynamicsFunCore(Xtree, I, q, qdot, contactpoint, tau, a_grav, idcontact, fla
 
     if np.sum(flag_contact) !=0: 
         lam, fqp = SolveContactSimpleLCPCore(Xtree, q, qdot, contactpoint, H, tau, C, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
+        # lam, fqp = CalcContactForceDirectCore(Xtree, q, qdot, contactpoint, H, tau, C, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
 
 
     ttau = tau + lam
     qddot = ForwardDynamicsCore(Xtree, I, parent, jtype, jaxis, NB, q, qdot, ttau, a_grav)
+    # print("========")
+    # print(qddot)
     xdot = jnp.hstack([qdot, qddot])
     return xdot, fqp, H
 

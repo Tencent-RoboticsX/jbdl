@@ -20,7 +20,9 @@ from jaxRBDL.Contact.ImpulsiveDynamics import ImpulsiveDynamicsCore
 from jaxRBDL.Dynamics.CompositeRigidBodyAlgorithm import CompositeRigidBodyAlgorithmCore
 from jaxRBDL.Kinematics.CalcPointJacobian import CalcPointJacobianCore
 from jaxRBDL.Kinematics.CalcPointAcceleraion import CalcPointAccelerationCore
+from jaxRBDL.Kinematics.CalcBodyToBaseCoordinates import CalcBodyToBaseCoordinatesCore
 from jaxRBDL.Dynamics.ForwardDynamics import ForwardDynamicsCore
+from jaxRBDL.Dynamics.InverseDynamics import InverseDynamicsCore
 import time
 # matplotlib.use('TkAgg')
 
@@ -55,37 +57,51 @@ def jit_compiled(model):
     qdot = np.ones(NB)
     qddot = np.ones(NB)
     tau = np.concatenate([np.zeros(6), np.ones(NB-6)])
+    start_time = time.time()
     for body_id, point_pos in zip(idcontact, contactpoint):
         print(body_id, point_pos)
         J = CalcPointJacobianCore(Xtree, parent, jtype, jaxis, NB, body_id, q, point_pos)
         acc = CalcPointAccelerationCore(Xtree, parent, jtype, jaxis, body_id, q, qdot, qddot, point_pos)
+        end_pos = CalcBodyToBaseCoordinatesCore(Xtree, parent, jtype, jaxis, body_id, q, point_pos)
         J.block_until_ready()
         acc.block_until_ready()
+        end_pos.block_until_ready()
+    duarion = time.time() - start_time
+    print("Jit compiled time for %s is %s." % ("Contact Point Functions", duarion))
 
+    start_time = time.time()
     qddot = ForwardDynamicsCore(Xtree, I, parent, jtype, jaxis, NB, q, qdot, tau, a_grav)
+    H =  CompositeRigidBodyAlgorithmCore(Xtree, I, parent, jtype, jaxis, NB, q)
+    C =  InverseDynamicsCore(Xtree, I, parent, jtype, jaxis, NB, q, qdot, np.zeros_like(q), a_grav)
+    flag_contact_calc = DetectContactCore(Xtree, q, qdot, contactpoint, contact_pos_lb, contact_vel_lb, contact_vel_ub,  idcontact, parent, jtype, jaxis, NC)
     qddot.block_until_ready()
+    H.block_until_ready()
+    C.block_until_ready()
+    flag_contact_calc.block_until_ready()
+    duarion = time.time() - start_time
+    print("Jit compiled time for %s is %s." % ("Basic Functions", duarion))
 
-    for flag_contact in flag_contact_list:
-        print("Jit compiled for %s ..." % str(flag_contact))
-        start_time = time.time()
-        rankJc = int(np.sum( [1 for item in flag_contact if item != 0]) * model["nf"])
-        H =  CompositeRigidBodyAlgorithmCore(Xtree, I, parent, jtype, jaxis, NB, q)
+    # for flag_contact in flag_contact_list:
+        # print("Jit compiled for %s ..." % str(flag_contact))
+        # start_time = time.time()
+        # rankJc = int(np.sum( [1 for item in flag_contact if item != 0]) * model["nf"])
+
         # xdot, fqp, H = DynamicsFunCore(Xtree, I, q, qdot, contactpoint, tau, a_grav, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, rankJc)
-        value = EventsFunCore(Xtree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NC)
-        flag_contact_calc = DetectContactCore(Xtree, q, qdot, contactpoint, contact_pos_lb, contact_vel_lb, contact_vel_ub,  idcontact, parent, jtype, jaxis, NC)
-        qdot_impulse = ImpulsiveDynamicsCore(Xtree, q, qdot, contactpoint, H, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, rankJc)
-        H.block_until_ready()
+        # value = EventsFunCore(Xtree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NC)
+        # flag_contact_calc = DetectContactCore(Xtree, q, qdot, contactpoint, contact_pos_lb, contact_vel_lb, contact_vel_ub,  idcontact, parent, jtype, jaxis, NC)
+        # qdot_impulse = ImpulsiveDynamicsCore(Xtree, q, qdot, contactpoint, H, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, rankJc)
+
         # fqp.block_until_ready()
         # xdot.block_until_ready()
-        value.block_until_ready()
-        flag_contact_calc.block_until_ready()
+        # value.block_until_ready()
+        # flag_contact_calc.block_until_ready()
         
 
         # flag_contact = DetectContact(model, q, qdot)
         # print(flag_contact)
-        qdot_impulse.block_until_ready()
-        duarion = time.time() - start_time
-        print("Jit compiled time for %s is %s." % (str(flag_contact), duarion))
+        # qdot_impulse.block_until_ready()
+        # duarion = time.time() - start_time
+        # print("Jit compiled time for %s is %s." % (str(flag_contact), duarion))
 
 
 

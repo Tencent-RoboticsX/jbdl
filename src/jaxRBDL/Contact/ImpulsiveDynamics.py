@@ -6,7 +6,7 @@ import jax.numpy as jnp
 from jax.api import jit
 from functools import partial
 
-@partial(jit, static_argnums=(5, 6, 7, 8, 9, 10, 11, 12, 13))
+# @partial(jit, static_argnums=(5, 6, 7, 8, 9, 10, 11, 12, 13))
 def ImpulsiveDynamicsCore(Xtree, q, qdot, contactpoint, H, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, rankJc):
     Jc = CalcContactJacobianCore(Xtree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
 
