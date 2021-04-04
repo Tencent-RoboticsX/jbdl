@@ -1,6 +1,6 @@
 import numpy as np
 from numpy.core.shape_base import hstack
-from jaxRBDL.Contact.CalcContactJacobian import CalcContactJacobian, CalcContactJacobianCore
+from jaxRBDL.Contact import calc_contact_jacobian, calc_contact_jacobian_core
 from numpy.linalg import matrix_rank
 import jax.numpy as jnp
 from jax.api import jit
@@ -8,7 +8,7 @@ from functools import partial
 
 # @partial(jit, static_argnums=(5, 6, 7, 8, 9, 10, 11, 12, 13))
 def ImpulsiveDynamicsCore(Xtree, q, qdot, contactpoint, H, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, rankJc):
-    Jc = CalcContactJacobianCore(Xtree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
+    Jc = calc_contact_jacobian_core(Xtree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
 
     # Calcualet implusive dynamics for qdot after impulsive
     A0 = jnp.hstack([H, -jnp.transpose(Jc)])
@@ -55,7 +55,7 @@ def ImpulsiveDynamics(model: dict, q: np.ndarray, qdot: np.ndarray, flag_contact
 #     H = model["H"]
 
 
-#     Jc = CalcContactJacobian(model, q, flag_contact)
+#     Jc = calc_contact_jacobian(model, q, flag_contact)
 #     rankJc = matrix_rank(Jc)
 
 #     # Calcualet implusive dynamics for qdot after impulsive

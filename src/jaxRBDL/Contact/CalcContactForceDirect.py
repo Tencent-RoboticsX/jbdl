@@ -3,7 +3,7 @@ from operator import matmul
 from typing import Tuple
 import numpy as np
 from numpy import linalg
-from jaxRBDL.Contact.CalcContactJacobian import CalcContactJacobian, CalcContactJacobianCore
+from jaxRBDL.Contact import calc_contact_jacobian, calc_contact_jacobian_core
 from jaxRBDL.Contact.CalcContactJdotQdot import CalcContactJdotQdot, CalcContactJdotQdotCore
 from jaxRBDL.Contact.CalcContactForcePD import CalcContactForcePD
 from jaxRBDL.Contact.GetContactForce import GetContactForce
@@ -33,7 +33,7 @@ def CheckContactForce(model: dict, flag_contact: np.ndarray, fqp: np.ndarray):
 
 # @partial(jit, static_argnums=(7, 8, 9, 10, 11, 12, 13, 14))
 def CalcContactForceDirectCore(Xtree, q, qdot, contactpoint, H, tau, C, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf):
-    Jc = CalcContactJacobianCore(Xtree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
+    Jc = calc_contact_jacobian_core(Xtree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
     JcdotQdot = CalcContactJdotQdotCore(Xtree, q, qdot, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
     tau = jnp.reshape(tau, (-1, 1))
     C = jnp.reshape(C, (-1, 1))
@@ -114,7 +114,7 @@ def CalcContactForceDirect(model: dict, q: np.ndarray, qdot: np.ndarray, tau: np
 
 
 #         # Calculate contact force
-#         Jc = CalcContactJacobian(model, q, flag_contact)
+#         Jc = calc_contact_jacobian(model, q, flag_contact)
 #         JcdotQdot = CalcContactJdotQdot(model, q, qdot, flag_contact)
 
 #         M = np.matmul(np.matmul(Jc, model["Hinv"]), np.transpose(Jc))

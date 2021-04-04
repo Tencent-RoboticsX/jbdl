@@ -6,7 +6,7 @@ from jax.api import jit
 from jax import lax
 
 @partial(jit, static_argnums=(3, 5, 6, 7, 8, 9, 10))
-def CalcContactJacobianCoreJitFlag(Xtree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf):
+def calc_contact_jacobian_core_jit_flag(Xtree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf):
     # fbool_contact = jnp.heaviside(flag_contact, 0.0)
     # idcontact = jnp.array(idcontact, dtype=int)
     # contactpoint = jnp.vstack(contactpoint)
@@ -44,7 +44,7 @@ def CalcContactJacobianCoreJitFlag(Xtree, q, contactpoint, idcontact, flag_conta
     return Jc
 
 # @partial(jit, static_argnums=(3, 4, 5, 6, 7, 8, 9, 10))
-def CalcContactJacobianCore(Xtree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf):
+def calc_contact_jacobian_core(Xtree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf):
     Jc = []
     for i in range(NC):
         Jci = jnp.empty((0, NB))
@@ -61,7 +61,7 @@ def CalcContactJacobianCore(Xtree, q, contactpoint, idcontact, flag_contact, par
     Jc = jnp.concatenate(Jc, axis=0)
     return Jc
 
-def CalcContactJacobian(model: dict, q: np.ndarray, flag_contact: np.ndarray)->np.ndarray:
+def calc_contact_jacobian(model: dict, q: np.ndarray, flag_contact: np.ndarray)->np.ndarray:
     NC = int(model["NC"])
     NB = int(model["NB"])
     nf = int(model["nf"])
@@ -73,11 +73,11 @@ def CalcContactJacobian(model: dict, q: np.ndarray, flag_contact: np.ndarray)->n
     jaxis = model["jaxis"]
     contactpoint = model["contactpoint"]
     flag_contact = flag_contact
-    Jc = CalcContactJacobianCore(Xtree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
+    Jc = calc_contact_jacobian_core(Xtree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
     return Jc
     
 
-# def CalcContactJacobian(model: dict, q: np.ndarray, flag_contact: np.ndarray)->np.ndarray:
+# def calc_contact_jacobian(model: dict, q: np.ndarray, flag_contact: np.ndarray)->np.ndarray:
 #     NC = int(model["NC"])
 #     NB = int(model["NB"])
 #     nf = int(model["nf"])

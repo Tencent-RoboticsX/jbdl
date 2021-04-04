@@ -5,7 +5,7 @@ from jaxRBDL.Contact.ImpulsiveDynamics import ImpulsiveDynamics, ImpulsiveDynami
 from jaxRBDL.Contact.SolveContactLCP import SolveContactLCP
 from jaxRBDL.Kinematics.CalcPointAcceleraion import CalcPointAccelerationCore
 from jaxRBDL.Utils.ModelWrapper import ModelWrapper
-from jaxRBDL.Contact.CalcContactJacobian import CalcContactJacobian, CalcContactJacobianCore
+from jaxRBDL.Contact.calc_contact_jacobian import calc_contact_jacobian, calc_contact_jacobian_core
 from jaxRBDL.Contact.CalcContactJdotQdot import CalcContactJdotQdotCore, CalcContactJdotQdot
 from jaxRBDL.Kinematics.calc_point_jacobian import calc_point_jacobian_core
 from jaxRBDL.Dynamics.CompositeRigidBodyAlgorithm import CompositeRigidBodyAlgorithm
@@ -51,29 +51,37 @@ class TestContact(unittest.TestCase):
         self.env64cpu_nojit.set('JAX_DISABLE_JIT', '1')
         self.startTime = time.time()
 
-    def test_CalcContactJacobian(self):
-        pass
-        # flag_contact_list = [np.array([1, 1, 1, 1]), np.array([2, 2, 2, 2])]
-        # model = self.model
-        # for flag_contact in flag_contact_list:
-        #     input = (model["Xtree"], self.q, model["contactpoint"],
-        #             tuple(model["idcontact"]), tuple(flag_contact),
-        #             tuple(model["parent"]), tuple(model["jtype"]), model["jaxis"],
-        #             model["NB"], model["NC"], model["nf"])
-        #     CalcContactJacobianCore(*input).block_until_ready()
-        
-        # # from jax import make_jaxpr
-        # # print(make_jaxpr(CalcContactJacobianCore, static_argnums=(3, 4, 5, 6, 7, 8, 9, 10))(*input))
-        # # print(CalcContactJacobianCore(*input))
-        # def CalcContactJacobianWithJit():
-        #     q = self.q * np.random.randn(*self.q.shape)
-        #     idx = np.random.randint(len(flag_contact_list))
-        #     contact_flag = flag_contact_list[idx]
-        #     input =  (self.model, q, contact_flag)
-        #     CalcContactJacobian(*input)
+    def test_calc_contact_jacobian(self):
+        model = self.model
+        idcontact = model["idcontact"]
+        contactpoint = model["contactpoint"]
+        q = self.q  
+        NB = int(model["NB"])
+        NC = int(model["NC"])
+        Xtree = model["Xtree"]
+        parent = tuple(model["parent"])
+        jtype = tuple(model["jtype"])
+        jaxis = model["jaxis"]
+        nf = int(model["nf"])
 
-        # print("CalcContactJacobian:")
-        # print(timeit.Timer(CalcContactJacobianWithJit).repeat(repeat=3, number=1000))
+        start_time = time.time()
+        for body_id, point_pos in zip(idcontact, contactpoint):
+            print(body_id, point_pos)
+            J = calc_point_jacobian_core(Xtree, parent, jtype, jaxis, NB, body_id, q, point_pos)
+            J.block_until_ready()
+        duration = time.time() - start_time
+
+        print("Compiled time for calc_point_jacobian_core is %s" % duration)
+
+
+        def calc_contact_jacobian_with_jit():
+            q = self.q * np.random.randn(*self.q.shape)
+            flag_contact = np.random.randint(3, size=(4,))
+            input =  (Xtree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
+            calc_contact_jacobian_core(*input)
+
+        print("calc_contact_jacobian_core:")
+        print(timeit.Timer(calc_contact_jacobian_with_jit).repeat(repeat=3, number=1000))
 
     def test_CalcContactJdotQdot(self):
         pass
@@ -147,16 +155,17 @@ class TestContact(unittest.TestCase):
         # print(timeit.Timer(CalcContactForceDirectWithJit).repeat(repeat=3, number=1))
 
     def test_DetectContact(self):
+        pass
 
-        model = self.model
-        q = self.q
-        qdot =  self.qdot
-        input = (model, q, qdot)
-        for i in range(1000):
-            input = (model, q * np.random.randn(*q.shape), qdot * np.random.randn(*qdot.shape))
-            flag_contact_v0 = DetectContact_v0(*input)
-            flag_contact_v1 = DetectContact(*input)
-            self.assertEqual(np.sum(np.abs(np.array(flag_contact_v0)-np.array(flag_contact_v1))), 0.0)
+        # model = self.model
+        # q = self.q
+        # qdot =  self.qdot
+        # input = (model, q, qdot)
+        # for i in range(1000):
+        #     input = (model, q * np.random.randn(*q.shape), qdot * np.random.randn(*qdot.shape))
+        #     flag_contact_v0 = DetectContact_v0(*input)
+        #     flag_contact_v1 = DetectContact(*input)
+        #     self.assertEqual(np.sum(np.abs(np.array(flag_contact_v0)-np.array(flag_contact_v1))), 0.0)
 
 
         # def TimeDetectContac():
