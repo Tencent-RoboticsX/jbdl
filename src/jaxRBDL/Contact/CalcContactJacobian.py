@@ -3,6 +3,45 @@ import numpy as np
 from jaxRBDL.Kinematics.CalcPointJacobian import CalcPointJacobian, CalcPointJacobianCore
 import jax.numpy as jnp
 from jax.api import jit
+from jax import lax
+
+@partial(jit, static_argnums=(4, 5, 6, 7, 8, 9, 10))
+def CalcContactJacobianCoreJitFlag(Xtree, q, contactpoint, flag_contact, idcontact,  parent, jtype, jaxis, NB, NC, nf):
+    # fbool_contact = jnp.heaviside(flag_contact, 0.0)
+    # idcontact = jnp.array(idcontact, dtype=int)
+    # contactpoint = jnp.vstack(contactpoint)
+
+    # carry = (Xtree, q)
+    # xs = (fbool_contact, idcontact, contactpoint)
+
+    # def f(carry, xs):
+    #     Xtree, q = carry
+
+    #     fbool, body_id, point_pos = xs
+    #     # body_id is not static
+    #     ys = fbool * CalcPointJacobianCore(Xtree, parent, jtype, jaxis, NB, body_id, q, point_pos)
+    #     return carry, ys
+
+    # J = lax.scan(f, carry, xs)
+    
+    # return J
+
+    Jc = []
+    fbool_contact = jnp.heaviside(flag_contact, 0.0)
+    for i in range(NC):
+        Jci = jnp.empty((0, NB))
+   
+        # Calculate Jacobian
+        J = fbool_contact[i] * CalcPointJacobianCore(Xtree, parent, jtype, jaxis, NB, idcontact[i], q, contactpoint[i])
+
+        # Make Jacobian full rank according to contact model
+        if nf == 2:
+            Jci = J[[0, 2], :] # only x\z direction
+        elif nf == 3:
+            Jci = J          
+        Jc.append(Jci)
+    Jc = jnp.concatenate(Jc, axis=0)
+    return Jc
 
 @partial(jit, static_argnums=(3, 4, 5, 6, 7, 8, 9, 10))
 def CalcContactJacobianCore(Xtree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf):
