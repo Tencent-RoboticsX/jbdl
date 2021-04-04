@@ -8,7 +8,8 @@ from jaxRBDL.Kinematics import calc_point_acceleration_core
 from jaxRBDL.Utils.ModelWrapper import ModelWrapper
 from jaxRBDL.Contact import calc_contact_jacobian, calc_contact_jacobian_core
 from jaxRBDL.Contact.calc_contact_jacobian import calc_contact_jacobian_core_jit_flag
-from jaxRBDL.Contact.CalcContactJdotQdot import CalcContactJdotQdotCore, CalcContactJdotQdot, CalcContactJdotQdotCoreJitFlag
+from jaxRBDL.Contact import calc_contact_jdot_qdot, calc_contact_jdot_qdot_core
+from jaxRBDL.Contact.calc_contact_jdot_qdot import calc_contact_jdot_qdot_core_jit_flag
 from jaxRBDL.Kinematics.calc_point_jacobian import calc_point_jacobian_core
 from jaxRBDL.Dynamics.CompositeRigidBodyAlgorithm import CompositeRigidBodyAlgorithm
 from jaxRBDL.Dynamics.InverseDynamics import InverseDynamics
@@ -91,33 +92,28 @@ class TestContact(unittest.TestCase):
 
             self.assertEqual(np.sum(np.abs(J-Js)), 0.0)
 
-    def test_CalcContactJdotQdotCore(self):
-        pass
-        # model = self.model
-        # q = self.q
-        # qdot = self.qdot
-        # nf = model["nf"]
+    def test_calc_contact_jdot_qdot_core(self):
 
-        # flag_contact_list = list(np.random.randint(3, size=(10,4)))
-        # for flag_contact in flag_contact_list:
+        model = self.model
+        q = self.q
+        qdot = self.qdot
+        nf = model["nf"]
 
-        #     print(flag_contact)
-        #     flag_contact_mat = np.diag(np.repeat(np.heaviside(flag_contact, 0.0), nf))
-        #     flag_contact_mat = flag_contact_mat[np.any(flag_contact_mat, axis=0), :]
-        #     input = (model["Xtree"], q, qdot, model["contactpoint"],
-        #                 tuple(model["idcontact"]), flag_contact,
-        #                 tuple(model["parent"]), tuple(model["jtype"]), model["jaxis"],
-        #                 model["NB"], model["NC"], model["nf"])
-        #     # input_jit_flag = (model["Xtree"], q, qdot, model["contactpoint"], flag_contact,
-        #     #             tuple(model["idcontact"]), 
-        #     #             tuple(model["parent"]), tuple(model["jtype"]), model["jaxis"],
-        #     #             model["NB"], model["NC"], model["nf"])
+        flag_contact_list = list(np.random.randint(3, size=(10,4)))
+        for flag_contact in flag_contact_list:
 
-        #     output = CalcContactJdotQdotCore(*input)
-        #     output_jit_flag = CalcContactJdotQdotCoreJitFlag(*input)
-        #     output_jit_flag = np.matmul(flag_contact_mat, output_jit_flag)
+            print(flag_contact)
+            flag_contact_mat = np.diag(np.repeat(np.heaviside(flag_contact, 0.0), nf))
+            flag_contact_mat = flag_contact_mat[np.any(flag_contact_mat, axis=0), :]
+            input = (model["Xtree"], q, qdot, model["contactpoint"],
+                        tuple(model["idcontact"]), flag_contact,
+                        tuple(model["parent"]), tuple(model["jtype"]), model["jaxis"],
+                        model["NB"], model["NC"], model["nf"])
+            output = calc_contact_jdot_qdot_core(*input)
+            output_jit_flag = calc_contact_jdot_qdot_core_jit_flag(*input)
+            output_jit_flag = np.matmul(flag_contact_mat, output_jit_flag)
 
-        #     self.assertEqual(np.sum(np.abs(output-output_jit_flag)), 0.0)
+            self.assertEqual(np.sum(np.abs(output-output_jit_flag)), 0.0)
 
 
     def test_FlagContactMat(self):

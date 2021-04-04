@@ -2,7 +2,8 @@ from functools import partial
 import numpy as np
 from jaxRBDL.Contact import calc_contact_jacobian_core
 from jaxRBDL.Contact.calc_contact_jacobian import calc_contact_jacobian_core_jit_flag
-from jaxRBDL.Contact.CalcContactJdotQdot import CalcContactJdotQdotCore, CalcContactJdotQdotCoreJitFlag
+from jaxRBDL.Contact.calc_contact_jdot_qdot import calc_contact_jdot_qdot_core
+from jaxRBDL.Contact.calc_contact_jdot_qdot import calc_contact_jdot_qdot_core_jit_flag
 from jaxRBDL.Contact.SolveContactLCP import quadprog
 import jax.numpy as jnp
 from jax.api import grad, jit
@@ -21,7 +22,7 @@ def NonNegativeZProjector(x, nf):
 
 def SolveContactSimpleLCPCoreJitFlag(Xtree, q, qdot, contactpoint, H, tau, C,  flag_contact, idcontact,  parent, jtype, jaxis, NB, NC, nf):
     Jc = calc_contact_jacobian_core_jit_flag(Xtree, q, contactpoint,flag_contact, idcontact,  parent, jtype, jaxis, NB, NC, nf)
-    JcdotQdot = CalcContactJdotQdotCoreJitFlag(Xtree, q, qdot, contactpoint, flag_contact, idcontact,  parent, jtype, jaxis, NB, NC, nf)
+    JcdotQdot = calc_contact_jdot_qdot_core_jit_flag(Xtree, q, qdot, contactpoint, flag_contact, idcontact,  parent, jtype, jaxis, NB, NC, nf)
     tau = jnp.reshape(tau, (-1, 1))
     C = jnp.reshape(C, (-1, 1))
     M = jnp.matmul(Jc, jnp.linalg.solve(H, jnp.transpose(Jc)))
@@ -49,7 +50,7 @@ def SolveContactSimpleLCPCoreJitFlag(Xtree, q, qdot, contactpoint, H, tau, C,  f
 # @partial(jit, static_argnums=(7, 8, 9, 10, 11, 12, 13, 14))
 def SolveContactSimpleLCPCore(Xtree, q, qdot, contactpoint, H, tau, C, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf):
     Jc = calc_contact_jacobian_core(Xtree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
-    JcdotQdot = CalcContactJdotQdotCore(Xtree, q, qdot, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
+    JcdotQdot = calc_contact_jdot_qdot_core(Xtree, q, qdot, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
     tau = jnp.reshape(tau, (-1, 1))
     C = jnp.reshape(C, (-1, 1))
     M = jnp.matmul(Jc, jnp.linalg.solve(H, jnp.transpose(Jc)))

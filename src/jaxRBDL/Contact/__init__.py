@@ -1,1 +1,2 @@
 from .calc_contact_jacobian import calc_contact_jacobian, calc_contact_jacobian_core
+from .calc_contact_jdot_qdot import calc_contact_jdot_qdot, calc_contact_jdot_qdot_core

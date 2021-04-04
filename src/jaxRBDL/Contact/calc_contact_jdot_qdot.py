@@ -5,7 +5,7 @@ from jax.api import jit
 from functools import partial
 
 @partial(jit, static_argnums=(4, 6, 7, 8, 9, 10, 11))
-def CalcContactJdotQdotCoreJitFlag(Xtree, q, qdot, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf):
+def calc_contact_jdot_qdot_core_jit_flag(Xtree, q, qdot, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf):
     JdotQdot = []
     fbool_contact = jnp.heaviside(flag_contact, 0.0)
     qddot = jnp.zeros((NB,))
@@ -28,12 +28,13 @@ def CalcContactJdotQdotCoreJitFlag(Xtree, q, qdot, contactpoint, idcontact, flag
 
 
 # @partial(jit, static_argnums=(4, 5, 6, 7, 8, 9, 10, 11))
-def CalcContactJdotQdotCore(Xtree, q, qdot, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf):
+def calc_contact_jdot_qdot_core(Xtree, q, qdot, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf):
     JdotQdot = []
     qddot = jnp.zeros((NB,))
     for i in range(NC):
         JdotQdoti = jnp.empty((0, 1))
         if flag_contact[i] != 0.0:
+            # print(jaxis)
             JdQd = calc_point_acceleration_core(Xtree, parent, jtype, jaxis, idcontact[i], q, qdot, qddot, contactpoint[i])
      
             if nf == 2:
@@ -46,7 +47,7 @@ def CalcContactJdotQdotCore(Xtree, q, qdot, contactpoint, idcontact, flag_contac
     JdotQdot = jnp.concatenate(JdotQdot, axis=0)
     return JdotQdot
 
-# def CalcContactJdotQdot(model: dict, q: np.ndarray, qdot: np.ndarray, flag_contact: np.ndarray)->np.ndarray:
+# def calc_contact_jdot_qdot(model: dict, q: np.ndarray, qdot: np.ndarray, flag_contact: np.ndarray)->np.ndarray:
 #     NC = int(model["NC"])
 #     NB = int(model["NB"])
 #     nf = int(model["nf"])
@@ -74,7 +75,7 @@ def CalcContactJdotQdotCore(Xtree, q, qdot, contactpoint, idcontact, flag_contac
 
 #     return JdotQdot
 
-def CalcContactJdotQdot(model: dict, q: np.ndarray, qdot: np.ndarray, flag_contact: np.ndarray)->np.ndarray:
+def calc_contact_jdot_qdot(model: dict, q: np.ndarray, qdot: np.ndarray, flag_contact: np.ndarray)->np.ndarray:
     NC = int(model["NC"])
     NB = int(model["NB"])
     nf = int(model["nf"])
@@ -86,8 +87,7 @@ def CalcContactJdotQdot(model: dict, q: np.ndarray, qdot: np.ndarray, flag_conta
     jaxis = model["jaxis"]
     contactpoint = model["contactpoint"]
     flag_contact = flag_contact
-
-    JdotQdot = CalcContactJdotQdotCore(Xtree, q, qdot, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
+    JdotQdot = calc_contact_jdot_qdot_core(Xtree, q, qdot, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
 
     return JdotQdot
                 

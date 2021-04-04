@@ -2,7 +2,7 @@ from os import stat
 import numpy as np
 import cvxopt
 from jaxRBDL.Contact import calc_contact_jacobian
-from jaxRBDL.Contact.CalcContactJdotQdot import CalcContactJdotQdot
+from jaxRBDL.Contact import calc_contact_jdot_qdot
 from jaxRBDL.Contact.CalcContactForcePD import CalcContactForcePD
 from jaxRBDL.Contact.GetContactForce import GetContactForce
 
@@ -120,7 +120,7 @@ def SolveContactLCP(model: dict, q: np.ndarray, qdot: np.ndarray, tau: np.ndarra
     
     # Calculate contact force
     Jc = calc_contact_jacobian(model, q, flag_contact)
-    JcdotQdot = CalcContactJdotQdot(model, q, qdot, flag_contact)
+    JcdotQdot = calc_contact_jdot_qdot(model, q, qdot, flag_contact)
 
     M = np.matmul(np.matmul(Jc, model["Hinv"]), np.transpose(Jc))
     tau = tau.reshape(*(-1, 1))
