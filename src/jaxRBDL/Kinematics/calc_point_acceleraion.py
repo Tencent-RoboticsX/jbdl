@@ -1,6 +1,5 @@
 import numpy as np
 import jax.numpy as jnp
-from numpy.lib.function_base import append
 from jaxRBDL.Math.CrossMotionSpace import CrossMotionSpace
 from jaxRBDL.Math.Xtrans import Xtrans
 from jaxRBDL.Model.JointModel import JointModel
@@ -8,7 +7,7 @@ from jax.api import jit
 from functools import partial
 
 @partial(jit, static_argnums=(1, 2, 3, 4))
-def CalcPointAccelerationCore(Xtree, parent, jtype, jaxis, body_id, q, qdot, qddot, point_pos):
+def calc_point_acceleration_core(Xtree, parent, jtype, jaxis, body_id, q, qdot, qddot, point_pos):
     Xup = []
     v = []
     avp = []
@@ -40,7 +39,7 @@ def CalcPointAccelerationCore(Xtree, parent, jtype, jaxis, body_id, q, qdot, qdd
 
 
 
-def CalcPointAcceleration(model: dict, q: np.ndarray, qdot: np.ndarray, qddot: np.ndarray, body_id: int, point_pos: np.ndarray)->np.ndarray:
+def calc_point_acceleration(model: dict, q: np.ndarray, qdot: np.ndarray, qddot: np.ndarray, body_id: int, point_pos: np.ndarray)->np.ndarray:
     q = q.flatten()
     qdot = qdot.flatten()
     qddot = qddot.flatten()
@@ -50,5 +49,5 @@ def CalcPointAcceleration(model: dict, q: np.ndarray, qdot: np.ndarray, qddot: n
     parent = model['parent']
     Xtree = model['Xtree']
 
-    acc = CalcPointAccelerationCore(Xtree, tuple(parent), tuple(jtype), jaxis, body_id, q, qdot, qddot, point_pos)
+    acc = calc_point_acceleration_core(Xtree, tuple(parent), tuple(jtype), jaxis, body_id, q, qdot, qddot, point_pos)
     return acc

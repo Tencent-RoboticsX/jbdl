@@ -7,8 +7,7 @@ from test.support import EnvironmentVarGuard
 from jaxRBDL.Kinematics import calc_body_to_base_coordinates
 from jaxRBDL.Kinematics.CalcPointVelocity import CalcPointVelocity
 from jaxRBDL.Kinematics.CalcPointVelocity import CalcPointVelocityCore
-from jaxRBDL.Kinematics.CalcPointAcceleraion import CalcPointAcceleration
-from jaxRBDL.Kinematics.CalcPointAcceleraion import CalcPointAccelerationCore
+from jaxRBDL.Kinematics import calc_point_acceleration
 from jaxRBDL.Kinematics.calc_point_jacobian import calc_point_jacobian, calc_point_jacobian_core
 from jaxRBDL.Kinematics.CalcPointJacobianDerivative import CalcPointJacobianDerivative
 from jaxRBDL.Kinematics.CalcPointJacobianDerivative import CalcPointJacobianDerivativeCore
@@ -69,10 +68,10 @@ class TestKinematics(unittest.TestCase):
             self.assertAlmostEqual(np.sum(np.abs(py_output-oct_output)), 0.0, 5)
  
 
-    def test_CalcPointAcceleration(self):
+    def test_calc_point_acceleration(self):
         for i in range(1, int(self.model['NB']) + 1):
             input = (self.model, self.q, self.qdot, self.qddot, i, np.random.rand(*(3,)))
-            py_output = CalcPointAcceleration(*input)
+            py_output = calc_point_acceleration(*input)
             oct_output = octave.CalcPointAcceleration(*input)
             self.assertAlmostEqual(np.sum(np.abs(py_output-oct_output)), 0.0, 5)
 

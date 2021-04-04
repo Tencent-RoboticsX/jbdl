@@ -1,5 +1,5 @@
 import numpy as np
-from jaxRBDL.Kinematics.CalcPointAcceleraion import CalcPointAcceleration, CalcPointAccelerationCore
+from jaxRBDL.Kinematics import calc_point_acceleration, calc_point_acceleration_core
 import jax.numpy as jnp
 from jax.api import jit
 from functools import partial
@@ -13,7 +13,7 @@ def CalcContactJdotQdotCoreJitFlag(Xtree, q, qdot, contactpoint, idcontact, flag
         JdotQdoti = jnp.empty((0, 1))
         # print(fbool_contact.shape)
         # print(fbool_contact[i].shape)
-        JdQd = fbool_contact[i] * CalcPointAccelerationCore(Xtree, parent, jtype, jaxis, idcontact[i], q, qdot, qddot, contactpoint[i])
+        JdQd = fbool_contact[i] * calc_point_acceleration_core(Xtree, parent, jtype, jaxis, idcontact[i], q, qdot, qddot, contactpoint[i])
     
         if nf == 2:
             JdotQdoti = JdQd[[0, 2], :] # only x\z direction
@@ -34,7 +34,7 @@ def CalcContactJdotQdotCore(Xtree, q, qdot, contactpoint, idcontact, flag_contac
     for i in range(NC):
         JdotQdoti = jnp.empty((0, 1))
         if flag_contact[i] != 0.0:
-            JdQd = CalcPointAccelerationCore(Xtree, parent, jtype, jaxis, idcontact[i], q, qdot, qddot, contactpoint[i])
+            JdQd = calc_point_acceleration_core(Xtree, parent, jtype, jaxis, idcontact[i], q, qdot, qddot, contactpoint[i])
      
             if nf == 2:
                 JdotQdoti = JdQd[[0, 2], :] # only x\z direction
@@ -61,7 +61,7 @@ def CalcContactJdotQdotCore(Xtree, q, qdot, contactpoint, idcontact, flag_contac
 #     for i in range(NC):
 #         JdotQdoti = np.empty((0, 1))
 #         if flag_contact[i] != 0.0:
-#             JdQd = CalcPointAcceleration(model, q, qdot, np.zeros((NB, 1)), idcontact[i], contactpoint[i])
+#             JdQd = calc_point_acceleration(model, q, qdot, np.zeros((NB, 1)), idcontact[i], contactpoint[i])
 #             if nf == 2:
 #                 JdotQdoti = JdQd[[0, 2], :] # only x\z direction
 #             elif nf == 3:

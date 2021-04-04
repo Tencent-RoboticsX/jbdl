@@ -19,7 +19,6 @@ from jaxRBDL.Contact.DetectContact import DetectContact, DetectContactCore
 from jaxRBDL.Contact.ImpulsiveDynamics import ImpulsiveDynamicsCore
 from jaxRBDL.Dynamics.CompositeRigidBodyAlgorithm import CompositeRigidBodyAlgorithmCore
 from jaxRBDL.Kinematics import *
-from jaxRBDL.Kinematics.CalcPointAcceleraion import CalcPointAccelerationCore
 from jaxRBDL.Kinematics import calc_body_to_base_coordinates_core
 from jaxRBDL.Dynamics.ForwardDynamics import ForwardDynamicsCore
 from jaxRBDL.Dynamics.InverseDynamics import InverseDynamicsCore
@@ -62,10 +61,9 @@ def jit_compiled(model):
         print(body_id, point_pos)
         J = calc_point_jacobian_core(Xtree, parent, jtype, jaxis, NB, body_id, q, point_pos)
         J.block_until_ready()
-        acc = CalcPointAccelerationCore(Xtree, parent, jtype, jaxis, body_id, q, qdot, qddot, point_pos)
-        end_pos = calc_body_to_base_coordinates_core(Xtree, parent, jtype, jaxis, body_id, q, point_pos)
-
+        acc = calc_point_acceleration_core(Xtree, parent, jtype, jaxis, body_id, q, qdot, qddot, point_pos)
         acc.block_until_ready()
+        end_pos = calc_body_to_base_coordinates_core(Xtree, parent, jtype, jaxis, body_id, q, point_pos)
         end_pos.block_until_ready()
     duarion = time.time() - start_time
     print("Jit compiled time for %s is %s." % ("Contact Point Functions", duarion))
