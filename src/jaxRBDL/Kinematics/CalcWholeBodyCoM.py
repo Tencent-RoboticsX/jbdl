@@ -1,5 +1,5 @@
 import numpy as np
-from jaxRBDL.Kinematics.CalcBodyToBaseCoordinates import CalcBodyToBaseCoordinates
+from jaxRBDL.Kinematics import calc_body_to_base_coordinates
 
 
 def CalcWholeBodyCoM(model: dict, q: np.ndarray)-> np.ndarray:
@@ -22,7 +22,7 @@ def CalcWholeBodyCoM(model: dict, q: np.ndarray)-> np.ndarray:
     CoM_list = []
     Clink = np.zeros((3,1))
     for i in range(num):
-        Clink = CalcBodyToBaseCoordinates(model, q, idcomplot[i], CoM[i])
+        Clink = calc_body_to_base_coordinates(model, q, idcomplot[i], CoM[i])
         CoM_list.append(Clink)
     
     C = np.zeros((3, 1))

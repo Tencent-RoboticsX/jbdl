@@ -1,6 +1,5 @@
 import numpy as np
-from jaxRBDL.Kinematics.CalcBodyToBaseCoordinates import CalcBodyToBaseCoordinates, CalcBodyToBaseCoordinatesCore
-from jaxRBDL.Kinematics.calc_body_to_base_coordinates import calc_body_to_base_coordinates, calc_body_to_base_coordinates_core
+from jaxRBDL.Kinematics import calc_body_to_base_coordinates, calc_body_to_base_coordinates_core
 from jaxRBDL.Kinematics.CalcPointVelocity import CalcPointVelocity, CalcPointVelocityCore
 import jax.numpy as jnp
 from functools import partial
@@ -68,7 +67,6 @@ def DetectContactCore(Xtree, q, qdot, contactpoint, contact_pos_lb, contact_vel_
     end_vel_list = []
     for i in range(NC):
         # Calcualte pos and vel of foot endpoint, column vector
-        # endpos_item = CalcBodyToBaseCoordinatesCore(Xtree, parent, jtype, jaxis, idcontact[i], q, contactpoint[i])
         endpos_item = calc_body_to_base_coordinates_core(Xtree, parent, jtype, jaxis, idcontact[i], q, contactpoint[i])
         endvel_item = CalcPointVelocityCore(Xtree, parent, jtype, jaxis, idcontact[i], q, qdot, contactpoint[i])
         end_pos_list.append(endpos_item)
@@ -114,7 +112,7 @@ def  DetectContact_v0(model: dict, q: np.ndarray, qdot: np.ndarray)->np.ndarray:
 
     for i in range(NC):
         # Calcualte pos and vel of foot endpoint, column vector
-        endpos_item = CalcBodyToBaseCoordinates(model, q, idcontact[i], contactpoint[i])
+        endpos_item = calc_body_to_base_coordinates(model, q, idcontact[i], contactpoint[i])
         endvel_item = CalcPointVelocity(model, q, qdot, idcontact[i], contactpoint[i])
 
         # Detect contact

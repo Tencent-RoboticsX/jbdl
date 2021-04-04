@@ -5,7 +5,7 @@ from numpy.linalg import inv
 from jaxRBDL.Contact.DetectContact import DetectContact
 from jaxRBDL.Contact.CalcContactForceDirect import CalcContactForceDirect
 from jaxRBDL.Dynamics.ForwardDynamics import ForwardDynamics, ForwardDynamicsCore
-from jaxRBDL.Kinematics.CalcBodyToBaseCoordinates import CalcBodyToBaseCoordinates, CalcBodyToBaseCoordinatesCore
+from jaxRBDL.Kinematics import calc_body_to_base_coordinates, calc_body_to_base_coordinates_core
 from jaxRBDL.Contact.ImpulsiveDynamics import ImpulsiveDynamics
 from jaxRBDL.Contact.SolveContactLCP import SolveContactLCP
 from jaxRBDL.Contact.SolveContactSimpleLCP import SolveContactSimpleLCP, SolveContactSimpleLCPCore
@@ -92,7 +92,7 @@ def EventsFunCore(Xtree, q, contactpoint, idcontact, flag_contact, parent, jtype
     for i in range(NC):
         if flag_contact[i]==2: # Impact
             # Calculate foot height 
-            endpos = CalcBodyToBaseCoordinatesCore(Xtree, parent, jtype, jaxis, idcontact[i], q, contactpoint[i])
+            endpos = calc_body_to_base_coordinates_core(Xtree, parent, jtype, jaxis, idcontact[i], q, contactpoint[i])
             value = value.at[i].set(endpos[2, 0])
     return value
 
@@ -127,41 +127,6 @@ def EventsFun(t: float, x: np.ndarray, model: dict, contact_force: dict=dict()):
     # print("9999999999999999999")
 
     return value
-
-
-# def EventsFun(t: float, X: np.ndarray, model: dict, contact_force: dict=dict()):
-#     print("6666666666666666666666")
-#     NB = int(model["NB"])
-#     NC = int(model["NC"])
-   
-#     # Get q qdot tau
-#     q = X[0: NB]
-#     qdot = X[NB: 2*NB]
-#     tau = model["tau"]
-
-#     value = np.ones((NC, 1))
-#     isterminal = np.ones((NC, 1))
-#     direction = -np.ones((NC, 1))
-#     idcontact = model["idcontact"]
-#     contactpoint = model["contactpoint"]
-    
-#     print("77777777777777777777777777")
-#     # Detect contact
-#     flag_contact = DetectContact(model, q, qdot)
-#     # print("In EventsFun!!!")
-#     # print(flag_contact)
-#     print("8888888888888888888")
-#     value_list = []
-#     for i in range(NC):
-#         if flag_contact[i]==2: # Impact
-#             # Calculate foot height 
-#             endpos = CalcBodyToBaseCoordinates(model, q, idcontact[i], contactpoint[i])
-#             value[i,0] = endpos[2, 0]
-#     print("9999999999999999999")
-
-#     return value
-
-
 
 
 def StateFunODE(model: dict, xk: np.ndarray, uk: np.ndarray, T: float):

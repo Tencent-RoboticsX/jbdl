@@ -1,7 +1,5 @@
 from typing import Optional
-
-from numpy.core.numeric import flatnonzero
-from jaxRBDL.Kinematics.CalcBodyToBaseCoordinates import CalcBodyToBaseCoordinates
+from jaxRBDL.Kinematics import calc_body_to_base_coordinates
 from mpl_toolkits.mplot3d.axes3d import Axes3D
 import numpy as np
 
@@ -32,7 +30,7 @@ def PlotContactForce(model: dict, q: np.ndarray, fc: Optional[np.ndarray] , fcqp
     pos_contact_list = []
     fplot = fplot.reshape((3, nc), order="F")
     for i in range(nc):
-        pos_contact_list.append(CalcBodyToBaseCoordinates(model, q, idcontact[i], contactpoint[i]))
+        pos_contact_list.append(calc_body_to_base_coordinates(model, q, idcontact[i], contactpoint[i]))
 
     pos_contact = np.asfarray(np.concatenate(pos_contact_list, axis=1))
     # print(fplot)

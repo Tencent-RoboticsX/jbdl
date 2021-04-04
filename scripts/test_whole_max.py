@@ -20,8 +20,7 @@ from jaxRBDL.Contact.ImpulsiveDynamics import ImpulsiveDynamicsCore
 from jaxRBDL.Dynamics.CompositeRigidBodyAlgorithm import CompositeRigidBodyAlgorithmCore
 from jaxRBDL.Kinematics.CalcPointJacobian import CalcPointJacobianCore
 from jaxRBDL.Kinematics.CalcPointAcceleraion import CalcPointAccelerationCore
-from jaxRBDL.Kinematics.CalcBodyToBaseCoordinates import CalcBodyToBaseCoordinatesCore
-from jaxRBDL.Kinematics.calc_body_to_base_coordinates import calc_body_to_base_coordinates_core
+from jaxRBDL.Kinematics import calc_body_to_base_coordinates_core
 from jaxRBDL.Dynamics.ForwardDynamics import ForwardDynamicsCore
 from jaxRBDL.Dynamics.InverseDynamics import InverseDynamicsCore
 import time
@@ -63,7 +62,6 @@ def jit_compiled(model):
         print(body_id, point_pos)
         J = CalcPointJacobianCore(Xtree, parent, jtype, jaxis, NB, body_id, q, point_pos)
         acc = CalcPointAccelerationCore(Xtree, parent, jtype, jaxis, body_id, q, qdot, qddot, point_pos)
-        # end_pos = CalcBodyToBaseCoordinatesCore(Xtree, parent, jtype, jaxis, body_id, q, point_pos)
         end_pos = calc_body_to_base_coordinates_core(Xtree, parent, jtype, jaxis, body_id, q, point_pos)
         J.block_until_ready()
         acc.block_until_ready()

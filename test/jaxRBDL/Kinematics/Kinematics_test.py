@@ -4,7 +4,7 @@ import numpy as np
 import math
 import unittest
 from test.support import EnvironmentVarGuard
-from jaxRBDL.Kinematics.CalcBodyToBaseCoordinates import CalcBodyToBaseCoordinates
+from jaxRBDL.Kinematics import calc_body_to_base_coordinates
 from jaxRBDL.Kinematics.CalcPointVelocity import CalcPointVelocity
 from jaxRBDL.Kinematics.CalcPointVelocity import CalcPointVelocityCore
 from jaxRBDL.Kinematics.CalcPointAcceleraion import CalcPointAcceleration
@@ -57,7 +57,7 @@ class TestKinematics(unittest.TestCase):
     def test_CalcBodyToBaseCoordinates(self):
         for i in range(1, int(self.model['NB']) + 1):
             input = (self.model, self.q, i, np.random.rand(*(3,)))
-            py_output = CalcBodyToBaseCoordinates(*input)
+            py_output = calc_body_to_base_coordinates(*input)
             oct_output = octave.CalcBodyToBaseCoordinates(*input)
             self.assertAlmostEqual(np.sum(np.abs(py_output-oct_output)), 0.0, 5)
         
