@@ -8,19 +8,19 @@ from jaxRBDL.Kinematics import transform_to_position
 from functools import partial
 
 @partial(jit, static_argnums=(1, 2, 3, 4))
-def calc_body_to_base_coordinates_core(x_tree, parent, jtype, jaxis, body_id, q, point_pos):
-    x0 = []
+def calc_body_to_base_coordinates_core(Xtree, parent, jtype, jaxis, body_id, q, point_pos):
+    X0 = []
     for i in range(body_id):
-        x_joint, _ = JointModel(jtype[i], jaxis[i], q[i])
-        x_up = jnp.matmul(x_joint, x_tree[i])
+        XJ, _ = JointModel(jtype[i], jaxis[i], q[i])
+        Xup = jnp.matmul(XJ, Xtree[i])
         if parent[i] == 0:
-            x0.append(x_up)
+            X0.append(Xup)
         else:
-            x0.append(jnp.matmul(x_up, x0[parent[i] - 1]))
+            X0.append(jnp.matmul(Xup, X0[parent[i] - 1]))
     
-    point_trans = Xtrans(point_pos)
-    x_end_point =  jnp.matmul(point_trans, x0[body_id - 1])
-    pos = transform_to_position(x_end_point)
+    XT_point = Xtrans(point_pos)
+    X0_point =  jnp.matmul(XT_point, X0[body_id - 1])
+    pos = transform_to_position(X0_point)
     return pos
 
 

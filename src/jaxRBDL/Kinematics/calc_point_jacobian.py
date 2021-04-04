@@ -7,31 +7,31 @@ from jax.api import jit
 from functools import partial
 
 @partial(jit, static_argnums=(1, 2, 3, 4, 5))
-def calc_point_jacobian_core(x_tree, parent, jtype, jaxis, NB, body_id, q, point_pos):
+def calc_point_jacobian_core(Xtree, parent, jtype, jaxis, NB, body_id, q, point_pos):
     S = []
-    x_up = []
-    x0 = []
+    Xup = []
+    X0 = []
 
     for i in range(body_id):
-        x_joint, Si = JointModel(jtype[i], jaxis[i], q[i])
+        XJ, Si = JointModel(jtype[i], jaxis[i], q[i])
         S.append(Si)
-        x_up.append(jnp.matmul(x_joint, x_tree[i]))
+        Xup.append(jnp.matmul(XJ, Xtree[i]))
         if parent[i] == 0:
-            x0.append(x_up[i])
+            X0.append(Xup[i])
         else:
-            x0.append(jnp.matmul(x_up[i], x0[parent[i]-1]))
+            X0.append(jnp.matmul(Xup[i], X0[parent[i]-1]))
 
-    point_trans = Xtrans(point_pos)
-    x_end_point = jnp.matmul(point_trans, x0[body_id-1])
+    XT_point = Xtrans(point_pos)
+    X0_point = jnp.matmul(XT_point, X0[body_id-1])
 
     j_p = body_id - 1
     BJ = jnp.zeros((6, NB))
     while j_p != -1:
-        Xe = jnp.matmul(x_end_point, InverseMotionSpace(x0[j_p]))
+        Xe = jnp.matmul(X0_point, InverseMotionSpace(X0[j_p]))
         BJ = BJ.at[:, [j_p, ]].set(jnp.matmul(Xe, S[j_p]))
         j_p = parent[j_p] - 1
 
-    E0 = jnp.transpose(x_end_point[0:3, 0:3])
+    E0 = jnp.transpose(X0_point[0:3, 0:3])
     J = jnp.matmul(jnp.matmul(E0, jnp.hstack([ jnp.zeros((3, 3)), jnp.eye(3)])), BJ)
 
     return J
