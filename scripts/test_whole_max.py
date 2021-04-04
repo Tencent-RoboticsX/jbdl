@@ -1,5 +1,6 @@
 import os
 import re
+from jax.interpreters.xla import jaxpr_replicas
 from numpy.core.shape_base import block
 import numpy as np
 import math
@@ -16,6 +17,10 @@ from jaxRBDL.Utils.ModelWrapper import ModelWrapper
 from jaxRBDL.Dynamics.StateFunODE import DynamicsFunCore, EventsFunCore
 from jaxRBDL.Contact.DetectContact import DetectContact, DetectContactCore
 from jaxRBDL.Contact.ImpulsiveDynamics import ImpulsiveDynamicsCore
+from jaxRBDL.Dynamics.CompositeRigidBodyAlgorithm import CompositeRigidBodyAlgorithmCore
+from jaxRBDL.Kinematics.CalcPointJacobian import CalcPointJacobianCore
+from jaxRBDL.Kinematics.CalcPointAcceleraion import CalcPointAccelerationCore
+from jaxRBDL.Dynamics.ForwardDynamics import ForwardDynamicsCore
 import time
 # matplotlib.use('TkAgg')
 
@@ -48,19 +53,30 @@ def jit_compiled(model):
         0, 0.5, -0.8,  # br
         0, 0.5, -0.8]) # bl
     qdot = np.ones(NB)
-    # qddot = np.ones(NB)
+    qddot = np.ones(NB)
     tau = np.concatenate([np.zeros(6), np.ones(NB-6)])
+    for body_id, point_pos in zip(idcontact, contactpoint):
+        print(body_id, point_pos)
+        J = CalcPointJacobianCore(Xtree, parent, jtype, jaxis, NB, body_id, q, point_pos)
+        acc = CalcPointAccelerationCore(Xtree, parent, jtype, jaxis, body_id, q, qdot, qddot, point_pos)
+        J.block_until_ready()
+        acc.block_until_ready()
+
+    qddot = ForwardDynamicsCore(Xtree, I, parent, jtype, jaxis, NB, q, qdot, tau, a_grav)
+    qddot.block_until_ready()
+
     for flag_contact in flag_contact_list:
         print("Jit compiled for %s ..." % str(flag_contact))
         start_time = time.time()
         rankJc = int(np.sum( [1 for item in flag_contact if item != 0]) * model["nf"])
-        xdot, fqp, H = DynamicsFunCore(Xtree, I, q, qdot, contactpoint, tau, a_grav, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, rankJc)
+        H =  CompositeRigidBodyAlgorithmCore(Xtree, I, parent, jtype, jaxis, NB, q)
+        # xdot, fqp, H = DynamicsFunCore(Xtree, I, q, qdot, contactpoint, tau, a_grav, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, rankJc)
         value = EventsFunCore(Xtree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NC)
         flag_contact_calc = DetectContactCore(Xtree, q, qdot, contactpoint, contact_pos_lb, contact_vel_lb, contact_vel_ub,  idcontact, parent, jtype, jaxis, NC)
         qdot_impulse = ImpulsiveDynamicsCore(Xtree, q, qdot, contactpoint, H, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, rankJc)
         H.block_until_ready()
-        fqp.block_until_ready()
-        xdot.block_until_ready()
+        # fqp.block_until_ready()
+        # xdot.block_until_ready()
         value.block_until_ready()
         flag_contact_calc.block_until_ready()
         
@@ -70,6 +86,10 @@ def jit_compiled(model):
         qdot_impulse.block_until_ready()
         duarion = time.time() - start_time
         print("Jit compiled time for %s is %s." % (str(flag_contact), duarion))
+
+
+
+    
 
          
 

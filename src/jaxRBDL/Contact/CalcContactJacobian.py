@@ -5,8 +5,8 @@ import jax.numpy as jnp
 from jax.api import jit
 from jax import lax
 
-@partial(jit, static_argnums=(4, 5, 6, 7, 8, 9, 10))
-def CalcContactJacobianCoreJitFlag(Xtree, q, contactpoint, flag_contact, idcontact,  parent, jtype, jaxis, NB, NC, nf):
+@partial(jit, static_argnums=(3, 5, 6, 7, 8, 9, 10))
+def CalcContactJacobianCoreJitFlag(Xtree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf):
     # fbool_contact = jnp.heaviside(flag_contact, 0.0)
     # idcontact = jnp.array(idcontact, dtype=int)
     # contactpoint = jnp.vstack(contactpoint)
@@ -43,7 +43,7 @@ def CalcContactJacobianCoreJitFlag(Xtree, q, contactpoint, flag_contact, idconta
     Jc = jnp.concatenate(Jc, axis=0)
     return Jc
 
-@partial(jit, static_argnums=(3, 4, 5, 6, 7, 8, 9, 10))
+# @partial(jit, static_argnums=(3, 4, 5, 6, 7, 8, 9, 10))
 def CalcContactJacobianCore(Xtree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf):
     Jc = []
     for i in range(NC):

@@ -15,7 +15,7 @@ from jaxRBDL.Contact.GetContactForce import GetContactForce
 from jax.api import jit
 from functools import partial
 
-@partial(jit, static_argnums=(7, 8, 9, 10, 11, 12, 13, 14, 15))
+# @partial(jit, static_argnums=(7, 8, 9, 10, 11, 12, 13, 14, 15))
 def DynamicsFunCore(Xtree, I, q, qdot, contactpoint, tau, a_grav, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, rankJc):
     H =  CompositeRigidBodyAlgorithmCore(Xtree, I, parent, jtype, jaxis, NB, q)
     C =  InverseDynamicsCore(Xtree, I, parent, jtype, jaxis, NB, q, qdot, jnp.zeros_like(q), a_grav)

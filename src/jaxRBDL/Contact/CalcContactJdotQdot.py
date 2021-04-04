@@ -4,8 +4,8 @@ import jax.numpy as jnp
 from jax.api import jit
 from functools import partial
 
-@partial(jit, static_argnums=(5, 6, 7, 8, 9, 10, 11))
-def CalcContactJdotQdotCoreJitFlag(Xtree, q, qdot, contactpoint, flag_contact, idcontact, parent, jtype, jaxis, NB, NC, nf):
+@partial(jit, static_argnums=(4, 6, 7, 8, 9, 10, 11))
+def CalcContactJdotQdotCoreJitFlag(Xtree, q, qdot, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf):
     JdotQdot = []
     fbool_contact = jnp.heaviside(flag_contact, 0.0)
     qddot = jnp.zeros((NB,))
@@ -27,7 +27,7 @@ def CalcContactJdotQdotCoreJitFlag(Xtree, q, qdot, contactpoint, flag_contact, i
     return JdotQdot
 
 
-@partial(jit, static_argnums=(4, 5, 6, 7, 8, 9, 10, 11))
+# @partial(jit, static_argnums=(4, 5, 6, 7, 8, 9, 10, 11))
 def CalcContactJdotQdotCore(Xtree, q, qdot, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf):
     JdotQdot = []
     qddot = jnp.zeros((NB,))

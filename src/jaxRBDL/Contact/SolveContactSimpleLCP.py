@@ -45,7 +45,7 @@ def SolveContactSimpleLCPCoreJitFlag(Xtree, q, qdot, contactpoint, H, tau, C,  f
     flcp = jnp.reshape(flcp, (-1,))
     return flcp, fqp
 
-@partial(jit, static_argnums=(7, 8, 9, 10, 11, 12, 13, 14))
+# @partial(jit, static_argnums=(7, 8, 9, 10, 11, 12, 13, 14))
 def SolveContactSimpleLCPCore(Xtree, q, qdot, contactpoint, H, tau, C, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf):
     Jc = CalcContactJacobianCore(Xtree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
     JcdotQdot = CalcContactJdotQdotCore(Xtree, q, qdot, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
