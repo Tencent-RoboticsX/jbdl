@@ -1,5 +1,5 @@
 import numpy as np
-from jaxRBDL.Dynamics.CompositeRigidBodyAlgorithm import CompositeRigidBodyAlgorithm, CompositeRigidBodyAlgorithmCore
+from jaxRBDL.Dynamics import composite_rigid_body_algorithm, composite_rigid_body_algorithm_core
 from jaxRBDL.Dynamics.InverseDynamics import InverseDynamics, InverseDynamicsCore
 from numpy.linalg import inv
 from jaxRBDL.Contact.DetectContact import DetectContact
@@ -18,7 +18,7 @@ from functools import partial
 
 # @partial(jit, static_argnums=(7, 8, 9, 10, 11, 12, 13, 14, 15))
 def DynamicsFunCore(Xtree, I, q, qdot, contactpoint, tau, a_grav, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, rankJc):
-    H =  CompositeRigidBodyAlgorithmCore(Xtree, I, parent, jtype, jaxis, NB, q)
+    H =  composite_rigid_body_algorithm_core(Xtree, I, parent, jtype, jaxis, NB, q)
     C =  InverseDynamicsCore(Xtree, I, parent, jtype, jaxis, NB, q, qdot, jnp.zeros_like(q), a_grav)
     lam = jnp.zeros((NB, ))
     fqp = jnp.zeros((rankJc, 1))

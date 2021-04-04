@@ -10,7 +10,7 @@ from jax import lax
 
 
 @partial(jit, static_argnums=(2, 3, 4, 5))
-def CompositeRigidBodyAlgorithmCore(Xtree, I, parent, jtype, jaxis, NB, q):
+def composite_rigid_body_algorithm_core(Xtree, I, parent, jtype, jaxis, NB, q):
     # print("Re-Tracing")
 
     IC = I.copy()
@@ -46,7 +46,7 @@ def CompositeRigidBodyAlgorithmCore(Xtree, I, parent, jtype, jaxis, NB, q):
 
 
 
-def CompositeRigidBodyAlgorithm(model: dict, q):
+def composite_rigid_body_algorithm(model: dict, q):
 
     NB = int(model["NB"])
     jtype = model["jtype"]
@@ -56,7 +56,7 @@ def CompositeRigidBodyAlgorithm(model: dict, q):
     I = model["I"]
 
     q = q.flatten()
-    H = CompositeRigidBodyAlgorithmCore(Xtree, I, tuple(parent), tuple(jtype), jaxis, NB, q)
+    H = composite_rigid_body_algorithm_core(Xtree, I, tuple(parent), tuple(jtype), jaxis, NB, q)
 
     return H
 

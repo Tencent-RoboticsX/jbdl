@@ -17,7 +17,7 @@ from jaxRBDL.Utils.ModelWrapper import ModelWrapper
 from jaxRBDL.Dynamics.StateFunODE import DynamicsFunCore, EventsFunCore
 from jaxRBDL.Contact.DetectContact import DetectContact, DetectContactCore
 from jaxRBDL.Contact.ImpulsiveDynamics import ImpulsiveDynamicsCore
-from jaxRBDL.Dynamics.CompositeRigidBodyAlgorithm import CompositeRigidBodyAlgorithmCore
+from jaxRBDL.Dynamics import composite_rigid_body_algorithm_core
 from jaxRBDL.Kinematics import *
 from jaxRBDL.Kinematics import calc_body_to_base_coordinates_core
 from jaxRBDL.Dynamics.ForwardDynamics import ForwardDynamicsCore
@@ -70,7 +70,7 @@ def jit_compiled(model):
 
     start_time = time.time()
     qddot = ForwardDynamicsCore(Xtree, I, parent, jtype, jaxis, NB, q, qdot, tau, a_grav)
-    H =  CompositeRigidBodyAlgorithmCore(Xtree, I, parent, jtype, jaxis, NB, q)
+    H =  composite_rigid_body_algorithm_core(Xtree, I, parent, jtype, jaxis, NB, q)
     C =  InverseDynamicsCore(Xtree, I, parent, jtype, jaxis, NB, q, qdot, np.zeros_like(q), a_grav)
     flag_contact_calc = DetectContactCore(Xtree, q, qdot, contactpoint, contact_pos_lb, contact_vel_lb, contact_vel_ub,  idcontact, parent, jtype, jaxis, NC)
     qddot.block_until_ready()

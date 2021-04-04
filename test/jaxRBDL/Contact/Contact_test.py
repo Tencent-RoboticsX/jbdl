@@ -8,7 +8,7 @@ from jaxRBDL.Utils.ModelWrapper import ModelWrapper
 from jaxRBDL.Contact import calc_contact_jacobian, calc_contact_jacobian_core
 from jaxRBDL.Contact import calc_contact_jdot_qdot, calc_contact_jdot_qdot_core
 from jaxRBDL.Kinematics.calc_point_jacobian import calc_point_jacobian_core
-from jaxRBDL.Dynamics.CompositeRigidBodyAlgorithm import CompositeRigidBodyAlgorithm
+from jaxRBDL.Dynamics import composite_rigid_body_algorithm
 from jaxRBDL.Dynamics.InverseDynamics import InverseDynamics
 from jaxRBDL.Contact.DetectContact import DetectContact_v0, DetectContact, DetectContactCore, DeterminContactType, DeterminContactTypeCore
 from jaxRBDL.Contact.SolveContactSimpleLCP import QuadLoss, NonNegativeZProjector, SolveContactSimpleLCPCore, SolveContactSimpleLCP
@@ -130,7 +130,7 @@ class TestContact(unittest.TestCase):
 
         # input_CRBA = (model, q)
         # start_time = time.time()
-        # model["H"] = CompositeRigidBodyAlgorithm(*input_CRBA)
+        # model["H"] = composite_rigid_body_algorithm(*input_CRBA)
         # model["C"] = InverseDynamics(model, q, qdot, np.zeros((NB, 1)))
         # print(time.time()-start_time)
         # for flag_contact in flag_contact_list:
@@ -225,7 +225,7 @@ class TestContact(unittest.TestCase):
         # flag_contact = (1, 1, 1, 1)
         # input_A = (model, q, qdot, flag_contact)
         # input_CRBA = (model, q)
-        # model["H"] = CompositeRigidBodyAlgorithm(*input_CRBA)
+        # model["H"] = composite_rigid_body_algorithm(*input_CRBA)
 
         # rankJc = np.sum( [1 for item in flag_contact if item != 0]) * model["nf"]
         # # print(rankJc)
@@ -254,7 +254,7 @@ class TestContact(unittest.TestCase):
         # tau = self.tau
         # flag_contact = (1, 1, 1, 1)
         # input_CRBA = (model, q)
-        # model["H"] = CompositeRigidBodyAlgorithm(*input_CRBA)
+        # model["H"] = composite_rigid_body_algorithm(*input_CRBA)
         # model["C"] = InverseDynamics(model, q, qdot, np.zeros((NB, 1)))
 
         # input_core = (model["Xtree"], self.q, self.qdot, model["contactpoint"],

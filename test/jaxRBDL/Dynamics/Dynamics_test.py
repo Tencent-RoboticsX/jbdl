@@ -8,7 +8,7 @@ import math
 import unittest
 from numpy.core.fromnumeric import shape
 from test.support import EnvironmentVarGuard
-from jaxRBDL.Dynamics.CompositeRigidBodyAlgorithm import CompositeRigidBodyAlgorithm, CompositeRigidBodyAlgorithmCore
+from jaxRBDL.Dynamics import composite_rigid_body_algorithm, composite_rigid_body_algorithm_core
 from jaxRBDL.Dynamics.ForwardDynamics import ForwardDynamics, ForwardDynamicsCore
 from jaxRBDL.Dynamics.InverseDynamics import InverseDynamics, InverseDynamicsCore
 from jaxRBDL.Dynamics.StateFunODE import DynamicsFunCore, EventsFunCore
@@ -129,35 +129,36 @@ class TestDynamics(unittest.TestCase):
 
         
 
-    # def test_CompositeRigidBodyAlgorithm(self):
-    #     input = (self.model, self.q)
-    #     CompositeRigidBodyAlgorithm(*input)
+    def test_composite_rigid_body_algorithm(self):
+        input = (self.model, self.q)
+        composite_rigid_body_algorithm(*input)
 
-    #     def CompositeRigidBodyAlgorithmWithJit():
-    #         input =  (self.model, self.q * np.random.randn(*self.q.shape))
-    #         CompositeRigidBodyAlgorithm(*input)
-    #     print("CompositeRigidBodyAlgorithm:")
-    #     print(timeit.Timer(CompositeRigidBodyAlgorithmWithJit).repeat(repeat=3, number=1000))
-
-
-    # def test_CompositeRigidBodyAlgorithmGradients(self):
-    #     q = self.q * np.random.randn(*self.q.shape)
-    #     input = (self.model["Xtree"], self.model["I"], tuple(self.model["parent"]), tuple(self.model["jtype"]), self.model["jaxis"],
-    #             self.model["NB"], q)
-    #     fun1 = jit(jax.jacfwd(CompositeRigidBodyAlgorithmCore, argnums=(6,)), static_argnums=(2, 3, 4, 5))
-    #     H2q, = fun1(*input)
-    #     H2q.block_until_ready()
+        def composite_rigid_body_algorithm_wit_jit():
+            input =  (self.model, self.q * np.random.randn(*self.q.shape))
+            composite_rigid_body_algorithm(*input)
+        print("composite_rigid_body_algorithm:")
+        print(timeit.Timer(composite_rigid_body_algorithm_wit_jit).repeat(repeat=3, number=1000))
 
 
+    def test_composite_rigid_body_algorithm_gradients(self):
+        q = self.q * np.random.randn(*self.q.shape)
+        input = (self.model["Xtree"], self.model["I"], tuple(self.model["parent"]), tuple(self.model["jtype"]), self.model["jaxis"],
+                self.model["NB"], q)
+        start_time = time.time()
+        fun1 = jit(jax.jacfwd(composite_rigid_body_algorithm_core, argnums=(6,)), static_argnums=(2, 3, 4, 5))
+        H2q, = fun1(*input)
+        H2q.block_until_ready()
+        duration = time.time() - start_time
+        print("Jit compiled time for dH2dq is %s" % duration)
 
-    #     def CompositeRigidBodyAlgorithmGradWithJit():
-    #         q = self.q * np.random.randn(*self.q.shape)
-    #         input = (self.model["Xtree"], self.model["I"], tuple(self.model["parent"]), tuple(self.model["jtype"]), self.model["jaxis"],
-    #                 self.model["NB"], q)
-    #         H2q, = fun1(*input)
-    #         H2q.block_until_ready()
-    #     print("CompositeRigidBodyAlgorithmGrad:")
-    #     print(timeit.Timer(CompositeRigidBodyAlgorithmGradWithJit).repeat(repeat=3, number=1000))
+        def composite_rigid_body_algorithm_grad_with_jit():
+            q = self.q * np.random.randn(*self.q.shape)
+            input = (self.model["Xtree"], self.model["I"], tuple(self.model["parent"]), tuple(self.model["jtype"]), self.model["jaxis"],
+                    self.model["NB"], q)
+            H2q, = fun1(*input)
+            return H2q
+        print("composite_rigid_body_algorithm_grad:")
+        print(timeit.Timer(composite_rigid_body_algorithm_grad_with_jit).repeat(repeat=3, number=1000))
 
    
 
