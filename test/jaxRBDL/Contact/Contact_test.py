@@ -9,7 +9,7 @@ from jaxRBDL.Contact import calc_contact_jacobian, calc_contact_jacobian_core
 from jaxRBDL.Contact import calc_contact_jdot_qdot, calc_contact_jdot_qdot_core
 from jaxRBDL.Kinematics.calc_point_jacobian import calc_point_jacobian_core
 from jaxRBDL.Dynamics import composite_rigid_body_algorithm
-from jaxRBDL.Dynamics.InverseDynamics import InverseDynamics
+from jaxRBDL.Dynamics import inverse_dynamics
 from jaxRBDL.Contact.DetectContact import DetectContact_v0, DetectContact, DetectContactCore, DeterminContactType, DeterminContactTypeCore
 from jaxRBDL.Contact.SolveContactSimpleLCP import QuadLoss, NonNegativeZProjector, SolveContactSimpleLCPCore, SolveContactSimpleLCP
 import numpy as np
@@ -131,7 +131,7 @@ class TestContact(unittest.TestCase):
         # input_CRBA = (model, q)
         # start_time = time.time()
         # model["H"] = composite_rigid_body_algorithm(*input_CRBA)
-        # model["C"] = InverseDynamics(model, q, qdot, np.zeros((NB, 1)))
+        # model["C"] = inverse_dynamics(model, q, qdot, np.zeros((NB, 1)))
         # print(time.time()-start_time)
         # for flag_contact in flag_contact_list:
         #     input = (model["Xtree"], self.q, self.qdot, model["contactpoint"],
@@ -255,7 +255,7 @@ class TestContact(unittest.TestCase):
         # flag_contact = (1, 1, 1, 1)
         # input_CRBA = (model, q)
         # model["H"] = composite_rigid_body_algorithm(*input_CRBA)
-        # model["C"] = InverseDynamics(model, q, qdot, np.zeros((NB, 1)))
+        # model["C"] = inverse_dynamics(model, q, qdot, np.zeros((NB, 1)))
 
         # input_core = (model["Xtree"], self.q, self.qdot, model["contactpoint"],
         #         model["H"], tau, model["C"], tuple(model["idcontact"]), tuple(flag_contact),

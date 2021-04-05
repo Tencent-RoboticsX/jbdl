@@ -9,8 +9,8 @@ import unittest
 from numpy.core.fromnumeric import shape
 from test.support import EnvironmentVarGuard
 from jaxRBDL.Dynamics import composite_rigid_body_algorithm, composite_rigid_body_algorithm_core
-from jaxRBDL.Dynamics.ForwardDynamics import ForwardDynamics, ForwardDynamicsCore
-from jaxRBDL.Dynamics.InverseDynamics import InverseDynamics, InverseDynamicsCore
+from jaxRBDL.Dynamics import forward_dynamics, forward_dynamics_core
+from jaxRBDL.Dynamics import inverse_dynamics, inverse_dynamics_core
 from jaxRBDL.Dynamics.StateFunODE import DynamicsFunCore, EventsFunCore
 from jaxRBDL.Utils.ModelWrapper import ModelWrapper
 import time
@@ -163,40 +163,48 @@ class TestDynamics(unittest.TestCase):
    
 
 
-    # def test_ForwardDynamics(self):
-    #     q =  self.q
-    #     qdot =  self.qdot 
-    #     tau = self.tau
-    #     input = (self.model, q, qdot, tau)
-    #     ForwardDynamics(*input)
+    def test_forward_dynamics(self):
+        q =  self.q
+        qdot =  self.qdot 
+        tau = self.tau
+        input = (self.model, q, qdot, tau)
+        forward_dynamics(*input)
 
-    #     def ForwardDynamicsWithJit():
-    #         input = (self.model, q * np.random.randn(*q.shape), qdot * np.random.randn(*qdot.shape), tau * np.random.randn(*tau.shape))
-    #         ForwardDynamics(*input)
+        def forward_dynamics_with_jit():
+            input = (self.model, q * np.random.randn(*q.shape), qdot * np.random.randn(*qdot.shape), tau * np.random.randn(*tau.shape))
+            forward_dynamics(*input)
 
-    #     print("ForwardDynamics:")
-    #     print(timeit.Timer(ForwardDynamicsWithJit).repeat(repeat=3, number=1000))
-
-
+        print("forward_dynamics:")
+        print(timeit.Timer(forward_dynamics_with_jit).repeat(repeat=3, number=1000))
 
 
-    # def test_ForwardDynamicsGradients(self):
+
+
+    # def test_forward_dynamics_grad(self):
     #     q =  self.q * np.random.randn(*self.q.shape)
     #     qdot =  self.qdot * np.random.randn(*self.qddot.shape)
     #     tau = self.tau * np.random.randn(*self.tau.shape)
     #     input = (self.model["Xtree"], self.model["I"], tuple(self.model["parent"]), tuple(self.model["jtype"]), self.model["jaxis"],
     #              self.model["NB"], q, qdot, tau, self.model["a_grav"])
-    #     ForwardDynamicsCore(*input)
+    #     forward_dynamics_core(*input)
         
-    # def test_InverseDynamics(self):
-    #     q = self.q * np.random.randn(*self.q.shape)
-    #     qdot = self.qdot * np.random.randn(*self.q.shape)
-    #     qddot = self.qddot * np.random.randn(*self.q.shape)
-    #     input = (self.model, q, qdot, qddot)
-    #     InverseDynamics(*input)
+    def test_inverse_dynamics(self):
+        model = self.model
+        q = self.q * np.random.randn(*self.q.shape)
+        qdot = self.qdot * np.random.randn(*self.q.shape)
+        qddot = self.qddot * np.random.randn(*self.q.shape)
+        input = (self.model, q, qdot, qddot)
+        inverse_dynamics(*input)
+
+        def inverse_dynamics_with_jit():
+            input = (model, q * np.random.randn(*q.shape), qdot * np.random.randn(*qdot.shape), qddot * np.random.randn(*qddot.shape))
+            forward_dynamics(*input)
+
+        print("inverse_dynamics:")
+        print(timeit.Timer(inverse_dynamics_with_jit).repeat(repeat=3, number=1000))
 
 
-    # def test_InverseDynamicsGradients(self):
+    # def test_inverse_dynamics_grad(self):
 
     #     q = self.q * np.random.randn(*self.q.shape)
     #     qdot = self.qdot * np.random.randn(*self.q.shape)
@@ -204,7 +212,7 @@ class TestDynamics(unittest.TestCase):
     #     input = (self.model["Xtree"], self.model["I"], tuple(self.model["parent"]), tuple(self.model["jtype"]), self.model["jaxis"],
     #              self.model["NB"], q, qdot, qddot, self.model["a_grav"])
 
-    #     InverseDynamicsCore(*input)
+    #     inverse_dynamics_core(*input)
 
 
 

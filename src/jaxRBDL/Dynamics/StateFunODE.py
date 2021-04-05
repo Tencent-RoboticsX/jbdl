@@ -1,10 +1,10 @@
 import numpy as np
 from jaxRBDL.Dynamics import composite_rigid_body_algorithm, composite_rigid_body_algorithm_core
-from jaxRBDL.Dynamics.InverseDynamics import InverseDynamics, InverseDynamicsCore
+from jaxRBDL.Dynamics import inverse_dynamics, inverse_dynamics_core
 from numpy.linalg import inv
 from jaxRBDL.Contact.DetectContact import DetectContact
 from jaxRBDL.Contact.CalcContactForceDirect import CalcContactForceDirect
-from jaxRBDL.Dynamics.ForwardDynamics import ForwardDynamics, ForwardDynamicsCore
+from jaxRBDL.Dynamics import forward_dynamics, forward_dynamics_core
 from jaxRBDL.Kinematics import calc_body_to_base_coordinates, calc_body_to_base_coordinates_core
 from jaxRBDL.Contact.ImpulsiveDynamics import ImpulsiveDynamics
 from jaxRBDL.Contact.SolveContactLCP import SolveContactLCP
@@ -19,7 +19,7 @@ from functools import partial
 # @partial(jit, static_argnums=(7, 8, 9, 10, 11, 12, 13, 14, 15))
 def DynamicsFunCore(Xtree, I, q, qdot, contactpoint, tau, a_grav, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, rankJc):
     H =  composite_rigid_body_algorithm_core(Xtree, I, parent, jtype, jaxis, NB, q)
-    C =  InverseDynamicsCore(Xtree, I, parent, jtype, jaxis, NB, q, qdot, jnp.zeros_like(q), a_grav)
+    C =  inverse_dynamics_core(Xtree, I, parent, jtype, jaxis, NB, q, qdot, jnp.zeros_like(q), a_grav)
     lam = jnp.zeros((NB, ))
     fqp = jnp.zeros((rankJc, 1))
 
@@ -29,7 +29,7 @@ def DynamicsFunCore(Xtree, I, q, qdot, contactpoint, tau, a_grav, idcontact, fla
 
 
     ttau = tau + lam
-    qddot = ForwardDynamicsCore(Xtree, I, parent, jtype, jaxis, NB, q, qdot, ttau, a_grav)
+    qddot = forward_dynamics_core(Xtree, I, parent, jtype, jaxis, NB, q, qdot, ttau, a_grav)
     # print("========")
     # print(qddot)
     xdot = jnp.hstack([qdot, qddot])

@@ -10,6 +10,7 @@ from jaxRBDL.Kinematics.CalcPointVelocity import CalcPointVelocityCore
 from jaxRBDL.Kinematics import calc_point_acceleration
 from jaxRBDL.Kinematics.calc_point_jacobian import calc_point_jacobian, calc_point_jacobian_core
 from jaxRBDL.Kinematics.CalcPointJacobianDerivative import CalcPointJacobianDerivative
+from jaxRBDL
 from jaxRBDL.Kinematics.CalcPointJacobianDerivative import CalcPointJacobianDerivativeCore
 from jaxRBDL.Utils.ModelWrapper import ModelWrapper
 

@@ -8,7 +8,7 @@ from functools import partial
 
 
 @partial(jit, static_argnums=(2, 3, 4, 5))
-def ForwardDynamicsCore(Xtree, I, parent, jtype, jaxis, NB, q, qdot, tau, a_grav):  
+def forward_dynamics_core(Xtree, I, parent, jtype, jaxis, NB, q, qdot, tau, a_grav):  
     S = []
     Xup = []
     v = []
@@ -61,7 +61,7 @@ def ForwardDynamicsCore(Xtree, I, parent, jtype, jaxis, NB, q, qdot, tau, a_grav
     qddot = jnp.reshape(jnp.stack(qddot), (NB, ))
     return qddot
 
-def ForwardDynamics(model, q, qdot, tau):    
+def forward_dynamics(model, q, qdot, tau):    
     q = q.flatten()
     qdot = qdot.flatten()
     tau = tau.flatten()
@@ -73,7 +73,7 @@ def ForwardDynamics(model, q, qdot, tau):
     Xtree = model["Xtree"]
     I = model["I"]
 
-    qddot = ForwardDynamicsCore(Xtree, I, tuple(parent), tuple(jtype), jaxis, NB, q, qdot, tau, a_grav)
+    qddot = forward_dynamics_core(Xtree, I, tuple(parent), tuple(jtype), jaxis, NB, q, qdot, tau, a_grav)
     return qddot
 
 

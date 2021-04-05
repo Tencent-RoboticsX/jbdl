@@ -7,7 +7,7 @@ from jaxRBDL.Math.CrossForceSpace import CrossForceSpace
 from functools import partial
 
 @partial(jit, static_argnums=(2, 3, 4, 5))
-def InverseDynamicsCore(Xtree, I, parent, jtype, jaxis, NB, q, qdot, qddot, a_grav):
+def inverse_dynamics_core(Xtree, I, parent, jtype, jaxis, NB, q, qdot, qddot, a_grav):
     S = []
     Xup = []
     v = []
@@ -38,7 +38,7 @@ def InverseDynamicsCore(Xtree, I, parent, jtype, jaxis, NB, q, qdot, qddot, a_gr
     return tau 
 
 
-def InverseDynamics(model, q, qdot, qddot):
+def inverse_dynamics(model, q, qdot, qddot):
     
     a_grav = model["a_grav"]
     qdot = qdot.flatten()
@@ -51,7 +51,7 @@ def InverseDynamics(model, q, qdot, qddot):
     Xtree = model["Xtree"]
     I = model["I"]
 
-    tau = InverseDynamicsCore(Xtree, I, tuple(parent), tuple(jtype), jaxis, NB, q, qdot, qddot, a_grav)
+    tau = inverse_dynamics_core(Xtree, I, tuple(parent), tuple(jtype), jaxis, NB, q, qdot, qddot, a_grav)
     return tau 
 
 
