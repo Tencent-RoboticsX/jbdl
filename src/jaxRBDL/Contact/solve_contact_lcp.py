@@ -225,6 +225,9 @@ def solve_contact_lcp_core(Xtree, q, qdot, contactpoint, H, tau, C, contact_forc
     JcdotQdot = calc_contact_jdot_qdot_core(Xtree, q, qdot, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
     contact_force_lb = jnp.reshape(contact_force_lb, (-1,))
     contact_force_ub = jnp.reshape(contact_force_ub, (-1,))
+    if nf == 2:
+        contact_force_lb = contact_force_lb[[0, 2]]
+        contact_force_ub = contact_force_ub[[0, 2]]
     tau = jnp.reshape(tau, (-1, 1))
     C = jnp.reshape(C, (-1, 1))
     M = jnp.matmul(Jc, jnp.linalg.solve(H, jnp.transpose(Jc)))

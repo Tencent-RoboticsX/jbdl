@@ -96,7 +96,7 @@ T = 2e-3
 xksv = []
 
 
-for i in range(100):
+for i in range(1000):
     print(i)
     u = kp * (q0[3:7] - xk[3:7]) + kd * (qd0[3:7] - xk[10:14])
     xk, contact_force = StateFunODE(model, xk.flatten(), u.flatten(), T)
