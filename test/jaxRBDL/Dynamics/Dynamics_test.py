@@ -68,25 +68,26 @@ class TestDynamics(unittest.TestCase):
         print('%s: %.3f' % (self.id(), t))
 
     def test_EventsFunCore(self):
-        model = self.model
-        NC = int(model["NC"])
-        Xtree = model["Xtree"]
-        contactpoint = model["contactpoint"],
-        idcontact = tuple(model["idcontact"])
-        parent = tuple(model["parent"])
-        jtype = tuple(model["jtype"])
-        jaxis = model["jaxis"]
-        contactpoint = model["contactpoint"]
-        flag_contact = (0, 2, 2, 2)
-        q = self.q
-        input = (Xtree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NC)
-        print(EventsFunCore(*input))
+        pass
+        # model = self.model
+        # NC = int(model["NC"])
+        # Xtree = model["Xtree"]
+        # contactpoint = model["contactpoint"],
+        # idcontact = tuple(model["idcontact"])
+        # parent = tuple(model["parent"])
+        # jtype = tuple(model["jtype"])
+        # jaxis = model["jaxis"]
+        # contactpoint = model["contactpoint"]
+        # flag_contact = (0, 2, 2, 2)
+        # q = self.q
+        # input = (Xtree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NC)
+        # print(EventsFunCore(*input))
 
-        def EventsFunCoreWithJit():
-            input = (Xtree, q * np.random.randn(*q.shape), contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NC)
-            EventsFunCore(*input)
+        # def EventsFunCoreWithJit():
+        #     input = (Xtree, q * np.random.randn(*q.shape), contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NC)
+        #     EventsFunCore(*input)
 
-        print(timeit.Timer(EventsFunCoreWithJit).repeat(repeat=3, number=1000))
+        # print(timeit.Timer(EventsFunCoreWithJit).repeat(repeat=3, number=1000))
 
         # from jax import make_jaxpr
 
@@ -130,52 +131,55 @@ class TestDynamics(unittest.TestCase):
         
 
     def test_composite_rigid_body_algorithm(self):
-        input = (self.model, self.q)
-        composite_rigid_body_algorithm(*input)
+        pass
+        # input = (self.model, self.q)
+        # composite_rigid_body_algorithm(*input)
 
-        def composite_rigid_body_algorithm_wit_jit():
-            input =  (self.model, self.q * np.random.randn(*self.q.shape))
-            composite_rigid_body_algorithm(*input)
-        print("composite_rigid_body_algorithm:")
-        print(timeit.Timer(composite_rigid_body_algorithm_wit_jit).repeat(repeat=3, number=1000))
+        # def composite_rigid_body_algorithm_wit_jit():
+        #     input =  (self.model, self.q * np.random.randn(*self.q.shape))
+        #     composite_rigid_body_algorithm(*input)
+        # print("composite_rigid_body_algorithm:")
+        # print(timeit.Timer(composite_rigid_body_algorithm_wit_jit).repeat(repeat=3, number=1000))
 
 
     def test_composite_rigid_body_algorithm_gradients(self):
-        q = self.q * np.random.randn(*self.q.shape)
-        input = (self.model["Xtree"], self.model["I"], tuple(self.model["parent"]), tuple(self.model["jtype"]), self.model["jaxis"],
-                self.model["NB"], q)
-        start_time = time.time()
-        fun1 = jit(jax.jacfwd(composite_rigid_body_algorithm_core, argnums=(6,)), static_argnums=(2, 3, 4, 5))
-        H2q, = fun1(*input)
-        H2q.block_until_ready()
-        duration = time.time() - start_time
-        print("Jit compiled time for dH2dq is %s" % duration)
+        pass
+        # q = self.q * np.random.randn(*self.q.shape)
+        # input = (self.model["Xtree"], self.model["I"], tuple(self.model["parent"]), tuple(self.model["jtype"]), self.model["jaxis"],
+        #         self.model["NB"], q)
+        # start_time = time.time()
+        # fun1 = jit(jax.jacfwd(composite_rigid_body_algorithm_core, argnums=(6,)), static_argnums=(2, 3, 4, 5))
+        # H2q, = fun1(*input)
+        # H2q.block_until_ready()
+        # duration = time.time() - start_time
+        # print("Jit compiled time for dH2dq is %s" % duration)
 
-        def composite_rigid_body_algorithm_grad_with_jit():
-            q = self.q * np.random.randn(*self.q.shape)
-            input = (self.model["Xtree"], self.model["I"], tuple(self.model["parent"]), tuple(self.model["jtype"]), self.model["jaxis"],
-                    self.model["NB"], q)
-            H2q, = fun1(*input)
-            return H2q
-        print("composite_rigid_body_algorithm_grad:")
-        print(timeit.Timer(composite_rigid_body_algorithm_grad_with_jit).repeat(repeat=3, number=1000))
+        # def composite_rigid_body_algorithm_grad_with_jit():
+        #     q = self.q * np.random.randn(*self.q.shape)
+        #     input = (self.model["Xtree"], self.model["I"], tuple(self.model["parent"]), tuple(self.model["jtype"]), self.model["jaxis"],
+        #             self.model["NB"], q)
+        #     H2q, = fun1(*input)
+        #     return H2q
+        # print("composite_rigid_body_algorithm_grad:")
+        # print(timeit.Timer(composite_rigid_body_algorithm_grad_with_jit).repeat(repeat=3, number=1000))
 
    
 
 
     def test_forward_dynamics(self):
-        q =  self.q
-        qdot =  self.qdot 
-        tau = self.tau
-        input = (self.model, q, qdot, tau)
-        forward_dynamics(*input)
+        pass
+        # q =  self.q
+        # qdot =  self.qdot 
+        # tau = self.tau
+        # input = (self.model, q, qdot, tau)
+        # forward_dynamics(*input)
 
-        def forward_dynamics_with_jit():
-            input = (self.model, q * np.random.randn(*q.shape), qdot * np.random.randn(*qdot.shape), tau * np.random.randn(*tau.shape))
-            forward_dynamics(*input)
+        # def forward_dynamics_with_jit():
+        #     input = (self.model, q * np.random.randn(*q.shape), qdot * np.random.randn(*qdot.shape), tau * np.random.randn(*tau.shape))
+        #     forward_dynamics(*input)
 
-        print("forward_dynamics:")
-        print(timeit.Timer(forward_dynamics_with_jit).repeat(repeat=3, number=1000))
+        # print("forward_dynamics:")
+        # print(timeit.Timer(forward_dynamics_with_jit).repeat(repeat=3, number=1000))
 
 
 
@@ -198,7 +202,7 @@ class TestDynamics(unittest.TestCase):
 
         def inverse_dynamics_with_jit():
             input = (model, q * np.random.randn(*q.shape), qdot * np.random.randn(*qdot.shape), qddot * np.random.randn(*qddot.shape))
-            forward_dynamics(*input)
+            inverse_dynamics(*input)
 
         print("inverse_dynamics:")
         print(timeit.Timer(inverse_dynamics_with_jit).repeat(repeat=3, number=1000))
