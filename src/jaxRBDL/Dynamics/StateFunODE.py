@@ -6,8 +6,8 @@ from jaxRBDL.Contact.DetectContact import DetectContact
 from jaxRBDL.Contact.CalcContactForceDirect import CalcContactForceDirect
 from jaxRBDL.Dynamics import forward_dynamics, forward_dynamics_core
 from jaxRBDL.Kinematics import calc_body_to_base_coordinates, calc_body_to_base_coordinates_core
+from jaxRBDL.Contact import solve_contact_lcp_core
 from jaxRBDL.Contact.ImpulsiveDynamics import ImpulsiveDynamics
-from jaxRBDL.Contact.SolveContactLCP import SolveContactLCP
 from jaxRBDL.Contact.SolveContactSimpleLCP import SolveContactSimpleLCP, SolveContactSimpleLCPCore
 from jaxRBDL.Contact.CalcContactForceDirect import CalcContactForceDirectCore
 from scipy.integrate import solve_ivp
@@ -17,16 +17,22 @@ from jax.api import jit
 from functools import partial
 
 # @partial(jit, static_argnums=(7, 8, 9, 10, 11, 12, 13, 14, 15))
-def DynamicsFunCore(Xtree, I, q, qdot, contactpoint, tau, a_grav, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, rankJc):
+def DynamicsFunCore(Xtree, I, q, qdot, contactpoint, tau, a_grav, contact_force_lb, contact_force_ub,\
+    idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, rankJc, ncp, mu):
     H =  composite_rigid_body_algorithm_core(Xtree, I, parent, jtype, jaxis, NB, q)
     C =  inverse_dynamics_core(Xtree, I, parent, jtype, jaxis, NB, q, qdot, jnp.zeros_like(q), a_grav)
     lam = jnp.zeros((NB, ))
     fqp = jnp.zeros((rankJc, 1))
 
-    if np.sum(flag_contact) !=0: 
-        lam, fqp = SolveContactSimpleLCPCore(Xtree, q, qdot, contactpoint, H, tau, C, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
-        # lam, fqp = CalcContactForceDirectCore(Xtree, q, qdot, contactpoint, H, tau, C, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
 
+
+
+    if np.sum(flag_contact) !=0: 
+        lam, fqp = solve_contact_lcp_core(Xtree, q, qdot, contactpoint, H, tau, C, contact_force_lb, contact_force_ub,\
+            idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, ncp, mu)
+
+        # lam, fqp = SolveContactSimpleLCPCore(Xtree, q, qdot, contactpoint, H, tau, C, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
+        # lam, fqp = CalcContactForceDirectCore(Xtree, q, qdot, contactpoint, H, tau, C, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
 
     ttau = tau + lam
     qddot = forward_dynamics_core(Xtree, I, parent, jtype, jaxis, NB, q, qdot, ttau, a_grav)
@@ -49,6 +55,7 @@ def DynamicsFun(t: float, X: np.ndarray, model: dict, contact_force: dict)->np.n
     NC = int(model["NC"])
     NB = int(model["NB"])
     nf = int(model["nf"])
+    contact_cond = model["contact_cond"]
     Xtree = model["Xtree"]
     contactpoint = model["contactpoint"],
     idcontact = tuple(model["idcontact"])
@@ -58,18 +65,30 @@ def DynamicsFun(t: float, X: np.ndarray, model: dict, contact_force: dict)->np.n
     contactpoint = model["contactpoint"]
     I = model["I"]
     a_grav = model["a_grav"]
+    mu = 0.9
+    contact_force_lb = contact_cond["contact_force_lb"]
+    contact_force_ub = contact_cond["contact_force_ub"]
+
+
+
 
 
     # Calculate flag_contact
     flag_contact = DetectContact(model, q, qdot)
     rankJc = int(np.sum( [1 for item in flag_contact if item != 0]) * model["nf"])
+    ncp = 0
+    for i in range(NC):
+        if flag_contact[i]!=0:
+            ncp = ncp + 1
+
 
 
 
     # Dynamics Function Core
     # print("111111111111111111111")
     # print(flag_contact)
-    xdot, fqp, H = DynamicsFunCore(Xtree, I, q, qdot, contactpoint, tau, a_grav, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, rankJc)
+    xdot, fqp, H = DynamicsFunCore(Xtree, I, q, qdot, contactpoint, tau, a_grav, contact_force_lb, contact_force_ub, \
+        idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, rankJc, ncp, mu)
     model["H"] = H
     # Calculate contact force fot plotting.
     fc = np.zeros((3*NC, 1))

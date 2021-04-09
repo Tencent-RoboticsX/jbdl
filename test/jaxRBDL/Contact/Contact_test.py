@@ -1,12 +1,15 @@
 import unittest
 import os
+
+from jax.api import jacfwd
+from jax.api_util import argnums_partial
 from jaxRBDL.Contact.CalcContactForceDirect import CalcContactForceDirectCore, CalcContactForceDirect
 from jaxRBDL.Contact.ImpulsiveDynamics import ImpulsiveDynamics, ImpulsiveDynamicsCore
-from jaxRBDL.Contact.SolveContactLCP import SolveContactLCP
 from jaxRBDL.Kinematics import calc_point_acceleration_core
 from jaxRBDL.Utils.ModelWrapper import ModelWrapper
 from jaxRBDL.Contact import calc_contact_jacobian, calc_contact_jacobian_core
 from jaxRBDL.Contact import calc_contact_jdot_qdot, calc_contact_jdot_qdot_core
+from jaxRBDL.Contact import solve_contact_lcp, solve_contact_lcp_core, lcp_quadprog
 from jaxRBDL.Kinematics.calc_point_jacobian import calc_point_jacobian_core
 from jaxRBDL.Dynamics import composite_rigid_body_algorithm
 from jaxRBDL.Dynamics import inverse_dynamics
@@ -52,71 +55,73 @@ class TestContact(unittest.TestCase):
         self.startTime = time.time()
 
     def test_calc_contact_jacobian(self):
-        model = self.model
-        idcontact = model["idcontact"]
-        contactpoint = model["contactpoint"]
-        q = self.q  
-        NB = int(model["NB"])
-        NC = int(model["NC"])
-        Xtree = model["Xtree"]
-        parent = tuple(model["parent"])
-        jtype = tuple(model["jtype"])
-        jaxis = model["jaxis"]
-        nf = int(model["nf"])
+        pass
+        # model = self.model
+        # idcontact = model["idcontact"]
+        # contactpoint = model["contactpoint"]
+        # q = self.q  
+        # NB = int(model["NB"])
+        # NC = int(model["NC"])
+        # Xtree = model["Xtree"]
+        # parent = tuple(model["parent"])
+        # jtype = tuple(model["jtype"])
+        # jaxis = model["jaxis"]
+        # nf = int(model["nf"])
 
-        start_time = time.time()
-        for body_id, point_pos in zip(idcontact, contactpoint):
-            print(body_id, point_pos)
-            J = calc_point_jacobian_core(Xtree, parent, jtype, jaxis, NB, body_id, q, point_pos)
-            J.block_until_ready()
-        duration = time.time() - start_time
+        # start_time = time.time()
+        # for body_id, point_pos in zip(idcontact, contactpoint):
+        #     print(body_id, point_pos)
+        #     J = calc_point_jacobian_core(Xtree, parent, jtype, jaxis, NB, body_id, q, point_pos)
+        #     J.block_until_ready()
+        # duration = time.time() - start_time
 
-        print("Compiled time for calc_point_jacobian_core is %s" % duration)
+        # print("Compiled time for calc_point_jacobian_core is %s" % duration)
 
 
-        def calc_contact_jacobian_with_jit():
-            q = self.q * np.random.randn(*self.q.shape)
-            flag_contact = np.random.randint(3, size=(4,))
-            input =  (Xtree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
-            calc_contact_jacobian_core(*input)
+        # def calc_contact_jacobian_with_jit():
+        #     q = self.q * np.random.randn(*self.q.shape)
+        #     flag_contact = np.random.randint(3, size=(4,))
+        #     input =  (Xtree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
+        #     calc_contact_jacobian_core(*input)
 
-        print("calc_contact_jacobian_core:")
-        print(timeit.Timer(calc_contact_jacobian_with_jit).repeat(repeat=3, number=1000))
+        # print("calc_contact_jacobian_core:")
+        # print(timeit.Timer(calc_contact_jacobian_with_jit).repeat(repeat=3, number=1000))
 
     def test_calc_contact_jdot_qdot(self):
+        pass
 
-        model = self.model
-        idcontact = model["idcontact"]
-        contactpoint = model["contactpoint"]
-        q = self.q
-        qdot = self.qdot
-        qddot = self.qddot
-        NB = int(model["NB"])
-        NC = int(model["NC"])
-        Xtree = model["Xtree"]
-        parent = tuple(model["parent"])
-        jtype = tuple(model["jtype"])
-        jaxis = model["jaxis"]
-        nf = int(model["nf"])
+        # model = self.model
+        # idcontact = model["idcontact"]
+        # contactpoint = model["contactpoint"]
+        # q = self.q
+        # qdot = self.qdot
+        # qddot = self.qddot
+        # NB = int(model["NB"])
+        # NC = int(model["NC"])
+        # Xtree = model["Xtree"]
+        # parent = tuple(model["parent"])
+        # jtype = tuple(model["jtype"])
+        # jaxis = model["jaxis"]
+        # nf = int(model["nf"])
 
-        start_time = time.time()
-        for body_id, point_pos in zip(idcontact, contactpoint):
-            print(body_id, point_pos)
-            acc = calc_point_acceleration_core(Xtree, parent, jtype, jaxis, body_id, q, qdot, qddot, point_pos)
-            acc.block_until_ready()
-        duration = time.time() - start_time
-        print("Compiled time for calc_contact_jdot_qdot_core is %s" % duration)
+        # start_time = time.time()
+        # for body_id, point_pos in zip(idcontact, contactpoint):
+        #     print(body_id, point_pos)
+        #     acc = calc_point_acceleration_core(Xtree, parent, jtype, jaxis, body_id, q, qdot, qddot, point_pos)
+        #     acc.block_until_ready()
+        # duration = time.time() - start_time
+        # print("Compiled time for calc_contact_jdot_qdot_core is %s" % duration)
 
 
-        def calc_contact_jdot_qdot_core_with_jit():
-            q = self.q * np.random.randn(*self.q.shape)
-            qdot = self.qdot * np.random.randn(*self.qdot.shape)
-            flag_contact = np.random.randint(3, size=(4,))
-            calc_contact_jdot_qdot_core(Xtree, q, qdot, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
+        # def calc_contact_jdot_qdot_core_with_jit():
+        #     q = self.q * np.random.randn(*self.q.shape)
+        #     qdot = self.qdot * np.random.randn(*self.qdot.shape)
+        #     flag_contact = np.random.randint(3, size=(4,))
+        #     calc_contact_jdot_qdot_core(Xtree, q, qdot, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
         
 
-        print("calc_contact_jdot_qdot_core_with_jit:")
-        print(timeit.Timer(calc_contact_jdot_qdot_core_with_jit).repeat(repeat=3, number=1000))
+        # print("calc_contact_jdot_qdot_core_with_jit:")
+        # print(timeit.Timer(calc_contact_jdot_qdot_core_with_jit).repeat(repeat=3, number=1000))
 
     def test_CalcContactForceDirect(self):
         pass
@@ -274,6 +279,131 @@ class TestContact(unittest.TestCase):
         #     SolveContactSimpleLCPCore(*input_core)
 
         # print(timeit.Timer(CalContactSimpleLCPCoreWithJit).repeat(repeat=3, number=1))
+
+    def test_lcp_quadprog(self):
+        pass
+        # H = jnp.array([[1.0, -1.0],
+        #                [-1.0, 2.0]])
+        # f = jnp.array([[-2.0], [-6.0]])
+        # L = jnp.array([[1.0, 1.0],
+        #                [-1.0, 2.0], 
+        #                [2.0, 1.0]])
+        # k = jnp.array([[2.0], [2.0], [3.0]])
+
+        # lb = jnp.array([[0.0], [0.0]])
+        # ub = jnp.array([[0.5], [5.0]])
+
+        # from jax.test_util import check_jvp
+        # from jax import jvp
+        # from functools import partial
+        # check_jvp(lcp_quadprog, partial(jvp, lcp_quadprog), (H, f, L, k, lb, ub))
+        # dx2dH = jacfwd(lcp_quadprog, argnums=0)(H, f, L, k, lb, ub)
+        # print(dx2dH)
+        # print(dx2dH.shape)
+
+
+    def test_solve_contact_lcp_core_grad(self):
+        model = self.model
+        NB = model["NB"]
+        NC = model["NC"]
+        q = self.q
+        qdot = self.qdot
+        tau = self.tau
+        flag_contact = (1, 1, 1, 1)
+        input_CRBA = (model, q)
+        model["H"] = composite_rigid_body_algorithm(*input_CRBA)
+        model["C"] = inverse_dynamics(model, q, qdot, np.zeros((NB, 1)))
+        mu = 0.9
+        ncp = 0
+        for i in range(NC):
+            if flag_contact[i]!=0:
+                ncp = ncp + 1
+
+        contact_cond = model["contact_cond"]
+        contact_force_lb = contact_cond["contact_force_lb"].flatten()
+        contact_force_ub = contact_cond["contact_force_ub"].flatten()
+
+    
+        input_core = (model["Xtree"], self.q, self.qdot, model["contactpoint"],
+                model["H"], tau, model["C"], contact_force_lb, contact_force_ub, tuple(model["idcontact"]), tuple(flag_contact),
+                    tuple(model["parent"]), tuple(model["jtype"]), model["jaxis"],
+                    model["NB"], model["NC"], model["nf"], ncp, mu)
+
+        solve_contact_lcp_core(*input_core)
+
+        def get_lcp(Xtree, q, qdot, contactpoint, H, tau, C, contact_force_lb, contact_force_ub, \
+            idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, ncp, mu):
+            flcp, _ = solve_contact_lcp_core(Xtree, q, qdot, contactpoint, H, tau, C, contact_force_lb, contact_force_ub, \
+            idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, ncp, mu)
+            return flcp
+        start_time = time.time()
+        get_lcp(*input_core)
+        duration = time.time() - start_time
+        print(duration)
+
+        from jax.api import jit
+        fun = jacfwd(get_lcp, argnums=1)
+        fun(*input_core)
+        start_time = time.time()
+        input_core = (model["Xtree"], self.q * np.random.randn(*self.q.shape), self.qdot * np.random.randn(*self.qdot.shape), model["contactpoint"],
+                model["H"], tau, model["C"], contact_force_lb, contact_force_ub, tuple(model["idcontact"]), tuple(flag_contact),
+                    tuple(model["parent"]), tuple(model["jtype"]), model["jaxis"],
+                    model["NB"], model["NC"], model["nf"], ncp, mu)
+        fun(*input_core)
+        duration = time.time() - start_time
+        print(duration)
+
+
+
+
+
+    def test_solve_contact_lcp(self):
+        pass
+        # model = self.model
+        # NB = model["NB"]
+        # NC = model["NC"]
+        # q = self.q
+        # qdot = self.qdot
+        # tau = self.tau
+        # flag_contact = (1, 1, 1, 1)
+        # input_CRBA = (model, q)
+        # model["H"] = composite_rigid_body_algorithm(*input_CRBA)
+        # model["C"] = inverse_dynamics(model, q, qdot, np.zeros((NB, 1)))
+        # mu = 0.9
+        # ncp = 0
+        # for i in range(NC):
+        #     if flag_contact[i]!=0:
+        #         ncp = ncp + 1
+
+        # contact_cond = model["contact_cond"]
+        # contact_force_lb = contact_cond["contact_force_lb"].flatten()
+        # contact_force_ub = contact_cond["contact_force_ub"].flatten()
+
+
+        # input_core = (model["Xtree"], self.q, self.qdot, model["contactpoint"],
+        #         model["H"], tau, model["C"], contact_force_lb, contact_force_ub, tuple(model["idcontact"]), tuple(flag_contact),
+        #             tuple(model["parent"]), tuple(model["jtype"]), model["jaxis"],
+        #             model["NB"], model["NC"], model["nf"], ncp, mu)
+
+        # solve_contact_lcp_core(*input_core)
+
+        # def solve_contact_lcp_core_with_jit():
+        #     q = self.q * np.random.randn(*self.q.shape)
+        #     qdot = self.qdot * np.random.randn(*self.qdot.shape)
+        #     input_core = (model["Xtree"], q, qdot, model["contactpoint"],
+        #         model["H"], tau, model["C"], contact_force_lb, contact_force_ub, tuple(model["idcontact"]), tuple(flag_contact),
+        #             tuple(model["parent"]), tuple(model["jtype"]), model["jaxis"],
+        #             model["NB"], model["NC"], model["nf"], ncp, mu)
+        #     solve_contact_lcp_core(*input_core)
+        
+        # print(timeit.Timer(solve_contact_lcp_core_with_jit).repeat(repeat=3, number=100))
+
+        
+            
+
+
+
+
 
 
         

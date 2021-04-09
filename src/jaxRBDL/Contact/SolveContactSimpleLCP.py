@@ -4,7 +4,7 @@ from jaxRBDL.Contact import calc_contact_jacobian_core
 from jaxRBDL.Contact.calc_contact_jacobian import calc_contact_jacobian_core_jit_flag
 from jaxRBDL.Contact.calc_contact_jdot_qdot import calc_contact_jdot_qdot_core
 from jaxRBDL.Contact.calc_contact_jdot_qdot import calc_contact_jdot_qdot_core_jit_flag
-from jaxRBDL.Contact.SolveContactLCP import quadprog
+# from jaxRBDL.Contact.SolveContactLCP import quadprog
 import jax.numpy as jnp
 from jax.api import grad, jit
 from jaxRBDL.Contact.GetContactForce import GetContactForce
