@@ -2,8 +2,8 @@ import numpy as np
 from jaxRBDL.Kinematics import calc_body_to_base_coordinates
 
 
-def CalcWholeBodyCoM(model: dict, q: np.ndarray)-> np.ndarray:
-    """CalcWholeBodyCoM - Calculate whole body's CoM position in world frame
+def calc_whole_body_com(model: dict, q: np.ndarray)-> np.ndarray:
+    """calc_whole_body_com - Calculate whole body's CoM position in world frame
 
     Args:
         model (dict): dictionary of model specification

@@ -5,3 +5,4 @@ from .calc_point_acceleraion import calc_point_acceleration, calc_point_accelera
 from .calc_point_jacobian_derivative import calc_point_jacobian_derivative, calc_point_jacobian_derivative_core
 from .calc_point_velocity import calc_point_velocity, calc_point_velocity_core
 from .calc_pos_vel_point_to_base import calc_pos_vel_point_to_base
+from .calc_whole_body_com import calc_whole_body_com

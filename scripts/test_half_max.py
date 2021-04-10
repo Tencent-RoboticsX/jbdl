@@ -4,7 +4,7 @@ from numpy.core.shape_base import block
 import numpy as np
 import math
 from jaxRBDL.Kinematics import calc_pos_vel_point_to_base
-from jaxRBDL.Kinematics.CalcWholeBodyCoM import CalcWholeBodyCoM
+from jaxRBDL.Kinematics import calc_whole_body_com
 from jaxRBDL.Tools.PlotModel import PlotModel
 from jaxRBDL.Tools.PlotContactForce import PlotContactForce
 from jaxRBDL.Tools.PlotCoMInertia import PlotCoMInertia
@@ -31,7 +31,7 @@ q = np.array([0.0,  0.456, -math.pi/2, math.pi/6, 2.7487, 0, -2.0070]) # stand e
 
 qdot = np.zeros((7, 1))
 
-Pcom = CalcWholeBodyCoM(model, q)
+Pcom = calc_whole_body_com(model, q)
 
 
 # print(Pcom)
