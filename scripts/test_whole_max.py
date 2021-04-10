@@ -4,7 +4,7 @@ from jax.interpreters.xla import jaxpr_replicas
 from numpy.core.shape_base import block
 import numpy as np
 import math
-from jaxRBDL.Kinematics.CalcPosVelPointToBase import CalcPosVelPointToBase
+from jaxRBDL.Kinematics import calc_pos_vel_point_to_base
 from jaxRBDL.Kinematics.CalcWholeBodyCoM import CalcWholeBodyCoM
 from jaxRBDL.Tools.PlotModel import PlotModel
 from jaxRBDL.Tools.PlotContactForce import PlotContactForce

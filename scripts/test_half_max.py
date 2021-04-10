@@ -3,7 +3,7 @@ import re
 from numpy.core.shape_base import block
 import numpy as np
 import math
-from jaxRBDL.Kinematics.CalcPosVelPointToBase import CalcPosVelPointToBase
+from jaxRBDL.Kinematics import calc_pos_vel_point_to_base
 from jaxRBDL.Kinematics.CalcWholeBodyCoM import CalcWholeBodyCoM
 from jaxRBDL.Tools.PlotModel import PlotModel
 from jaxRBDL.Tools.PlotContactForce import PlotContactForce
@@ -57,8 +57,8 @@ idcontact = model["idcontact"]
 contactpoint = model["contactpoint"]
 idbase = 3
 
-pos, vel = CalcPosVelPointToBase(model, q, qdot, idcontact[0], idbase, contactpoint[0])
-pos, vel = CalcPosVelPointToBase(model, q, qdot, idcontact[1], idbase, contactpoint[1])
+pos, vel = calc_pos_vel_point_to_base(model, q, qdot, idcontact[0], idbase, contactpoint[0])
+pos, vel = calc_pos_vel_point_to_base(model, q, qdot, idcontact[1], idbase, contactpoint[1])
 
 # q0 = np.array([0,  0.4127, 0, math.pi/6, math.pi/6, -math.pi/3, -math.pi/3]) # stand high
 # q0 = np.array([0,  0.45, 0, -math.pi/6, math.pi/6, math.pi/3, -math.pi/3]) # stand with leg out

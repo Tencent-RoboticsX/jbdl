@@ -6,7 +6,7 @@ from jax.api import jit
 from functools import partial
 
 @partial(jit, static_argnums=(1, 2, 3, 4))
-def CalcPointVelocityCore(Xtree, parent, jtype, jaxis, body_id, q, qdot, point_pos):
+def calc_point_velocity_core(Xtree, parent, jtype, jaxis, body_id, q, qdot, point_pos):
     X0 = []
     Xup = []
     S = []
@@ -32,7 +32,7 @@ def CalcPointVelocityCore(Xtree, parent, jtype, jaxis, body_id, q, qdot, point_p
     return vel
 
 
-def CalcPointVelocity(model: dict, q: np.ndarray, qdot: np.ndarray, body_id: int, point_pos: np.ndarray)->np.ndarray:
+def calc_point_velocity(model: dict, q: np.ndarray, qdot: np.ndarray, body_id: int, point_pos: np.ndarray)->np.ndarray:
     q = q.flatten()
     qdot = qdot.flatten()
     point_pos = point_pos.flatten()
@@ -40,5 +40,5 @@ def CalcPointVelocity(model: dict, q: np.ndarray, qdot: np.ndarray, body_id: int
     jaxis = model['jaxis']
     parent = model['parent']
     Xtree = model['Xtree']
-    vel = CalcPointVelocityCore(Xtree, tuple(parent), tuple(jtype), jaxis, body_id, q, qdot, point_pos)
+    vel = calc_point_velocity_core(Xtree, tuple(parent), tuple(jtype), jaxis, body_id, q, qdot, point_pos)
     return vel
