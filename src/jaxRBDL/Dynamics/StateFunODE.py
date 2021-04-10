@@ -3,13 +3,12 @@ from jaxRBDL.Dynamics import composite_rigid_body_algorithm, composite_rigid_bod
 from jaxRBDL.Dynamics import inverse_dynamics, inverse_dynamics_core
 from numpy.linalg import inv
 from jaxRBDL.Contact import detect_contact
-from jaxRBDL.Contact.CalcContactForceDirect import CalcContactForceDirect
+from jaxRBDL.Contact import calc_contact_force_direct, calc_contact_force_direct_core
 from jaxRBDL.Dynamics import forward_dynamics, forward_dynamics_core
 from jaxRBDL.Kinematics import calc_body_to_base_coordinates, calc_body_to_base_coordinates_core
 from jaxRBDL.Contact import solve_contact_lcp_core
 from jaxRBDL.Contact import impulsive_dynamics
 from jaxRBDL.Contact.SolveContactSimpleLCP import SolveContactSimpleLCP, SolveContactSimpleLCPCore
-from jaxRBDL.Contact.CalcContactForceDirect import CalcContactForceDirectCore
 from scipy.integrate import solve_ivp
 import jax.numpy as jnp
 from jaxRBDL.Contact import get_contact_force
@@ -28,11 +27,11 @@ def DynamicsFunCore(Xtree, I, q, qdot, contactpoint, tau, a_grav, contact_force_
 
 
     if np.sum(flag_contact) !=0: 
-        lam, fqp = solve_contact_lcp_core(Xtree, q, qdot, contactpoint, H, tau, C, contact_force_lb, contact_force_ub,\
-            idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, ncp, mu)
+        # lam, fqp = solve_contact_lcp_core(Xtree, q, qdot, contactpoint, H, tau, C, contact_force_lb, contact_force_ub,\
+        #     idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, ncp, mu)
 
         # lam, fqp = SolveContactSimpleLCPCore(Xtree, q, qdot, contactpoint, H, tau, C, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
-        # lam, fqp = CalcContactForceDirectCore(Xtree, q, qdot, contactpoint, H, tau, C, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
+        lam, fqp = calc_contact_force_direct_core(Xtree, q, qdot, contactpoint, H, tau, C, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
 
     ttau = tau + lam
     qddot = forward_dynamics_core(Xtree, I, parent, jtype, jaxis, NB, q, qdot, ttau, a_grav)

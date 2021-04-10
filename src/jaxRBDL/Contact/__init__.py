@@ -4,3 +4,4 @@ from .solve_contact_lcp import solve_contact_lcp, solve_contact_lcp_core, lcp_qu
 from .impulsive_dynamics import impulsive_dynamics, impulsive_dynamics_core
 from .detect_contact import detect_contact, detect_contact_core, determin_contact_type, determin_contact_type_core
 from .get_contact_force import get_contact_force
+from .calc_contact_force_direct import calc_contact_force_direct, calc_contact_force_direct_core
