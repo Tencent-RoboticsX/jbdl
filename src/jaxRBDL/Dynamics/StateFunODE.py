@@ -7,7 +7,7 @@ from jaxRBDL.Contact.CalcContactForceDirect import CalcContactForceDirect
 from jaxRBDL.Dynamics import forward_dynamics, forward_dynamics_core
 from jaxRBDL.Kinematics import calc_body_to_base_coordinates, calc_body_to_base_coordinates_core
 from jaxRBDL.Contact import solve_contact_lcp_core
-from jaxRBDL.Contact.ImpulsiveDynamics import ImpulsiveDynamics
+from jaxRBDL.Contact import impulsive_dynamics
 from jaxRBDL.Contact.SolveContactSimpleLCP import SolveContactSimpleLCP, SolveContactSimpleLCPCore
 from jaxRBDL.Contact.CalcContactForceDirect import CalcContactForceDirectCore
 from scipy.integrate import solve_ivp
@@ -228,7 +228,7 @@ def StateFunODE(model: dict, xk: np.ndarray, uk: np.ndarray, T: float):
             # Impact dynamics
             # print("4444444444444444444444444")
             # print(flag_contact)
-            qdot_impulse = ImpulsiveDynamics(model, q, qdot, flag_contact);  
+            qdot_impulse = impulsive_dynamics(model, q, qdot, flag_contact);  
             qdot_impulse = qdot_impulse.flatten()
 
             # Update initial state

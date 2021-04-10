@@ -16,7 +16,7 @@ import matplotlib
 from jaxRBDL.Utils.ModelWrapper import ModelWrapper
 from jaxRBDL.Dynamics.StateFunODE import DynamicsFunCore, EventsFunCore
 from jaxRBDL.Contact.DetectContact import DetectContact, DetectContactCore
-from jaxRBDL.Contact.ImpulsiveDynamics import ImpulsiveDynamicsCore
+from jaxRBDL.Contact import impulsive_dynamics, impulsive_dynamics_core
 from jaxRBDL.Dynamics import composite_rigid_body_algorithm_core
 from jaxRBDL.Kinematics import *
 from jaxRBDL.Kinematics import calc_body_to_base_coordinates_core
@@ -88,7 +88,7 @@ def jit_compiled(model):
         # xdot, fqp, H = DynamicsFunCore(Xtree, I, q, qdot, contactpoint, tau, a_grav, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, rankJc)
         # value = EventsFunCore(Xtree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NC)
         # flag_contact_calc = DetectContactCore(Xtree, q, qdot, contactpoint, contact_pos_lb, contact_vel_lb, contact_vel_ub,  idcontact, parent, jtype, jaxis, NC)
-        # qdot_impulse = ImpulsiveDynamicsCore(Xtree, q, qdot, contactpoint, H, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, rankJc)
+        # qdot_impulse = impulsive_dynamics_core(Xtree, q, qdot, contactpoint, H, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, rankJc)
 
         # fqp.block_until_ready()
         # xdot.block_until_ready()

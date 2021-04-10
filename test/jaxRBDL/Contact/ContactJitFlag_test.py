@@ -2,8 +2,7 @@
 import unittest
 import os
 from jaxRBDL.Contact.CalcContactForceDirect import CalcContactForceDirectCore, CalcContactForceDirect
-from jaxRBDL.Contact.ImpulsiveDynamics import ImpulsiveDynamics, ImpulsiveDynamicsCore
-from jaxRBDL.Contact.SolveContactLCP import SolveContactLCP
+from jaxRBDL.Contact import impulsive_dynamics, impulsive_dynamics_core
 from jaxRBDL.Kinematics import calc_point_acceleration_core
 from jaxRBDL.Utils.ModelWrapper import ModelWrapper
 from jaxRBDL.Contact import calc_contact_jacobian, calc_contact_jacobian_core

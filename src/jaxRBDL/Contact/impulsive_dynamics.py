@@ -7,7 +7,7 @@ from jax.api import jit
 from functools import partial
 
 # @partial(jit, static_argnums=(5, 6, 7, 8, 9, 10, 11, 12, 13))
-def ImpulsiveDynamicsCore(Xtree, q, qdot, contactpoint, H, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, rankJc):
+def impulsive_dynamics_core(Xtree, q, qdot, contactpoint, H, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, rankJc):
     Jc = calc_contact_jacobian_core(Xtree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
 
     # Calcualet implusive dynamics for qdot after impulsive
@@ -27,7 +27,7 @@ def ImpulsiveDynamicsCore(Xtree, q, qdot, contactpoint, H, idcontact, flag_conta
 
 
 
-def ImpulsiveDynamics(model: dict, q: np.ndarray, qdot: np.ndarray, flag_contact:np.ndarray)->np.ndarray:
+def impulsive_dynamics(model: dict, q: np.ndarray, qdot: np.ndarray, flag_contact:np.ndarray)->np.ndarray:
     q = q.flatten()
     qdot = qdot.flatten()
     NC = int(model["NC"])
@@ -44,11 +44,11 @@ def ImpulsiveDynamics(model: dict, q: np.ndarray, qdot: np.ndarray, flag_contact
     H = model["H"]
     rankJc = int(np.sum( [1 for item in flag_contact if item != 0]) * model["nf"])
 
-    qdot_impulse = ImpulsiveDynamicsCore(Xtree, q, qdot, contactpoint, H, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, rankJc)
+    qdot_impulse = impulsive_dynamics_core(Xtree, q, qdot, contactpoint, H, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, rankJc)
     return qdot_impulse
 
 
-# def ImpulsiveDynamics(model: dict, q: np.ndarray, qdot: np.ndarray, flag_contact:np.ndarray)->np.ndarray:
+# def impulsive_dynamics(model: dict, q: np.ndarray, qdot: np.ndarray, flag_contact:np.ndarray)->np.ndarray:
 #     q = q.flatten()
 #     qdot = qdot.flatten()
 #     NB = int(model["NB"])
