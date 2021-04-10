@@ -2,7 +2,7 @@ import numpy as np
 from jaxRBDL.Dynamics import composite_rigid_body_algorithm, composite_rigid_body_algorithm_core
 from jaxRBDL.Dynamics import inverse_dynamics, inverse_dynamics_core
 from numpy.linalg import inv
-from jaxRBDL.Contact.DetectContact import DetectContact
+from jaxRBDL.Contact import detect_contact
 from jaxRBDL.Contact.CalcContactForceDirect import CalcContactForceDirect
 from jaxRBDL.Dynamics import forward_dynamics, forward_dynamics_core
 from jaxRBDL.Kinematics import calc_body_to_base_coordinates, calc_body_to_base_coordinates_core
@@ -12,7 +12,7 @@ from jaxRBDL.Contact.SolveContactSimpleLCP import SolveContactSimpleLCP, SolveCo
 from jaxRBDL.Contact.CalcContactForceDirect import CalcContactForceDirectCore
 from scipy.integrate import solve_ivp
 import jax.numpy as jnp
-from jaxRBDL.Contact.GetContactForce import GetContactForce
+from jaxRBDL.Contact import get_contact_force
 from jax.api import jit
 from functools import partial
 
@@ -74,7 +74,7 @@ def DynamicsFun(t: float, X: np.ndarray, model: dict, contact_force: dict)->np.n
 
 
     # Calculate flag_contact
-    flag_contact = DetectContact(model, q, qdot)
+    flag_contact = detect_contact(model, q, qdot)
     rankJc = int(np.sum( [1 for item in flag_contact if item != 0]) * model["nf"])
     ncp = 0
     for i in range(NC):
@@ -97,7 +97,7 @@ def DynamicsFun(t: float, X: np.ndarray, model: dict, contact_force: dict)->np.n
 
     if np.sum(flag_contact) !=0: 
         fpd = np.zeros((3*NC, 1))
-        fc, fcqp, fcpd = GetContactForce(model, fqp, fpd, flag_contact)
+        fc, fcqp, fcpd = get_contact_force(model, fqp, fpd, flag_contact)
 
     contact_force["fc"] = fc
     contact_force["fcqp"] = fcqp
@@ -136,7 +136,7 @@ def EventsFun(t: float, x: np.ndarray, model: dict, contact_force: dict=dict()):
     
     # print("77777777777777777777777777")
     # Detect contact
-    flag_contact = DetectContact(model, q, qdot)
+    flag_contact = detect_contact(model, q, qdot)
     # print("In EventsFun!!!")
     # print(flag_contact)
     # print("8888888888888888888")
@@ -222,7 +222,7 @@ def StateFunODE(model: dict, xk: np.ndarray, uk: np.ndarray, T: float):
 
             # print("33333333333333333333333")
             # Detect contact
-            flag_contact = DetectContact(model, q, qdot)
+            flag_contact = detect_contact(model, q, qdot)
             # print(flag_contact)
 
             # Impact dynamics

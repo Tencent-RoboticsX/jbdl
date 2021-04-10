@@ -7,7 +7,7 @@ from jaxRBDL.Contact.calc_contact_jdot_qdot import calc_contact_jdot_qdot_core_j
 # from jaxRBDL.Contact.SolveContactLCP import quadprog
 import jax.numpy as jnp
 from jax.api import grad, jit
-from jaxRBDL.Contact.GetContactForce import GetContactForce
+from jaxRBDL.Contact import get_contact_force
 
 
 def QuadLoss(M, d, lam):
@@ -94,7 +94,7 @@ def SolveContactSimpleLCP(model: dict, q: np.ndarray, qdot: np.ndarray, tau: np.
         idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
 
     fpd = np.zeros((3*NC, 1))
-    fc, fcqp, fcpd = GetContactForce(model, fqp, fpd, flag_contact)
+    fc, fcqp, fcpd = get_contact_force(model, fqp, fpd, flag_contact)
     return flcp, fqp, fc, fcqp, fcpd  
 
 

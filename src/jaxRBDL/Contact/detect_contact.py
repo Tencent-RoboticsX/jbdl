@@ -21,7 +21,7 @@ from jax.api import jit
 #     return contact_type
 
 @jit
-def DeterminContactTypeCore(pos, vel, contact_pos_lb, contact_vel_lb, contact_vel_ub):
+def determin_contact_type_core(pos, vel, contact_pos_lb, contact_vel_lb, contact_vel_ub):
     pos_z = pos[2, :]
     vel_z = vel[2, :]
     contact_pos_lb_z = contact_pos_lb[2]
@@ -40,7 +40,7 @@ def DeterminContactTypeCore(pos, vel, contact_pos_lb, contact_vel_lb, contact_ve
     return contact_type
     
 
-def DeterminContactType(pos: np.ndarray, vel: np.ndarray, contact_cond: dict)->int:
+def determin_contact_type(pos: np.ndarray, vel: np.ndarray, contact_cond: dict)->int:
     pos = pos.flatten()
     vel = vel.flatten()
     contact_pos_lb = contact_cond["contact_pos_lb"].flatten()
@@ -60,7 +60,7 @@ def DeterminContactType(pos: np.ndarray, vel: np.ndarray, contact_cond: dict)->i
     return contact_type
 
 @partial(jit, static_argnums=(7, 8, 9, 10, 11))
-def DetectContactCore(Xtree, q, qdot, contactpoint, contact_pos_lb, contact_vel_lb, contact_vel_ub,\
+def detect_contact_core(Xtree, q, qdot, contactpoint, contact_pos_lb, contact_vel_lb, contact_vel_ub,\
     idcontact, parent, jtype, jaxis, NC):
     # flag_contact_list = []
     end_pos_list = []
@@ -75,12 +75,12 @@ def DetectContactCore(Xtree, q, qdot, contactpoint, contact_pos_lb, contact_vel_
     end_pos = jnp.hstack(end_pos_list)
     end_vel = jnp.hstack(end_vel_list)
 
-    flag_contact = DeterminContactTypeCore(end_pos, end_vel, contact_pos_lb, contact_vel_lb, contact_vel_ub)
+    flag_contact = determin_contact_type_core(end_pos, end_vel, contact_pos_lb, contact_vel_lb, contact_vel_ub)
     
     return flag_contact
         
     
-def DetectContact(model: dict, q: np.ndarray, qdot: np.ndarray)->np.ndarray:
+def detect_contact(model: dict, q: np.ndarray, qdot: np.ndarray)->np.ndarray:
     contact_cond = model["contact_cond"]
     NC = int(model["NC"])
     Xtree = model["Xtree"]
@@ -93,13 +93,13 @@ def DetectContact(model: dict, q: np.ndarray, qdot: np.ndarray)->np.ndarray:
     contact_pos_lb = contact_cond["contact_pos_lb"]
     contact_vel_lb = contact_cond["contact_vel_lb"]
     contact_vel_ub = contact_cond["contact_vel_ub"]
-    flag_contact = DetectContactCore(Xtree, q, qdot, contactpoint, contact_pos_lb, contact_vel_lb, contact_vel_ub, idcontact, parent, jtype, jaxis, NC)
+    flag_contact = detect_contact_core(Xtree, q, qdot, contactpoint, contact_pos_lb, contact_vel_lb, contact_vel_ub, idcontact, parent, jtype, jaxis, NC)
     # flag_contact = DeterminContactTypeCore(end_pos, end_vel, )
 
     return tuple(flag_contact)
 
 
-def  DetectContact_v0(model: dict, q: np.ndarray, qdot: np.ndarray)->np.ndarray:
+def detect_contact_v0(model: dict, q: np.ndarray, qdot: np.ndarray)->np.ndarray:
     NC = int(model["NC"])
     contact_cond = model["contact_cond"]
     idcontact = model["idcontact"]
@@ -116,7 +116,7 @@ def  DetectContact_v0(model: dict, q: np.ndarray, qdot: np.ndarray)->np.ndarray:
         endvel_item = calc_point_velocity(model, q, qdot, idcontact[i], contactpoint[i])
 
         # Detect contact
-        flag_contact_list.append(DeterminContactType(endpos_item, endvel_item, contact_cond))
+        flag_contact_list.append(determin_contact_type(endpos_item, endvel_item, contact_cond))
 
     flag_contact = np.asfarray(flag_contact_list).flatten()
 

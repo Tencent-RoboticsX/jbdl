@@ -1,6 +1,6 @@
 import numpy as np
 
-def GetContactForce(model: dict, fqp: np.ndarray, fpd: np.ndarray, flag_contact: np.ndarray):
+def get_contact_force(model: dict, fqp: np.ndarray, fpd: np.ndarray, flag_contact: np.ndarray):
     fqp = fqp.flatten()
     fpd = fpd.flatten()
 

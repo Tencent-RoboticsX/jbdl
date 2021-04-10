@@ -13,7 +13,8 @@ from jaxRBDL.Contact import solve_contact_lcp, solve_contact_lcp_core, lcp_quadp
 from jaxRBDL.Kinematics.calc_point_jacobian import calc_point_jacobian_core
 from jaxRBDL.Dynamics import composite_rigid_body_algorithm
 from jaxRBDL.Dynamics import inverse_dynamics
-from jaxRBDL.Contact.DetectContact import DetectContact_v0, DetectContact, DetectContactCore, DeterminContactType, DeterminContactTypeCore
+from jaxRBDL.Contact import detect_contact, detect_contact_core, determin_contact_type, determin_contact_type_core
+from jaxRBDL.Contact.detect_contact import detect_contact_v0
 from jaxRBDL.Contact.SolveContactSimpleLCP import QuadLoss, NonNegativeZProjector, SolveContactSimpleLCPCore, SolveContactSimpleLCP
 import numpy as np
 from test.support import EnvironmentVarGuard
@@ -170,18 +171,16 @@ class TestContact(unittest.TestCase):
         
         # print(timeit.Timer(CalcContactForceDirectWithJit).repeat(repeat=3, number=1))
 
-    def test_DetectContact(self):
-        pass
-
-        # model = self.model
-        # q = self.q
-        # qdot =  self.qdot
-        # input = (model, q, qdot)
-        # for i in range(1000):
-        #     input = (model, q * np.random.randn(*q.shape), qdot * np.random.randn(*qdot.shape))
-        #     flag_contact_v0 = DetectContact_v0(*input)
-        #     flag_contact_v1 = DetectContact(*input)
-        #     self.assertEqual(np.sum(np.abs(np.array(flag_contact_v0)-np.array(flag_contact_v1))), 0.0)
+    def test_detect_contact(self):
+        model = self.model
+        q = self.q
+        qdot =  self.qdot
+        input = (model, q, qdot)
+        for i in range(1000):
+            input = (model, q * np.random.randn(*q.shape), qdot * np.random.randn(*qdot.shape))
+            flag_contact_v0 = detect_contact_v0(*input)
+            flag_contact_v1 = detect_contact(*input)
+            self.assertEqual(np.sum(np.abs(np.array(flag_contact_v0)-np.array(flag_contact_v1))), 0.0)
 
 
         # def TimeDetectContac():
@@ -189,7 +188,7 @@ class TestContact(unittest.TestCase):
         #     qdot = self.q * np.random.randn(*self.qdot.shape)
         #     model = self.model
         #     input = (model, q, qdot)
-        #     DetectContact(*input)
+        #     detect_contact(*input)
         
         # print(timeit.Timer(TimeDetectContac).repeat(repeat=3, number=1000))
 
@@ -202,7 +201,7 @@ class TestContact(unittest.TestCase):
         #             tuple(model["parent"]), tuple(model["jtype"]), model["jaxis"],
         #             model["NC"])
 
-        # pos, vel = DetectContactCore(*input_2)
+        # pos, vel = detect_contact_core(*input_2)
         # print(pos)
         # print(vel)
         # input_1 = (pos, vel, \
@@ -212,9 +211,9 @@ class TestContact(unittest.TestCase):
         # print(DeterminContactTypeCore(*input_1))
 
         # from jax import make_jaxpr
-        # print(make_jaxpr(DetectContactCore, static_argnums=(4, 5, 6, 7, 8, 9, 10, 11))(*input_2))
+        # print(make_jaxpr(detect_contact_core, static_argnums=(4, 5, 6, 7, 8, 9, 10, 11))(*input_2))
 
-        # end_pos, end_vel = DetectContactCore(*input_2)
+        # end_pos, end_vel = detect_contact_core(*input_2)
         # from functools import partial
 
         # print(list(map(partial(DeterminContactType, contact_cond=contact_cond), end_pos, end_vel)))
@@ -223,7 +222,6 @@ class TestContact(unittest.TestCase):
 
     
     def test_impulsive_dynamics(self):
-        pass
         model = self.model
         q = self.q
         qdot = self.qdot

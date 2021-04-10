@@ -6,7 +6,7 @@ from numpy import linalg
 from jaxRBDL.Contact import calc_contact_jacobian, calc_contact_jacobian_core
 from jaxRBDL.Contact import calc_contact_jdot_qdot, calc_contact_jdot_qdot_core
 from jaxRBDL.Contact.CalcContactForcePD import CalcContactForcePD
-from jaxRBDL.Contact.GetContactForce import GetContactForce
+from jaxRBDL.Contact import get_contact_force
 import scipy.sparse.linalg as spla
 from scipy.sparse.linalg import gmres
 from jax.api import jit
@@ -86,9 +86,9 @@ def CalcContactForceDirect(model: dict, q: np.ndarray, qdot: np.ndarray, tau: np
         
     # Calculate contact force from PD controller
     # fpd = CalcContactForcePD(model, q, qdot, flag_contact)
-    # fc, fcqp, fcpd = GetContactForce(model, fqp, fpd, flag_contact)  
+    # fc, fcqp, fcpd = get_contact_force(model, fqp, fpd, flag_contact)  
     fpd = np.zeros((3*NC, 1))
-    fc, fcqp, fcpd = GetContactForce(model, fqp, fpd, flag_contact)  
+    fc, fcqp, fcpd = get_contact_force(model, fqp, fpd, flag_contact)  
 
     print("=======================")
 
@@ -134,7 +134,7 @@ def CalcContactForceDirect(model: dict, q: np.ndarray, qdot: np.ndarray, tau: np
         
 #     # Calculate contact force from PD controller
 #     fpd = CalcContactForcePD(model, q, qdot, flag_contact)
-#     fc, fcqp, fcpd = GetContactForce(model, fqp, fpd, flag_contact)  
+#     fc, fcqp, fcpd = get_contact_force(model, fqp, fpd, flag_contact)  
 
 
 #     return flcp, fqp, fc, fcqp, fcpd

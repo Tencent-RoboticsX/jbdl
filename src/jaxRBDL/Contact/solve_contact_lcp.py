@@ -6,7 +6,7 @@ import cvxopt
 from jaxRBDL.Contact import calc_contact_jacobian
 from jaxRBDL.Contact import calc_contact_jdot_qdot
 from jaxRBDL.Contact.CalcContactForcePD import CalcContactForcePD
-from jaxRBDL.Contact.GetContactForce import GetContactForce
+from jaxRBDL.Contact import get_contact_force
 from jaxRBDL.Contact import calc_contact_jacobian_core
 from jaxRBDL.Contact import calc_contact_jdot_qdot_core
 import jax.numpy as jnp
@@ -306,7 +306,7 @@ def solve_contact_lcp(model: dict, q: np.ndarray, qdot: np.ndarray, tau: np.ndar
         idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, ncp, mu)
 
     fpd = np.zeros((3*NC, 1))
-    fc, fcqp, fcpd = GetContactForce(model, fqp, fpd, flag_contact)
+    fc, fcqp, fcpd = get_contact_force(model, fqp, fpd, flag_contact)
     
     return flcp, fqp, fc, fcqp, fcpd
 

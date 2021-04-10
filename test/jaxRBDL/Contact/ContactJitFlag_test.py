@@ -12,7 +12,8 @@ from jaxRBDL.Contact.calc_contact_jdot_qdot import calc_contact_jdot_qdot_core_j
 from jaxRBDL.Kinematics.calc_point_jacobian import calc_point_jacobian_core
 from jaxRBDL.Dynamics import composite_rigid_body_algorithm
 from jaxRBDL.Dynamics import inverse_dynamics
-from jaxRBDL.Contact.DetectContact import DetectContact_v0, DetectContact, DetectContactCore, DeterminContactType, DeterminContactTypeCore
+from jaxRBDL.Contact.detect_contact import detect_contact_v0
+from jaxRBDL.Contact import detect_contact, detect_contact_core, determin_contact_type, determin_contact_type_core
 from jaxRBDL.Contact.SolveContactSimpleLCP import QuadLoss, NonNegativeZProjector, SolveContactSimpleLCPCore, SolveContactSimpleLCP
 import numpy as np
 from test.support import EnvironmentVarGuard
