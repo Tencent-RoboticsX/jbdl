@@ -8,7 +8,7 @@ from jaxRBDL.Dynamics import forward_dynamics, forward_dynamics_core
 from jaxRBDL.Kinematics import calc_body_to_base_coordinates, calc_body_to_base_coordinates_core
 from jaxRBDL.Contact import solve_contact_lcp_core
 from jaxRBDL.Contact import impulsive_dynamics
-from jaxRBDL.Contact.SolveContactSimpleLCP import SolveContactSimpleLCP, SolveContactSimpleLCPCore
+from jaxRBDL.Contact import solve_contact_simple_lcp, solve_contact_simple_lcp_core
 from scipy.integrate import solve_ivp
 import jax.numpy as jnp
 from jaxRBDL.Contact import get_contact_force
@@ -30,8 +30,8 @@ def DynamicsFunCore(Xtree, I, q, qdot, contactpoint, tau, a_grav, contact_force_
         # lam, fqp = solve_contact_lcp_core(Xtree, q, qdot, contactpoint, H, tau, C, contact_force_lb, contact_force_ub,\
         #     idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, ncp, mu)
 
-        # lam, fqp = SolveContactSimpleLCPCore(Xtree, q, qdot, contactpoint, H, tau, C, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
-        lam, fqp = calc_contact_force_direct_core(Xtree, q, qdot, contactpoint, H, tau, C, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
+        lam, fqp = solve_contact_simple_lcp_core(Xtree, q, qdot, contactpoint, H, tau, C, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
+        # lam, fqp = calc_contact_force_direct_core(Xtree, q, qdot, contactpoint, H, tau, C, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
 
     ttau = tau + lam
     qddot = forward_dynamics_core(Xtree, I, parent, jtype, jaxis, NB, q, qdot, ttau, a_grav)

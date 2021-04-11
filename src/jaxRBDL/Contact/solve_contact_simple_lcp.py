@@ -10,17 +10,17 @@ from jax.api import grad, jit
 from jaxRBDL.Contact import get_contact_force
 
 
-def QuadLoss(M, d, lam):
+def quad_loss(M, d, lam):
     A = 0.5 * (M + jnp.transpose(M))
     qdloss = 0.5 * jnp.matmul(jnp.transpose(lam), jnp.matmul(A, lam)) + jnp.dot(jnp.transpose(d), lam)
     qdloss = jnp.squeeze(qdloss)
     return qdloss
 
-def NonNegativeZProjector(x, nf):
+def non_negative_z_projector(x, nf):
     x = x.at[nf-1::nf].set(jnp.maximum(x[nf-1::nf], 0))
     return x
 
-def SolveContactSimpleLCPCoreJitFlag(Xtree, q, qdot, contactpoint, H, tau, C,  flag_contact, idcontact,  parent, jtype, jaxis, NB, NC, nf):
+def solve_contact_simple_lcp_core_jit_flag(Xtree, q, qdot, contactpoint, H, tau, C,  flag_contact, idcontact,  parent, jtype, jaxis, NB, NC, nf):
     Jc = calc_contact_jacobian_core_jit_flag(Xtree, q, contactpoint,flag_contact, idcontact,  parent, jtype, jaxis, NB, NC, nf)
     JcdotQdot = calc_contact_jdot_qdot_core_jit_flag(Xtree, q, qdot, contactpoint, flag_contact, idcontact,  parent, jtype, jaxis, NB, NC, nf)
     tau = jnp.reshape(tau, (-1, 1))
@@ -30,7 +30,7 @@ def SolveContactSimpleLCPCoreJitFlag(Xtree, q, qdot, contactpoint, H, tau, C,  f
     d = jnp.add(d0, JcdotQdot)
     #Todo: Fast differentiable QP solver.
     lam = -jnp.linalg.solve(M,d)
-    lam = NonNegativeZProjector(lam, nf)
+    lam = non_negative_z_projector(lam, nf)
     # lam = - d / jnp.reshape(jnp.diag(M), (-1, 1))
 
     # lr = 1e-2
@@ -48,7 +48,7 @@ def SolveContactSimpleLCPCoreJitFlag(Xtree, q, qdot, contactpoint, H, tau, C,  f
     return flcp, fqp
 
 # @partial(jit, static_argnums=(7, 8, 9, 10, 11, 12, 13, 14))
-def SolveContactSimpleLCPCore(Xtree, q, qdot, contactpoint, H, tau, C, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf):
+def solve_contact_simple_lcp_core(Xtree, q, qdot, contactpoint, H, tau, C, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf):
     Jc = calc_contact_jacobian_core(Xtree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
     JcdotQdot = calc_contact_jdot_qdot_core(Xtree, q, qdot, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
     tau = jnp.reshape(tau, (-1, 1))
@@ -58,7 +58,7 @@ def SolveContactSimpleLCPCore(Xtree, q, qdot, contactpoint, H, tau, C, idcontact
     d = jnp.add(d0, JcdotQdot)
     #Todo: Fast differentiable QP solver.
     lam = -jnp.linalg.solve(M,d)
-    lam = NonNegativeZProjector(lam, nf)
+    lam = non_negative_z_projector(lam, nf)
     # lam = - d / jnp.reshape(jnp.diag(M), (-1, 1))
 
     # lr = 1e-2
@@ -75,7 +75,7 @@ def SolveContactSimpleLCPCore(Xtree, q, qdot, contactpoint, H, tau, C, idcontact
     flcp = jnp.reshape(flcp, (-1,))
     return flcp, fqp
 
-def SolveContactSimpleLCP(model: dict, q: np.ndarray, qdot: np.ndarray, tau: np.ndarray, flag_contact: np.ndarray):
+def solve_contact_simple_lcp(model: dict, q: np.ndarray, qdot: np.ndarray, tau: np.ndarray, flag_contact: np.ndarray):
     NC = int(model["NC"])
     NB = int(model["NB"])
     nf = int(model["nf"])
@@ -90,7 +90,7 @@ def SolveContactSimpleLCP(model: dict, q: np.ndarray, qdot: np.ndarray, tau: np.
     H = model["H"]
     C = model["C"]
 
-    flcp, fqp = SolveContactSimpleLCPCore(Xtree, q, qdot, contactpoint, H, tau, C, \
+    flcp, fqp = solve_contact_simple_lcp_core(Xtree, q, qdot, contactpoint, H, tau, C, \
         idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
 
     fpd = np.zeros((3*NC, 1))
