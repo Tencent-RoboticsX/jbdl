@@ -5,7 +5,7 @@ import numpy as np
 import cvxopt
 from jaxRBDL.Contact import calc_contact_jacobian
 from jaxRBDL.Contact import calc_contact_jdot_qdot
-from jaxRBDL.Contact.CalcContactForcePD import CalcContactForcePD
+from jaxRBDL.Contact import calc_contact_force_pd
 from jaxRBDL.Contact import get_contact_force
 from jaxRBDL.Contact import calc_contact_jacobian_core
 from jaxRBDL.Contact import calc_contact_jdot_qdot_core

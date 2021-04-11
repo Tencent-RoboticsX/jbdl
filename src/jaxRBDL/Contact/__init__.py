@@ -6,3 +6,4 @@ from .detect_contact import detect_contact, detect_contact_core, determin_contac
 from .get_contact_force import get_contact_force
 from .calc_contact_force_direct import calc_contact_force_direct, calc_contact_force_direct_core
 from .solve_contact_simple_lcp import  solve_contact_simple_lcp, solve_contact_simple_lcp_core
+from .calc_contact_force_pd import calc_contact_force_pd

@@ -3,7 +3,7 @@ from jaxRBDL.Kinematics import calc_body_to_base_coordinates
 from jaxRBDL.Kinematics import calc_point_velocity ,calc_point_velocity_core
 
 
-def CalcContactForcePD(model: dict, q: np.ndarray, qdot: np.ndarray, 
+def calc_contact_force_pd(model: dict, q: np.ndarray, qdot: np.ndarray, 
                        flag_contact: np.ndarray)->np.ndarray:
     
     NC = int(model["NC"])
