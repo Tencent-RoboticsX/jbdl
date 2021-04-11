@@ -8,7 +8,7 @@ from jax.api import jit
 
 
 @partial(jit, static_argnums=(0, 1))
-def JointModel(jtype: int, jaxis: str, q: float):
+def joint_model(jtype: int, jaxis: str, q: float):
     if jtype == 0:
         # revolute joint
         if jaxis == 'x':
@@ -38,5 +38,5 @@ if __name__ == "__main__":
     from jax import make_jaxpr
     import math
     import numpy as np
-    print(make_jaxpr(JointModel, static_argnums=(0, 1))(0, 'y', math.pi))
-    print(JointModel(0, 'y', math.pi))
+    print(make_jaxpr(joint_model, static_argnums=(0, 1))(0, 'y', math.pi))
+    print(joint_model(0, 'y', math.pi))

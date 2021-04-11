@@ -1,6 +1,6 @@
 import numpy as np
 import jax.numpy as jnp
-from jaxRBDL.Model.JointModel import JointModel
+from jaxRBDL.Model import joint_model
 from jaxRBDL.Math.Xtrans import Xtrans
 from jaxRBDL.Math.InverseMotionSpace import InverseMotionSpace
 from jax.api import jit
@@ -13,7 +13,7 @@ def calc_point_jacobian_core(Xtree, parent, jtype, jaxis, NB, body_id, q, point_
     X0 = []
 
     for i in range(body_id):
-        XJ, Si = JointModel(jtype[i], jaxis[i], q[i])
+        XJ, Si = joint_model(jtype[i], jaxis[i], q[i])
         S.append(Si)
         Xup.append(jnp.matmul(XJ, Xtree[i]))
         if parent[i] == 0:

@@ -2,7 +2,7 @@ from typing import Pattern
 from jax.api import jit
 import numpy as np
 import jax.numpy as jnp
-from jaxRBDL.Model.JointModel import JointModel
+from jaxRBDL.Model import joint_model
 from jaxRBDL.Math.Xtrans import Xtrans
 from jaxRBDL.Kinematics import transform_to_position
 from functools import partial
@@ -11,7 +11,7 @@ from functools import partial
 def calc_body_to_base_coordinates_core(Xtree, parent, jtype, jaxis, body_id, q, point_pos):
     X0 = []
     for i in range(body_id):
-        XJ, _ = JointModel(jtype[i], jaxis[i], q[i])
+        XJ, _ = joint_model(jtype[i], jaxis[i], q[i])
         Xup = jnp.matmul(XJ, Xtree[i])
         if parent[i] == 0:
             X0.append(Xup)

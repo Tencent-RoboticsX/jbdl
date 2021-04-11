@@ -2,7 +2,7 @@ import numpy as np
 import jax.numpy as jnp
 from jaxRBDL.Math.CrossMotionSpace import CrossMotionSpace
 from jaxRBDL.Math.Xtrans import Xtrans
-from jaxRBDL.Model.JointModel import JointModel
+from jaxRBDL.Model import joint_model
 from jax.api import jit
 from functools import partial
 
@@ -14,7 +14,7 @@ def calc_point_acceleration_core(Xtree, parent, jtype, jaxis, body_id, q, qdot, 
     X0 = []
 
     for i in range(body_id):
-        XJ, Si = JointModel(jtype[i], jaxis[i], q[i])
+        XJ, Si = joint_model(jtype[i], jaxis[i], q[i])
         vJ = jnp.multiply(Si,  qdot[i])
         Xup.append(jnp.matmul(XJ, Xtree[i]))
         if parent[i] == 0:

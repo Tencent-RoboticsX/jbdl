@@ -3,7 +3,8 @@ from typing import List
 from jax._src.lax.lax import sub
 import numpy as np
 import jax.numpy as jnp
-from jaxRBDL.Model.JointModel import JointModel
+from jaxRBDL.Model import joint_model
+
 from functools import partial
 from jax.api import jit
 from jax import lax
@@ -19,7 +20,7 @@ def composite_rigid_body_algorithm_core(Xtree, I, parent, jtype, jaxis, NB, q):
     Xup = []
 
     for i in range(NB):
-        XJ, Si = JointModel(jtype[i], jaxis[i], q[i])
+        XJ, Si = joint_model(jtype[i], jaxis[i], q[i])
         S.append(Si)
         Xup.append(jnp.matmul(XJ, Xtree[i]))
 

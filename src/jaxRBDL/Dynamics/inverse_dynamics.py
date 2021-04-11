@@ -1,7 +1,7 @@
 import numpy as np
 import jax.numpy as jnp
 from jax.api import jit
-from jaxRBDL.Model.JointModel import JointModel
+from jaxRBDL.Model import joint_model
 from jaxRBDL.Math.CrossMotionSpace import CrossMotionSpace
 from jaxRBDL.Math.CrossForceSpace import CrossForceSpace
 from functools import partial
@@ -15,7 +15,7 @@ def inverse_dynamics_core(Xtree, I, parent, jtype, jaxis, NB, q, qdot, qddot, a_
     fvp = []
 
     for i in range(NB):
-        XJ, Si = JointModel(jtype[i], jaxis[i], q[i])
+        XJ, Si = joint_model(jtype[i], jaxis[i], q[i])
         S.append(Si)
         vJ = jnp.multiply(S[i], qdot[i])
         Xup.append(jnp.matmul(XJ, Xtree[i]))

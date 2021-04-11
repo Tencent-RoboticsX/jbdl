@@ -1,5 +1,5 @@
 import numpy as np
-from jaxRBDL.Model.JointModel import JointModel
+from jaxRBDL.Model import joint_model
 from jaxRBDL.Math.Xtrans import Xtrans
 import jax.numpy as jnp
 from jax.api import jit
@@ -13,7 +13,7 @@ def calc_point_velocity_core(Xtree, parent, jtype, jaxis, body_id, q, qdot, poin
     v = []
 
     for i in range(body_id):
-        XJ, Si = JointModel(jtype[i], jaxis[i], q[i])
+        XJ, Si = joint_model(jtype[i], jaxis[i], q[i])
         S.append(Si)
         vJ = jnp.multiply(S[i], qdot[i])
         Xup = jnp.matmul(XJ, Xtree[i])

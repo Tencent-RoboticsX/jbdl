@@ -16,7 +16,7 @@ from jax.api import jit
 from functools import partial
 
 # @partial(jit, static_argnums=(7, 8, 9, 10, 11, 12, 13, 14, 15))
-def dynamics_fun_Core(Xtree, I, q, qdot, contactpoint, tau, a_grav, contact_force_lb, contact_force_ub,\
+def dynamics_fun_core(Xtree, I, q, qdot, contactpoint, tau, a_grav, contact_force_lb, contact_force_ub,\
     idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, rankJc, ncp, mu):
     H =  composite_rigid_body_algorithm_core(Xtree, I, parent, jtype, jaxis, NB, q)
     C =  inverse_dynamics_core(Xtree, I, parent, jtype, jaxis, NB, q, qdot, jnp.zeros_like(q), a_grav)
@@ -27,10 +27,10 @@ def dynamics_fun_Core(Xtree, I, q, qdot, contactpoint, tau, a_grav, contact_forc
 
 
     if np.sum(flag_contact) !=0: 
-        # lam, fqp = solve_contact_lcp_core(Xtree, q, qdot, contactpoint, H, tau, C, contact_force_lb, contact_force_ub,\
-        #     idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, ncp, mu)
+        lam, fqp = solve_contact_lcp_core(Xtree, q, qdot, contactpoint, H, tau, C, contact_force_lb, contact_force_ub,\
+            idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, ncp, mu)
 
-        lam, fqp = solve_contact_simple_lcp_core(Xtree, q, qdot, contactpoint, H, tau, C, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
+        # lam, fqp = solve_contact_simple_lcp_core(Xtree, q, qdot, contactpoint, H, tau, C, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
         # lam, fqp = calc_contact_force_direct_core(Xtree, q, qdot, contactpoint, H, tau, C, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
 
     ttau = tau + lam
@@ -86,7 +86,7 @@ def dynamics_fun(t: float, X: np.ndarray, model: dict, contact_force: dict)->np.
     # Dynamics Function Core
     # print("111111111111111111111")
     # print(flag_contact)
-    xdot, fqp, H = dynamics_fun_Core(Xtree, I, q, qdot, contactpoint, tau, a_grav, contact_force_lb, contact_force_ub, \
+    xdot, fqp, H = dynamics_fun_core(Xtree, I, q, qdot, contactpoint, tau, a_grav, contact_force_lb, contact_force_ub, \
         idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, rankJc, ncp, mu)
     model["H"] = H
     # Calculate contact force fot plotting.
