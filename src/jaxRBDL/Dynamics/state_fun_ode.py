@@ -16,7 +16,7 @@ from jax.api import jit
 from functools import partial
 
 # @partial(jit, static_argnums=(7, 8, 9, 10, 11, 12, 13, 14, 15))
-def DynamicsFunCore(Xtree, I, q, qdot, contactpoint, tau, a_grav, contact_force_lb, contact_force_ub,\
+def dynamics_fun_Core(Xtree, I, q, qdot, contactpoint, tau, a_grav, contact_force_lb, contact_force_ub,\
     idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, rankJc, ncp, mu):
     H =  composite_rigid_body_algorithm_core(Xtree, I, parent, jtype, jaxis, NB, q)
     C =  inverse_dynamics_core(Xtree, I, parent, jtype, jaxis, NB, q, qdot, jnp.zeros_like(q), a_grav)
@@ -40,7 +40,7 @@ def DynamicsFunCore(Xtree, I, q, qdot, contactpoint, tau, a_grav, contact_force_
     xdot = jnp.hstack([qdot, qddot])
     return xdot, fqp, H
 
-def DynamicsFun(t: float, X: np.ndarray, model: dict, contact_force: dict)->np.ndarray:
+def dynamics_fun(t: float, X: np.ndarray, model: dict, contact_force: dict)->np.ndarray:
     # print(X.shape)
     
     NC = int(model["NC"])
@@ -86,7 +86,7 @@ def DynamicsFun(t: float, X: np.ndarray, model: dict, contact_force: dict)->np.n
     # Dynamics Function Core
     # print("111111111111111111111")
     # print(flag_contact)
-    xdot, fqp, H = DynamicsFunCore(Xtree, I, q, qdot, contactpoint, tau, a_grav, contact_force_lb, contact_force_ub, \
+    xdot, fqp, H = dynamics_fun_Core(Xtree, I, q, qdot, contactpoint, tau, a_grav, contact_force_lb, contact_force_ub, \
         idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, rankJc, ncp, mu)
     model["H"] = H
     # Calculate contact force fot plotting.
@@ -105,7 +105,7 @@ def DynamicsFun(t: float, X: np.ndarray, model: dict, contact_force: dict)->np.n
     return xdot
 
 @partial(jit, static_argnums=(3, 4, 5, 6, 7, 8))
-def EventsFunCore(Xtree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NC):
+def events_fun_core(Xtree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NC):
     value = jnp.ones((NC,))
     for i in range(NC):
         if flag_contact[i]==2: # Impact
@@ -114,7 +114,7 @@ def EventsFunCore(Xtree, q, contactpoint, idcontact, flag_contact, parent, jtype
             value = value.at[i].set(endpos[2, 0])
     return value
 
-def EventsFun(t: float, x: np.ndarray, model: dict, contact_force: dict=dict()):
+def events_fun(t: float, x: np.ndarray, model: dict, contact_force: dict=dict()):
     # print("6666666666666666666666")
     NB = int(model["NB"])
     NC = int(model["NC"])
@@ -140,14 +140,14 @@ def EventsFun(t: float, x: np.ndarray, model: dict, contact_force: dict=dict()):
     # print(flag_contact)
     # print("8888888888888888888")
 
-    value = EventsFunCore(Xtree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NC)
+    value = events_fun_core(Xtree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NC)
 
     # print("9999999999999999999")
 
     return value
 
 
-def StateFunODE(model: dict, xk: np.ndarray, uk: np.ndarray, T: float):
+def state_fun_ode(model: dict, xk: np.ndarray, uk: np.ndarray, T: float):
 
     NB = int(model["NB"])
     NC = int(model["NC"])
@@ -178,7 +178,7 @@ def StateFunODE(model: dict, xk: np.ndarray, uk: np.ndarray, T: float):
     # event_list = [lambda t, x, model,  contact_force:  hit_ground(t, x, model, contact_force, idx=i) for i in range(NC)]
 
     def event(t, x, model, contact_force):
-        res = EventsFun(t, x, model, contact_force)
+        res = events_fun(t, x, model, contact_force)
         res = np.min(res)
         return res
 
@@ -199,7 +199,7 @@ def StateFunODE(model: dict, xk: np.ndarray, uk: np.ndarray, T: float):
     while status != 0:
         # print("00000000000000000000000")
         # ODE calculate 
-        sol = solve_ivp(DynamicsFun, tspan, x0.flatten(), method='RK45', events=event, \
+        sol = solve_ivp(dynamics_fun, tspan, x0.flatten(), method='RK45', events=event, \
             args=(model, contact_force), rtol=1e-3, atol=1e-4)
         status = sol.status
         assert status != -1, "Integration Failed!!!"

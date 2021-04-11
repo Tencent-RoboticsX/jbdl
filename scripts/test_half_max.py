@@ -10,7 +10,7 @@ from jaxRBDL.Tools.PlotContactForce import PlotContactForce
 from jaxRBDL.Tools.PlotCoMInertia import PlotCoMInertia
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.axes3d import Axes3D
-from jaxRBDL.Dynamics.StateFunODE import StateFunODE
+from jaxRBDL.Dynamics.state_fun_ode import state_fun_ode
 import matplotlib
 from jaxRBDL.Utils.ModelWrapper import ModelWrapper
 matplotlib.use('TkAgg')
@@ -99,7 +99,7 @@ xksv = []
 for i in range(1000):
     print(i)
     u = kp * (q0[3:7] - xk[3:7]) + kd * (qd0[3:7] - xk[10:14])
-    xk, contact_force = StateFunODE(model, xk.flatten(), u.flatten(), T)
+    xk, contact_force = state_fun_ode(model, xk.flatten(), u.flatten(), T)
     xk = xk.reshape(-1, 1)
 
     xksv.append(xk)

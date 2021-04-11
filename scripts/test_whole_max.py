@@ -11,10 +11,9 @@ from jaxRBDL.Tools.PlotContactForce import PlotContactForce
 from jaxRBDL.Tools.PlotCoMInertia import PlotCoMInertia
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.axes3d import Axes3D
-from jaxRBDL.Dynamics.StateFunODE import StateFunODE
+from jaxRBDL.Dynamics.state_fun_ode import state_fun_ode, dynamics_fun, events_fun_core
 import matplotlib
 from jaxRBDL.Utils.ModelWrapper import ModelWrapper
-from jaxRBDL.Dynamics.StateFunODE import DynamicsFunCore, EventsFunCore
 from jaxRBDL.Contact import detect_contact, detect_contact_core
 from jaxRBDL.Contact import impulsive_dynamics, impulsive_dynamics_core
 from jaxRBDL.Dynamics import composite_rigid_body_algorithm_core
@@ -161,7 +160,7 @@ if __name__ == "__main__":
     for i in range(1000):
         print(i)
         u = kp * (q0[6:18] - xk[6:18]) + kd * (qd0[6:18] - xk[24:36])
-        xk, contact_force = StateFunODE(model, xk.flatten(), u.flatten(), T)
+        xk, contact_force = state_fun_ode(model, xk.flatten(), u.flatten(), T)
         xk = xk.reshape(-1, 1)
         xksv.append(xk)
         ax.clear()
