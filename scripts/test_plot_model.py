@@ -3,7 +3,7 @@ import numpy as np
 import os
 from jaxRBDL.Utils.ModelWrapper import ModelWrapper
 from mpl_toolkits.mplot3d.axes3d import Axes3D
-from jaxRBDL.Tools.PlotModel import PlotModel
+from jaxRBDL.Tools import plot_model
 
 CURRENT_PATH = os.path.dirname(os.path.realpath(__file__))
 print(CURRENT_PATH)
@@ -26,7 +26,7 @@ q = np.array([0, 0, 0.27, 0, 0, 0,
 fig = plt.gcf()
 ax = Axes3D(fig)
 ax.set_ylim3d(-1.0, 1.0)
-PlotModel(model, q, ax)
+plot_model(model, q, ax)
 
 ax.view_init(elev=0,azim=-90)
 ax.set_xlabel('X')
@@ -54,7 +54,7 @@ for i in range(1000):
 
     ax = plt.gca()
     ax.clear()
-    PlotModel(model, q0, ax)
+    plot_model(model, q0, ax)
     ax.view_init(elev=0,azim=-90)
     ax.set_xlabel('X')
     ax.set_xlim(-0.3, -0.3+0.6)
