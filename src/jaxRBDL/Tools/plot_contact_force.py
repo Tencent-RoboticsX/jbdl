@@ -4,7 +4,7 @@ from mpl_toolkits.mplot3d.axes3d import Axes3D
 import numpy as np
 
 
-def PlotContactForce(model: dict, q: np.ndarray, fc: Optional[np.ndarray] , fcqp: Optional[np.ndarray], fcpd: Optional[np.ndarray], fwho: str, ax: Axes3D):
+def plot_contact_force(model: dict, q: np.ndarray, fc: Optional[np.ndarray] , fcqp: Optional[np.ndarray], fcpd: Optional[np.ndarray], fwho: str, ax: Axes3D):
     if fc is None and fcqp is None and fcpd is None: 
         print("No contact force to plot!")
         return

@@ -6,9 +6,7 @@ import numpy as np
 import math
 from jaxRBDL.Kinematics import calc_pos_vel_point_to_base
 from jaxRBDL.Kinematics import calc_whole_body_com
-from jaxRBDL.Tools.PlotModel import PlotModel
-from jaxRBDL.Tools.PlotContactForce import PlotContactForce
-from jaxRBDL.Tools.PlotCoMInertia import PlotCoMInertia
+from jaxRBDL.Tools import plot_model, plot_contact_force, plot_com_inertia
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.axes3d import Axes3D
 from jaxRBDL.Dynamics.state_fun_ode import state_fun_ode, dynamics_fun, events_fun_core
@@ -146,7 +144,7 @@ if __name__ == "__main__":
     ax = Axes3D(fig)  
     ax = plt.gca()
     ax.clear()
-    PlotModel(model, q0, ax)
+    plot_model(model, q0, ax)
     ax.view_init(elev=0,azim=-90)
     ax.set_xlabel('X')
     ax.set_xlim(-0.3, -0.3+0.6)
@@ -164,8 +162,8 @@ if __name__ == "__main__":
         xk = xk.reshape(-1, 1)
         xksv.append(xk)
         ax.clear()
-        PlotModel(model, xk[0:18], ax)
-        PlotContactForce(model, xk[0:18], contact_force["fc"], contact_force["fcqp"], contact_force["fcpd"], 'fcqp', ax)
+        plot_model(model, xk[0:18], ax)
+        plot_contact_force(model, xk[0:18], contact_force["fc"], contact_force["fcqp"], contact_force["fcpd"], 'fcqp', ax)
         ax.view_init(elev=0,azim=-90)
         ax.set_xlabel('X')
         ax.set_xlim(-0.3, -0.3+0.6)

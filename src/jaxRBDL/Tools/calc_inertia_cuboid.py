@@ -1,6 +1,6 @@
 import numpy as np
 
-def ClacInertiaCuboid(Inertia: np.ndarray, mass: float)-> np.ndarray:
+def clac_inertia_cuboid(Inertia: np.ndarray, mass: float)-> np.ndarray:
 
     A = np.array([
         [0.0, 1.0, 1.0],

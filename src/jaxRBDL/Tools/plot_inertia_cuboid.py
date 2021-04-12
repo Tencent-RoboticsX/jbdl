@@ -3,7 +3,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 
 
-def PlotCuboid(center, size, ax, color, alpha):
+def plot_cuboid(center, size, ax, color, alpha):
     """
        Create a data array for cuboid plotting.
 
@@ -49,11 +49,11 @@ def PlotCuboid(center, size, ax, color, alpha):
     # right surface
     ax.plot_surface(x32, y3, z3, color=color, alpha=alpha)
 
-def PlotInertiaCuboid(lxyz, pcom, ax):
+def plot_inertia_cuboid(lxyz, pcom, ax):
     org = lxyz - 0.5 * pcom
     org = tuple(org.flatten().tolist())
     lxyz = tuple(lxyz.flatten().tolist())
-    PlotCuboid(org, lxyz, ax, 'g', 0.1)
+    plot_cuboid(org, lxyz, ax, 'g', 0.1)
 
 
 
@@ -65,5 +65,5 @@ if __name__ == "__main__":
     height = 100 * 2
     fig = plt.gcf()
     ax = Axes3D(fig)
-    PlotCuboid(center, (length, width, height), ax, 'g', 1.0)
+    plot_cuboid(center, (length, width, height), ax, 'g', 1.0)
     plt.show()

@@ -5,9 +5,7 @@ import numpy as np
 import math
 from jaxRBDL.Kinematics import calc_pos_vel_point_to_base
 from jaxRBDL.Kinematics import calc_whole_body_com
-from jaxRBDL.Tools.PlotModel import PlotModel
-from jaxRBDL.Tools.PlotContactForce import PlotContactForce
-from jaxRBDL.Tools.PlotCoMInertia import PlotCoMInertia
+from jaxRBDL.Tools import plot_model, plot_contact_force, plot_com_inertia
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.axes3d import Axes3D
 from jaxRBDL.Dynamics.state_fun_ode import state_fun_ode
@@ -42,8 +40,8 @@ plt.ion()
 fig = plt.gcf()
 ax = Axes3D(fig)
 ax.set_ylim3d(-1.0, 1.0)
-PlotModel(model, q, ax)
-PlotCoMInertia(model, q, ax)
+plot_model(model, q, ax)
+plot_com_inertia(model, q, ax)
 ax.view_init(elev=0,azim=-90)
 ax.set_xlabel('X')
 ax.set_xlim(-0.3, -0.3+0.8)
@@ -69,7 +67,7 @@ q0 = q0.reshape(-1, 1)
 
 
 ax.clear()
-PlotModel(model, q0, ax)
+plot_model(model, q0, ax)
 ax.view_init(elev=0,azim=-90)
 ax.set_xlabel('X')
 ax.set_xlim(-0.3, -0.3+0.6)
@@ -104,9 +102,9 @@ for i in range(1000):
 
     xksv.append(xk)
     ax.clear()
-    PlotModel(model, xk[0:7], ax)
+    plot_model(model, xk[0:7], ax)
     # fcqp = np.array([0, 0, 1, 0, 0, 1])
-    PlotContactForce(model, xk[0:7], contact_force["fc"], contact_force["fcqp"], contact_force["fcpd"], 'fcqp', ax)
+    plot_contact_force(model, xk[0:7], contact_force["fc"], contact_force["fcqp"], contact_force["fcpd"], 'fcqp', ax)
     ax.view_init(elev=0,azim=-90)
     ax.set_xlabel('X')
     ax.set_xlim(-0.3, -0.3+0.6)

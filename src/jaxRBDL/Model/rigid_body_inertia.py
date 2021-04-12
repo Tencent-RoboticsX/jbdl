@@ -2,7 +2,7 @@ from jax.api import jit
 import jax.numpy as jnp
 
 @jit
-def RigidBodyInertia(m: float, c, I):
+def rigid_body_inertia(m: float, c, I):
 
     flatten_c = jnp.reshape(c, (-1,))
     C = jnp.array(
@@ -22,5 +22,5 @@ if __name__ == "__main__":
     m = 1.0
     c = jnp.array([1.0, 0.0, 0.0])
     I = random.normal(key, (3, 3))
-    print(make_jaxpr(RigidBodyInertia)(m, c, I))
-    print(RigidBodyInertia(m, c, I))
+    print(make_jaxpr(rigid_body_inertia)(m, c, I))
+    print(rigid_body_inertia(m, c, I))

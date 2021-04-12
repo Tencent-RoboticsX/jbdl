@@ -5,9 +5,9 @@ from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 import numpy as np
 from jaxRBDL.Kinematics import calc_body_to_base_coordinates
-from jaxRBDL.Tools.PlotLink import PlotLink
+from jaxRBDL.Tools import plot_link
 
-def PlotModel(model: dict, q: np.ndarray, ax: Axes3D):
+def plot_model(model: dict, q: np.ndarray, ax: Axes3D):
 
     idlinkplot = model["idlinkplot"]
     linkplot = model["linkplot"]
@@ -33,7 +33,7 @@ def PlotModel(model: dict, q: np.ndarray, ax: Axes3D):
         pos_contact.append(calc_body_to_base_coordinates(model, q, idcontact[i], contactpoint[i]))
     pos_contact = np.concatenate(pos_contact, axis=1)
     
-    ax = PlotLink(pos_o, pos_e, num, pos_contact, ax)
+    ax = plot_link(pos_o, pos_e, num, pos_contact, ax)
     # ax = PlotLink(pos_o, pos_e, 16, pos_contact, ax)
     return ax
 

@@ -5,7 +5,7 @@ import numpy as np
 
 
 
-def PlotLink(pos_o, pos_e, pos_num, contact_point, ax: Axes3D):
+def plot_link(pos_o, pos_e, pos_num, contact_point, ax: Axes3D):
     ax.scatter(pos_o[0,:], pos_o[1, :], pos_o[2, :], marker="o",color="r")
     for i in range(pos_num):
         ax.plot([pos_o[0, i], pos_e[0, i]],[pos_o[1, i], pos_e[1, i]],[pos_o[2, i],pos_e[2, i]])
@@ -27,5 +27,5 @@ if __name__ == "__main__":
                              [0.03726, 0.03726]])
     fig = plt.gcf()
     ax = Axes3D(fig)
-    PlotLink(pos_o, pos_e, 6, pos_contact, ax)
+    plot_link(pos_o, pos_e, 6, pos_contact, ax)
     plt.show()
