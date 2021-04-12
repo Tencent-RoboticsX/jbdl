@@ -2,8 +2,7 @@ import numpy as np
 import jax.numpy as jnp
 from jax.api import jit
 from jaxRBDL.Model import joint_model
-from jaxRBDL.Math.CrossMotionSpace import CrossMotionSpace
-from jaxRBDL.Math.CrossForceSpace import CrossForceSpace
+from jaxRBDL.Math import cross_motion_space, cross_force_space
 from functools import partial
 
 @partial(jit, static_argnums=(2, 3, 4, 5))
@@ -24,8 +23,8 @@ def inverse_dynamics_core(Xtree, I, parent, jtype, jaxis, NB, q, qdot, qddot, a_
             avp.append(jnp.matmul(Xup[i], -a_grav) + S[i] * qddot[i])
         else:
             v.append(jnp.matmul(Xup[i], v[parent[i] - 1])+ vJ)
-            avp.append(jnp.matmul(Xup[i], avp[parent[i] - 1]) + jnp.multiply(S[i], qddot[i]) + jnp.matmul(CrossMotionSpace(v[i]), vJ))
-        fvp.append(jnp.matmul(I[i], avp[i]) + jnp.matmul(jnp.matmul(CrossForceSpace(v[i]), I[i]), v[i]))
+            avp.append(jnp.matmul(Xup[i], avp[parent[i] - 1]) + jnp.multiply(S[i], qddot[i]) + jnp.matmul(cross_motion_space(v[i]), vJ))
+        fvp.append(jnp.matmul(I[i], avp[i]) + jnp.matmul(jnp.matmul(cross_force_space(v[i]), I[i]), v[i]))
 
     tau = [0.0] * NB
 

@@ -3,11 +3,9 @@ import unittest
 from test.support import EnvironmentVarGuard
 import numpy as np
 import math
-from jaxRBDL.Math.CrossMatrix import CrossMatrix
-from jaxRBDL.Math.CrossMotionSpace import CrossMotionSpace
-from jaxRBDL.Math.CrossForceSpace import CrossForceSpace
-from jaxRBDL.Math.InverseMotionSpace import InverseMotionSpace
-from jaxRBDL.Math.SpatialTransform import SpatialTransform
+from jaxRBDL.Math import cross_matrix, cross_motion_space, cross_force_space
+from jaxRBDL.Math import inverse_motion_space
+from jaxRBDL.Math import spatial_transform
 from jaxRBDL.Math.Xrotx import Xrotx
 from jaxRBDL.Math.Xroty import Xroty
 from jaxRBDL.Math.Xrotz import Xrotz
@@ -27,59 +25,59 @@ class TestMath(unittest.TestCase):
         self.env = EnvironmentVarGuard()
         self.env.set('JAX_ENABLE_X64', '1')
         self.env.set('JAX_PLATFORM_NAME', 'cpu')  
-    def test_CrossMatrix(self):
+    def test_cross_matrix(self):
         input = np.random.rand(*(3, 1))
-        py_output = CrossMatrix(input)
+        py_output = cross_matrix(input)
         oct_output = octave.CrossMatrix(input)
         residual = np.sum(np.abs(py_output - oct_output))
         self.assertEqual(residual, 0.0)
 
         input = np.random.rand(*(1, 3))
-        py_output = CrossMatrix(input)
+        py_output = cross_matrix(input)
         oct_output = octave.CrossMatrix(input)
         residual = np.sum(np.abs(py_output - oct_output))
         self.assertEqual(residual, 0.0)
 
         input = np.random.rand(*(3,))
-        py_output = CrossMatrix(input)
+        py_output = cross_matrix(input)
         oct_output = octave.CrossMatrix(input)
         residual = np.sum(np.abs(py_output - oct_output))
         self.assertEqual(residual, 0.0)
 
-    def test_CrossMotionSpace(self):
+    def test_cross_motion_space(self):
         input = np.random.rand(*(6, 1))
-        py_output = CrossMotionSpace(input)
+        py_output = cross_motion_space(input)
         oct_output = octave.CrossMotionSpace(input)
         residual = np.sum(np.abs(py_output - oct_output))
         self.assertEqual(residual, 0.0)
 
         input = np.random.rand(*(1, 6))
-        py_output = CrossMotionSpace(input)
+        py_output = cross_motion_space(input)
         oct_output = octave.CrossMotionSpace(input)
         residual = np.sum(np.abs(py_output - oct_output))
         self.assertEqual(residual, 0.0)
 
         input = np.random.rand(*(6,))
-        py_output = CrossMotionSpace(input)
+        py_output = cross_motion_space(input)
         oct_output = octave.CrossMotionSpace(input)
         residual = np.sum(np.abs(py_output - oct_output))
         self.assertEqual(residual, 0.0)
 
-    def test_CrossForceSpace(self):
+    def test_cross_force_space(self):
         input = np.random.rand(*(6, 1))
-        py_output = CrossForceSpace(input)
+        py_output = cross_force_space(input)
         oct_output = octave.CrossForceSpace(input)
         residual = np.sum(np.abs(py_output - oct_output))
         self.assertEqual(residual, 0.0)
 
         input = np.random.rand(*(1, 6))
-        py_output = CrossForceSpace(input)
+        py_output = cross_force_space(input)
         oct_output = octave.CrossForceSpace(input)
         residual = np.sum(np.abs(py_output - oct_output))
         self.assertEqual(residual, 0.0)
 
         input = np.random.rand(*(6,))
-        py_output = CrossForceSpace(input)
+        py_output = cross_force_space(input)
         oct_output = octave.CrossForceSpace(input)
         residual = np.sum(np.abs(py_output - oct_output))
         self.assertEqual(residual, 0.0)
@@ -121,28 +119,28 @@ class TestMath(unittest.TestCase):
         residual = np.sum(np.abs(py_output - oct_output))
         self.assertEqual(residual, 0.0)
 
-    def test_SpatialTransform(self):
+    def test_spatial_transform(self):
         input = (np.random.randn(*(3,3)), np.random.randn(*(3, 1)))
-        py_output = SpatialTransform(*input)
+        py_output = spatial_transform(*input)
         oct_output = octave.SpatialTransform(*input)
         residual = np.sum(np.abs(py_output - oct_output))
         self.assertAlmostEqual(residual, 0.0, 5)
 
         input = (np.random.randn(*(3,3)), np.random.randn(*(1, 3)))
-        py_output = SpatialTransform(*input)
+        py_output = spatial_transform(*input)
         oct_output = octave.SpatialTransform(*input)
         residual = np.sum(np.abs(py_output - oct_output))
         self.assertAlmostEqual(residual, 0.0, 5)
 
         input = (np.random.randn(*(3,3)), np.random.randn(*(3,)))
-        py_output = SpatialTransform(*input)
+        py_output = spatial_transform(*input)
         oct_output = octave.SpatialTransform(*input)
         residual = np.sum(np.abs(py_output - oct_output))
         self.assertAlmostEqual(residual, 0.0, 5)
 
-    def test_InverseMotionSpace(self):
+    def test_inverse_motion_space(self):
         input = np.random.randn(*(6, 6))
-        py_output = InverseMotionSpace(input)
+        py_output = inverse_motion_space(input)
         oct_output = octave.InverseMotionSpace(input)
         residual = np.sum(np.abs(py_output - oct_output))
         self.assertEqual(residual, 0.0)

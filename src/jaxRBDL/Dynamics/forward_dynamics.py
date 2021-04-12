@@ -2,8 +2,7 @@ import numpy as np
 import jax.numpy as jnp
 from jax.api import jit
 from jaxRBDL.Model import joint_model
-from jaxRBDL.Math.CrossMotionSpace import CrossMotionSpace
-from jaxRBDL.Math.CrossForceSpace import CrossForceSpace
+from jaxRBDL.Math import cross_motion_space, cross_force_space
 from functools import partial
 
 
@@ -26,8 +25,8 @@ def forward_dynamics_core(Xtree, I, parent, jtype, jaxis, NB, q, qdot, tau, a_gr
             c.append(jnp.zeros((6, 1)))
         else:
             v.append(jnp.add(jnp.matmul(Xup[i], v[parent[i]-1]), vJ))
-            c.append(jnp.matmul(CrossMotionSpace(v[i]), vJ))
-        pA.append(jnp.matmul(CrossForceSpace(v[i]), jnp.matmul(IA[i], v[i])))
+            c.append(jnp.matmul(cross_motion_space(v[i]), vJ))
+        pA.append(jnp.matmul(cross_force_space(v[i]), jnp.matmul(IA[i], v[i])))
 
 
 

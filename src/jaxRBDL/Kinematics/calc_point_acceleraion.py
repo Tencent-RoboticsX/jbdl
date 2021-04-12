@@ -1,6 +1,6 @@
 import numpy as np
 import jax.numpy as jnp
-from jaxRBDL.Math.CrossMotionSpace import CrossMotionSpace
+from jaxRBDL.Math import cross_motion_space
 from jaxRBDL.Math.Xtrans import Xtrans
 from jaxRBDL.Model import joint_model
 from jax.api import jit
@@ -23,7 +23,7 @@ def calc_point_acceleration_core(Xtree, parent, jtype, jaxis, body_id, q, qdot, 
             X0.append(Xup[i])
         else:
             v.append(jnp.matmul(Xup[i], v[parent[i]-1]) + vJ)
-            avp.append(jnp.matmul(Xup[i], avp[parent[i] - 1]) + jnp.multiply(Si, qddot[i]) + jnp.matmul(CrossMotionSpace(v[i]), vJ))
+            avp.append(jnp.matmul(Xup[i], avp[parent[i] - 1]) + jnp.multiply(Si, qddot[i]) + jnp.matmul(cross_motion_space(v[i]), vJ))
             X0.append(jnp.matmul(Xup[i], X0[parent[i]-1]))
 
     E_point = X0[body_id-1][0:3,0:3]

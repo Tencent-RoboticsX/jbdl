@@ -2,7 +2,7 @@ import numpy as np
 import jax.numpy as jnp
 from jaxRBDL.Model import joint_model
 from jaxRBDL.Math.Xtrans import Xtrans
-from jaxRBDL.Math.InverseMotionSpace import InverseMotionSpace
+from jaxRBDL.Math import inverse_motion_space
 from jax.api import jit
 from functools import partial
 
@@ -27,7 +27,7 @@ def calc_point_jacobian_core(Xtree, parent, jtype, jaxis, NB, body_id, q, point_
     j_p = body_id - 1
     BJ = jnp.zeros((6, NB))
     while j_p != -1:
-        Xe = jnp.matmul(X0_point, InverseMotionSpace(X0[j_p]))
+        Xe = jnp.matmul(X0_point, inverse_motion_space(X0[j_p]))
         BJ = BJ.at[:, [j_p, ]].set(jnp.matmul(Xe, S[j_p]))
         j_p = parent[j_p] - 1
 

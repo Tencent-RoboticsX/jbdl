@@ -2,7 +2,7 @@ from jax.api import jit
 import jax.numpy as jnp
 
 @jit
-def CrossMotionSpace(v):
+def cross_motion_space(v):
     flatten_v = jnp.reshape(v, (-1,))
     vcross = jnp.array([[0.0, -flatten_v[2], flatten_v[1], 0.0, 0.0, 0.0],
                        [flatten_v[2], 0.0, -flatten_v[0], 0.0, 0.0, 0.0],
@@ -16,7 +16,7 @@ def CrossMotionSpace(v):
 if __name__ == "__main__":
     from jax import make_jaxpr
     v = jnp.ones((6,1))
-    print(make_jaxpr(CrossMotionSpace)(v))
-    print(CrossMotionSpace(v))
+    print(make_jaxpr(cross_motion_space)(v))
+    print(cross_motion_space(v))
 
 

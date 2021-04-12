@@ -3,8 +3,7 @@ import jax.numpy as jnp
 from jax.api import jit
 from jaxRBDL.Model import joint_model
 from jaxRBDL.Math.Xtrans import Xtrans
-from jaxRBDL.Math.CrossMotionSpace import CrossMotionSpace
-from jaxRBDL.Math.InverseMotionSpace import InverseMotionSpace
+from jaxRBDL.Math import cross_motion_space, inverse_motion_space
 from functools import partial
 
 
@@ -41,16 +40,16 @@ def calc_point_jacobian_derivative_core(Xtree, parent, jtype, jaxis, body_id, NB
         if id_p == body_id - 1:
             Xe = Xe.at[id_p,...].set(jnp.matmul(XT_point, Xup[id_p]))
             BJ = BJ.at[:,[id_p,]].set(jnp.matmul(XT_point, S[id_p]))
-            dBJ = dBJ.at[:,[id_p,]].set(jnp.matmul(jnp.matmul(CrossMotionSpace(jnp.matmul(XT_point, v[id_p]) - v_point), XT_point), S[id_p]))
+            dBJ = dBJ.at[:,[id_p,]].set(jnp.matmul(jnp.matmul(cross_motion_space(jnp.matmul(XT_point, v[id_p]) - v_point), XT_point), S[id_p]))
         else:
             Xe = Xe.at[id_p,...].set(jnp.matmul(Xe[id, ...], Xup[id_p]))
             BJ = BJ.at[:,[id_p,]].set(jnp.matmul(Xe[id, ...], S[id_p]))
-            dBJ = dBJ.at[:,[id_p,]].set(jnp.matmul(jnp.matmul(CrossMotionSpace(jnp.matmul(Xe[id, ...], v[id_p]) - v_point), Xe[id,...]), S[id_p]) )       
+            dBJ = dBJ.at[:,[id_p,]].set(jnp.matmul(jnp.matmul(cross_motion_space(jnp.matmul(Xe[id, ...], v[id_p]) - v_point), Xe[id,...]), S[id_p]) )       
         id = id_p
         id_p = parent[id] - 1
-    X0 = InverseMotionSpace(X0_point)
+    X0 = inverse_motion_space(X0_point)
     E0 = jnp.vstack([jnp.hstack([X0[0:3,0:3], jnp.zeros((3, 3))]), jnp.hstack([jnp.zeros((3, 3)), X0[0:3, 0:3]])])
-    dE0 = jnp.matmul(CrossMotionSpace(jnp.matmul(X0,v_point)), E0)
+    dE0 = jnp.matmul(cross_motion_space(jnp.matmul(X0,v_point)), E0)
     E0 = E0[0:3, 0:3]
     dE0 = dE0[0:3,0:3]
     JDot = jnp.matmul(jnp.matmul(dE0, jnp.hstack([jnp.zeros((3,3)), jnp.eye(3)])), BJ) \
