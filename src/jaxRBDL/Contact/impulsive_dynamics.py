@@ -1,6 +1,6 @@
 import numpy as np
 from numpy.core.shape_base import hstack
-from jaxRBDL.Contact import calc_contact_jacobian, calc_contact_jacobian_core
+from jaxRBDL.contact import calc_contact_jacobian, calc_contact_jacobian_core
 from numpy.linalg import matrix_rank
 import jax.numpy as jnp
 from jax.api import jit

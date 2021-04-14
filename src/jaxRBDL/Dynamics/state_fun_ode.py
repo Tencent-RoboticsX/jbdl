@@ -1,17 +1,17 @@
 import numpy as np
-from jaxRBDL.Dynamics import composite_rigid_body_algorithm, composite_rigid_body_algorithm_core
-from jaxRBDL.Dynamics import inverse_dynamics, inverse_dynamics_core
+from jaxRBDL.dynamics import composite_rigid_body_algorithm, composite_rigid_body_algorithm_core
+from jaxRBDL.dynamics import inverse_dynamics, inverse_dynamics_core
 from numpy.linalg import inv
-from jaxRBDL.Contact import detect_contact
-from jaxRBDL.Contact import calc_contact_force_direct, calc_contact_force_direct_core
-from jaxRBDL.Dynamics import forward_dynamics, forward_dynamics_core
+from jaxRBDL.contact import detect_contact
+from jaxRBDL.contact import calc_contact_force_direct, calc_contact_force_direct_core
+from jaxRBDL.dynamics import forward_dynamics, forward_dynamics_core
 from jaxRBDL.Kinematics import calc_body_to_base_coordinates, calc_body_to_base_coordinates_core
-from jaxRBDL.Contact import solve_contact_lcp_core
-from jaxRBDL.Contact import impulsive_dynamics
-from jaxRBDL.Contact import solve_contact_simple_lcp, solve_contact_simple_lcp_core
+from jaxRBDL.contact import solve_contact_lcp_core
+from jaxRBDL.contact import impulsive_dynamics
+from jaxRBDL.contact import solve_contact_simple_lcp, solve_contact_simple_lcp_core
 from scipy.integrate import solve_ivp
 import jax.numpy as jnp
-from jaxRBDL.Contact import get_contact_force
+from jaxRBDL.contact import get_contact_force
 from jax.api import jit
 from functools import partial
 

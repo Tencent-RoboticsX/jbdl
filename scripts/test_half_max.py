@@ -8,7 +8,7 @@ from jaxRBDL.Kinematics import calc_whole_body_com
 from jaxRBDL.Tools import plot_model, plot_contact_force, plot_com_inertia
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.axes3d import Axes3D
-from jaxRBDL.Dynamics.state_fun_ode import state_fun_ode
+from jaxRBDL.dynamics.state_fun_ode import state_fun_ode
 import matplotlib
 from jaxRBDL.Utils.ModelWrapper import ModelWrapper
 matplotlib.use('TkAgg')

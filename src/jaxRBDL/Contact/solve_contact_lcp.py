@@ -3,12 +3,12 @@ from re import X
 from jax.api_util import argnums_partial
 import numpy as np
 import cvxopt
-from jaxRBDL.Contact import calc_contact_jacobian
-from jaxRBDL.Contact import calc_contact_jdot_qdot
-from jaxRBDL.Contact import calc_contact_force_pd
-from jaxRBDL.Contact import get_contact_force
-from jaxRBDL.Contact import calc_contact_jacobian_core
-from jaxRBDL.Contact import calc_contact_jdot_qdot_core
+from jaxRBDL.contact import calc_contact_jacobian
+from jaxRBDL.contact import calc_contact_jdot_qdot
+from jaxRBDL.contact import calc_contact_force_pd
+from jaxRBDL.contact import get_contact_force
+from jaxRBDL.contact import calc_contact_jacobian_core
+from jaxRBDL.contact import calc_contact_jdot_qdot_core
 import jax.numpy as jnp
 import jax
 from jax import jacfwd

@@ -3,10 +3,10 @@ from operator import matmul
 from typing import Tuple
 import numpy as np
 from numpy import linalg
-from jaxRBDL.Contact import calc_contact_jacobian, calc_contact_jacobian_core
-from jaxRBDL.Contact import calc_contact_jdot_qdot, calc_contact_jdot_qdot_core
-from jaxRBDL.Contact import calc_contact_force_pd
-from jaxRBDL.Contact import get_contact_force
+from jaxRBDL.contact import calc_contact_jacobian, calc_contact_jacobian_core
+from jaxRBDL.contact import calc_contact_jdot_qdot, calc_contact_jdot_qdot_core
+from jaxRBDL.contact import calc_contact_force_pd
+from jaxRBDL.contact import get_contact_force
 import scipy.sparse.linalg as spla
 from scipy.sparse.linalg import gmres
 from jax.api import jit
