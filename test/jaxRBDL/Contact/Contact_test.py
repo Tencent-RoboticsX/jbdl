@@ -5,14 +5,14 @@ from jax.api import jacfwd
 from jax.api_util import argnums_partial
 from jaxRBDL.contact import calc_contact_force_direct, calc_contact_force_direct_core
 from jaxRBDL.contact import impulsive_dynamics, impulsive_dynamics_core
-from jaxRBDL.Kinematics import calc_point_acceleration_core
+from jaxRBDL.kinematics import calc_point_acceleration_core
 from jaxRBDL.Utils.ModelWrapper import ModelWrapper
 from jaxRBDL.contact import calc_contact_jacobian, calc_contact_jacobian_core
 from jaxRBDL.contact import calc_contact_jdot_qdot, calc_contact_jdot_qdot_core
 from jaxRBDL.contact import solve_contact_lcp, solve_contact_lcp_core, lcp_quadprog
-from jaxRBDL.Kinematics.calc_point_jacobian import calc_point_jacobian_core
-from jaxRBDL.Dynamics import composite_rigid_body_algorithm
-from jaxRBDL.Dynamics import inverse_dynamics
+from jaxRBDL.kinematics.calc_point_jacobian import calc_point_jacobian_core
+from jaxRBDL.dynamics import composite_rigid_body_algorithm
+from jaxRBDL.dynamics import inverse_dynamics
 from jaxRBDL.contact import detect_contact, detect_contact_core, determin_contact_type, determin_contact_type_core
 from jaxRBDL.contact.detect_contact import detect_contact_v0
 from jaxRBDL.contact import solve_contact_simple_lcp, solve_contact_simple_lcp_core

@@ -1,6 +1,6 @@
 import numpy as np
-from jaxRBDL.Kinematics import calc_body_to_base_coordinates
-from jaxRBDL.Kinematics import calc_point_velocity ,calc_point_velocity_core
+from jaxRBDL.kinematics import calc_body_to_base_coordinates
+from jaxRBDL.kinematics import calc_point_velocity ,calc_point_velocity_core
 
 
 def calc_contact_force_pd(model: dict, q: np.ndarray, qdot: np.ndarray, 

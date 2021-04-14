@@ -1,6 +1,6 @@
 import numpy as np
-from jaxRBDL.Kinematics import calc_body_to_base_coordinates
-from jaxRBDL.Kinematics import calc_point_velocity
+from jaxRBDL.kinematics import calc_body_to_base_coordinates
+from jaxRBDL.kinematics import calc_point_velocity
 from typing import Tuple
 
 def calc_pos_vel_point_to_base(model: dict, q: np.ndarray, qdot: np.ndarray, idbody: int, idbase: int, tarpoint: np.ndarray)->Tuple[np.ndarray, np.ndarray]:

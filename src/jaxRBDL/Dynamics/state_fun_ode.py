@@ -5,7 +5,7 @@ from numpy.linalg import inv
 from jaxRBDL.contact import detect_contact
 from jaxRBDL.contact import calc_contact_force_direct, calc_contact_force_direct_core
 from jaxRBDL.dynamics import forward_dynamics, forward_dynamics_core
-from jaxRBDL.Kinematics import calc_body_to_base_coordinates, calc_body_to_base_coordinates_core
+from jaxRBDL.kinematics import calc_body_to_base_coordinates, calc_body_to_base_coordinates_core
 from jaxRBDL.contact import solve_contact_lcp_core
 from jaxRBDL.contact import impulsive_dynamics
 from jaxRBDL.contact import solve_contact_simple_lcp, solve_contact_simple_lcp_core

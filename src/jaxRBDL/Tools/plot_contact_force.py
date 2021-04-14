@@ -1,5 +1,5 @@
 from typing import Optional
-from jaxRBDL.Kinematics import calc_body_to_base_coordinates
+from jaxRBDL.kinematics import calc_body_to_base_coordinates
 from mpl_toolkits.mplot3d.axes3d import Axes3D
 import numpy as np
 

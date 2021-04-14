@@ -1,5 +1,5 @@
 import numpy as np
-from jaxRBDL.Kinematics import calc_point_acceleration, calc_point_acceleration_core
+from jaxRBDL.kinematics import calc_point_acceleration, calc_point_acceleration_core
 import jax.numpy as jnp
 from jax.api import jit
 from functools import partial

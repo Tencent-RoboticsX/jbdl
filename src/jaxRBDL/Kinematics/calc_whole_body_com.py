@@ -1,5 +1,5 @@
 import numpy as np
-from jaxRBDL.Kinematics import calc_body_to_base_coordinates
+from jaxRBDL.kinematics import calc_body_to_base_coordinates
 
 
 def calc_whole_body_com(model: dict, q: np.ndarray)-> np.ndarray:

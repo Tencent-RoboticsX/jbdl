@@ -1,6 +1,6 @@
 from functools import partial
 import numpy as np
-from jaxRBDL.Kinematics import calc_point_jacobian_core
+from jaxRBDL.kinematics import calc_point_jacobian_core
 import jax.numpy as jnp
 from jax.api import jit
 from jax import lax

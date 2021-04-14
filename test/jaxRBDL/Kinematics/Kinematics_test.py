@@ -1,15 +1,15 @@
 import os
-from jaxRBDL.Kinematics.calc_point_velocity import calc_point_velocity, calc_point_velocity_core
+from jaxRBDL.kinematics.calc_point_velocity import calc_point_velocity, calc_point_velocity_core
 from oct2py import octave
 import numpy as np
 import math
 import unittest
 from test.support import EnvironmentVarGuard
-from jaxRBDL.Kinematics import calc_body_to_base_coordinates
-from jaxRBDL.Kinematics import  calc_point_velocity, calc_point_velocity_core
-from jaxRBDL.Kinematics import calc_point_acceleration
-from jaxRBDL.Kinematics import calc_point_jacobian, calc_point_jacobian_core
-from jaxRBDL.Kinematics import calc_point_jacobian_derivative, calc_point_jacobian_derivative_core
+from jaxRBDL.kinematics import calc_body_to_base_coordinates
+from jaxRBDL.kinematics import  calc_point_velocity, calc_point_velocity_core
+from jaxRBDL.kinematics import calc_point_acceleration
+from jaxRBDL.kinematics import calc_point_jacobian, calc_point_jacobian_core
+from jaxRBDL.kinematics import calc_point_jacobian_derivative, calc_point_jacobian_derivative_core
 from jaxRBDL.Utils.ModelWrapper import ModelWrapper
 
 

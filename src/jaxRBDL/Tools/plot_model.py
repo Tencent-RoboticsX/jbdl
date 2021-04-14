@@ -4,7 +4,7 @@ from numpy.testing._private.utils import import_nose
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 import numpy as np
-from jaxRBDL.Kinematics import calc_body_to_base_coordinates
+from jaxRBDL.kinematics import calc_body_to_base_coordinates
 from jaxRBDL.Tools import plot_link
 
 def plot_model(model: dict, q: np.ndarray, ax: Axes3D):

@@ -3,13 +3,13 @@ import unittest
 import os
 from jaxRBDL.contact import calc_contact_force_direct, calc_contact_force_direct_core
 from jaxRBDL.contact import impulsive_dynamics, impulsive_dynamics_core
-from jaxRBDL.Kinematics import calc_point_acceleration_core
+from jaxRBDL.kinematics import calc_point_acceleration_core
 from jaxRBDL.Utils.ModelWrapper import ModelWrapper
 from jaxRBDL.contact import calc_contact_jacobian, calc_contact_jacobian_core
 from jaxRBDL.contact.calc_contact_jacobian import calc_contact_jacobian_core_jit_flag
 from jaxRBDL.contact import calc_contact_jdot_qdot, calc_contact_jdot_qdot_core
 from jaxRBDL.contact.calc_contact_jdot_qdot import calc_contact_jdot_qdot_core_jit_flag
-from jaxRBDL.Kinematics.calc_point_jacobian import calc_point_jacobian_core
+from jaxRBDL.kinematics.calc_point_jacobian import calc_point_jacobian_core
 from jaxRBDL.dynamics import composite_rigid_body_algorithm
 from jaxRBDL.dynamics import inverse_dynamics
 from jaxRBDL.contact.detect_contact import detect_contact_v0

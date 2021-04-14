@@ -4,7 +4,7 @@ import numpy as np
 import jax.numpy as jnp
 from jaxRBDL.Model import joint_model
 from jaxRBDL.Math.Xtrans import Xtrans
-from jaxRBDL.Kinematics import transform_to_position
+from jaxRBDL.kinematics import transform_to_position
 from functools import partial
 
 @partial(jit, static_argnums=(1, 2, 3, 4))

@@ -2,7 +2,7 @@ from matplotlib import pyplot as plt
 from matplotlib.figure import Figure
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
-from jaxRBDL.Kinematics import calc_body_to_base_coordinates
+from jaxRBDL.kinematics import calc_body_to_base_coordinates
 from jaxRBDL.Tools import clac_inertia_cuboid
 from jaxRBDL.Tools.plot_inertia_cuboid import plot_inertia_cuboid
 

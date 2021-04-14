@@ -1,6 +1,6 @@
 import numpy as np
-from jaxRBDL.Kinematics import calc_body_to_base_coordinates, calc_body_to_base_coordinates_core
-from jaxRBDL.Kinematics import calc_point_velocity, calc_point_velocity_core
+from jaxRBDL.kinematics import calc_body_to_base_coordinates, calc_body_to_base_coordinates_core
+from jaxRBDL.kinematics import calc_point_velocity, calc_point_velocity_core
 import jax.numpy as jnp
 from functools import partial
 from jax.api import jit
