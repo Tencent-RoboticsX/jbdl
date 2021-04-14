@@ -1,6 +1,6 @@
 from jax.api import jit
 import jax.numpy as jnp
-from jaxRBDL.Math import cross_matrix
+from jaxRBDL.math import cross_matrix
 
 @jit
 def spatial_transform(E, r):   

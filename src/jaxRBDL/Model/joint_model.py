@@ -1,7 +1,4 @@
-from jaxRBDL.Math.Xrotx import Xrotx
-from jaxRBDL.Math.Xroty import Xroty
-from jaxRBDL.Math.Xrotz import Xrotz
-from jaxRBDL.Math.Xtrans import Xtrans
+from jaxRBDL.math import Xrotx, Xroty, Xrotz, Xtrans
 import jax.numpy as jnp
 from functools import partial
 from jax.api import jit

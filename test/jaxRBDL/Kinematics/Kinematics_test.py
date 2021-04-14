@@ -10,7 +10,7 @@ from jaxRBDL.kinematics import  calc_point_velocity, calc_point_velocity_core
 from jaxRBDL.kinematics import calc_point_acceleration
 from jaxRBDL.kinematics import calc_point_jacobian, calc_point_jacobian_core
 from jaxRBDL.kinematics import calc_point_jacobian_derivative, calc_point_jacobian_derivative_core
-from jaxRBDL.Utils.ModelWrapper import ModelWrapper
+from jaxRBDL.utils import ModelWrapper
 
 
 CURRENT_PATH = os.path.dirname(os.path.realpath(__file__))

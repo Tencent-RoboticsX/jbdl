@@ -1,6 +1,6 @@
 import jax.numpy as jnp
 from jax.api import jit
-from jaxRBDL.Math import cross_motion_space
+from jaxRBDL.math import cross_motion_space
 
 @jit
 def cross_force_space(v):

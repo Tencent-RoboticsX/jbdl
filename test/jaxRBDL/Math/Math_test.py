@@ -3,13 +3,8 @@ import unittest
 from test.support import EnvironmentVarGuard
 import numpy as np
 import math
-from jaxRBDL.Math import cross_matrix, cross_motion_space, cross_force_space
-from jaxRBDL.Math import inverse_motion_space
-from jaxRBDL.Math import spatial_transform
-from jaxRBDL.Math.Xrotx import Xrotx
-from jaxRBDL.Math.Xroty import Xroty
-from jaxRBDL.Math.Xrotz import Xrotz
-from jaxRBDL.Math.Xtrans import Xtrans
+from jaxRBDL.math import cross_matrix, cross_motion_space, cross_force_space, inverse_motion_space, spatial_transform
+from jaxRBDL.math import Xrotx, Xroty, Xrotz, Xtrans
 from oct2py import octave
 import os
 

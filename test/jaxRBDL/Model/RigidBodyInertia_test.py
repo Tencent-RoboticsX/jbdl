@@ -4,7 +4,7 @@ import os
 from oct2py import octave
 import math
 import numpy as np
-from jaxRBDL.Model import rigid_body_inertia
+from jaxRBDL.model import rigid_body_inertia
 
 
 CURRENT_PATH = os.path.dirname(os.path.realpath(__file__))

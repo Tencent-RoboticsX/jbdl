@@ -2,8 +2,8 @@ from typing import Pattern
 from jax.api import jit
 import numpy as np
 import jax.numpy as jnp
-from jaxRBDL.Model import joint_model
-from jaxRBDL.Math.Xtrans import Xtrans
+from jaxRBDL.model import joint_model
+from jaxRBDL.math import Xtrans
 from jaxRBDL.kinematics import transform_to_position
 from functools import partial
 

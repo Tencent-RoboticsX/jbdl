@@ -1,8 +1,8 @@
 import numpy as np
 import jax.numpy as jnp
 from jax.api import jit
-from jaxRBDL.Model import joint_model
-from jaxRBDL.Math import cross_motion_space, cross_force_space
+from jaxRBDL.model import joint_model
+from jaxRBDL.math import cross_motion_space, cross_force_space
 from functools import partial
 
 

@@ -6,12 +6,12 @@ import numpy as np
 import math
 from jaxRBDL.kinematics import calc_pos_vel_point_to_base
 from jaxRBDL.kinematics import calc_whole_body_com
-from jaxRBDL.Tools import plot_model, plot_contact_force, plot_com_inertia
+from jaxRBDL.tools import plot_model, plot_contact_force, plot_com_inertia
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.axes3d import Axes3D
 from jaxRBDL.dynamics.state_fun_ode import state_fun_ode, dynamics_fun, events_fun_core
 import matplotlib
-from jaxRBDL.Utils.ModelWrapper import ModelWrapper
+from jaxRBDL.utils import ModelWrapper
 from jaxRBDL.contact import detect_contact, detect_contact_core
 from jaxRBDL.contact import impulsive_dynamics, impulsive_dynamics_core
 from jaxRBDL.dynamics import composite_rigid_body_algorithm_core, forward_dynamics_core, inverse_dynamics_core

@@ -3,8 +3,8 @@ from matplotlib.figure import Figure
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
 from jaxRBDL.kinematics import calc_body_to_base_coordinates
-from jaxRBDL.Tools import clac_inertia_cuboid
-from jaxRBDL.Tools.plot_inertia_cuboid import plot_inertia_cuboid
+from jaxRBDL.tools import clac_inertia_cuboid
+from jaxRBDL.tools.plot_inertia_cuboid import plot_inertia_cuboid
 
 def plot_com_inertia(model: dict, q: np.ndarray, ax: Axes3D):
 

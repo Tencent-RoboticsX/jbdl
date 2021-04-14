@@ -1,8 +1,7 @@
 import numpy as np
 import jax.numpy as jnp
-from jaxRBDL.Math import cross_motion_space
-from jaxRBDL.Math.Xtrans import Xtrans
-from jaxRBDL.Model import joint_model
+from jaxRBDL.math import cross_motion_space, Xtrans
+from jaxRBDL.model import joint_model
 from jax.api import jit
 from functools import partial
 

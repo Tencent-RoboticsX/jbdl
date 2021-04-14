@@ -5,7 +5,7 @@ from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 import numpy as np
 from jaxRBDL.kinematics import calc_body_to_base_coordinates
-from jaxRBDL.Tools import plot_link
+from jaxRBDL.tools import plot_link
 
 def plot_model(model: dict, q: np.ndarray, ax: Axes3D):
 

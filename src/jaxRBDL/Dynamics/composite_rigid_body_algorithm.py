@@ -3,7 +3,7 @@ from typing import List
 from jax._src.lax.lax import sub
 import numpy as np
 import jax.numpy as jnp
-from jaxRBDL.Model import joint_model
+from jaxRBDL.model import joint_model
 
 from functools import partial
 from jax.api import jit

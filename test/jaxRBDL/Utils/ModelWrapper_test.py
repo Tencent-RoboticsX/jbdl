@@ -2,7 +2,7 @@
 import unittest
 import os 
 from oct2py import octave
-from jaxRBDL.Utils.ModelWrapper import ModelWrapper
+from jaxRBDL.utils import ModelWrapper
 import numpy as np
 
 CURRENT_PATH = os.path.dirname(os.path.realpath(__file__))
