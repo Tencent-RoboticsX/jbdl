@@ -4,7 +4,6 @@ import jax
 from jax.api import jit
 import jax.numpy as jnp
 import json
-import calc_reg
 from functools import partial
 import time
 from jax.config import config
@@ -13,7 +12,7 @@ config.update("jax_enable_x64", True)
 
 sys.path.append(".")
 
-from jaxRBDL.Dynamics.InverseDynamics import InverseDynamics, InverseDynamicsCore
+from jaxRBDL.dynamics import inverse_dynamics, inverse_dynamics_core
 
 
 def I_to_phi(I):
@@ -62,7 +61,7 @@ def phi_to_I(phi):
 
 def use_dyn_core(Xtree, phi, parent, jtype, jaxis, NB, q, qdot, qddot, a_grav):
     I = phi_to_I(phi)
-    return InverseDynamicsCore(
+    return inverse_dynamics_core(
         Xtree, I, parent, jtype, jaxis, NB, q, qdot, qddot, a_grav
     )
 
