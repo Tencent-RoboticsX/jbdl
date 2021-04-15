@@ -4,19 +4,19 @@ from jax.interpreters.xla import jaxpr_replicas
 from numpy.core.shape_base import block
 import numpy as np
 import math
-from jaxBDL.rbdl.kinematics import calc_pos_vel_point_to_base
-from jaxBDL.rbdl.kinematics import calc_whole_body_com
-from jaxBDL.rbdl.tools import plot_model, plot_contact_force, plot_com_inertia
+from jbdl.rbdl.kinematics import calc_pos_vel_point_to_base
+from jbdl.rbdl.kinematics import calc_whole_body_com
+from jbdl.rbdl.tools import plot_model, plot_contact_force, plot_com_inertia
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.axes3d import Axes3D
-from jaxBDL.rbdl.dynamics.state_fun_ode import state_fun_ode, dynamics_fun, events_fun_core
+from jbdl.rbdl.dynamics.state_fun_ode import state_fun_ode, dynamics_fun, events_fun_core
 import matplotlib
-from jaxBDL.rbdl.utils import ModelWrapper
-from jaxBDL.rbdl.contact import detect_contact, detect_contact_core
-from jaxBDL.rbdl.contact import impulsive_dynamics, impulsive_dynamics_core
-from jaxBDL.rbdl.dynamics import composite_rigid_body_algorithm_core, forward_dynamics_core, inverse_dynamics_core
-from jaxBDL.rbdl.kinematics import *
-from jaxBDL.rbdl.kinematics import calc_body_to_base_coordinates_core
+from jbdl.rbdl.utils import ModelWrapper
+from jbdl.rbdl.contact import detect_contact, detect_contact_core
+from jbdl.rbdl.contact import impulsive_dynamics, impulsive_dynamics_core
+from jbdl.rbdl.dynamics import composite_rigid_body_algorithm_core, forward_dynamics_core, inverse_dynamics_core
+from jbdl.rbdl.kinematics import *
+from jbdl.rbdl.kinematics import calc_body_to_base_coordinates_core
 import time
 # matplotlib.use('TkAgg')
 

@@ -3,14 +3,14 @@ import re
 from numpy.core.shape_base import block
 import numpy as np
 import math
-from jaxBDL.rbdl.kinematics import calc_pos_vel_point_to_base
-from jaxBDL.rbdl.kinematics import calc_whole_body_com
-from jaxBDL.rbdl.tools import plot_model, plot_contact_force, plot_com_inertia
+from jbdl.rbdl.kinematics import calc_pos_vel_point_to_base
+from jbdl.rbdl.kinematics import calc_whole_body_com
+from jbdl.rbdl.tools import plot_model, plot_contact_force, plot_com_inertia
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.axes3d import Axes3D
-from jaxBDL.rbdl.dynamics.state_fun_ode import state_fun_ode
+from jbdl.rbdl.dynamics.state_fun_ode import state_fun_ode
 import matplotlib
-from jaxBDL.rbdl.utils import ModelWrapper
+from jbdl.rbdl.utils import ModelWrapper
 # matplotlib.use('TkAgg')
 # from jax.config import config
 # config.update('jax_disable_jit', True)

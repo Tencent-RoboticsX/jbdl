@@ -1,20 +1,20 @@
 
 import unittest
 import os
-from jaxBDL.rbdl.contact import calc_contact_force_direct, calc_contact_force_direct_core
-from jaxBDL.rbdl.contact import impulsive_dynamics, impulsive_dynamics_core
-from jaxBDL.rbdl.kinematics import calc_point_acceleration_core
-from jaxBDL.rbdl.utils import ModelWrapper
-from jaxBDL.rbdl.contact import calc_contact_jacobian, calc_contact_jacobian_core
-from jaxBDL.rbdl.contact.calc_contact_jacobian import calc_contact_jacobian_core_jit_flag
-from jaxBDL.rbdl.contact import calc_contact_jdot_qdot, calc_contact_jdot_qdot_core
-from jaxBDL.rbdl.contact.calc_contact_jdot_qdot import calc_contact_jdot_qdot_core_jit_flag
-from jaxBDL.rbdl.kinematics.calc_point_jacobian import calc_point_jacobian_core
-from jaxBDL.rbdl.dynamics import composite_rigid_body_algorithm
-from jaxBDL.rbdl.dynamics import inverse_dynamics
-from jaxBDL.rbdl.contact.detect_contact import detect_contact_v0
-from jaxBDL.rbdl.contact import detect_contact, detect_contact_core, determin_contact_type, determin_contact_type_core
-from jaxBDL.rbdl.contact import solve_contact_simple_lcp, solve_contact_simple_lcp_core
+from jbdl.rbdl.contact import calc_contact_force_direct, calc_contact_force_direct_core
+from jbdl.rbdl.contact import impulsive_dynamics, impulsive_dynamics_core
+from jbdl.rbdl.kinematics import calc_point_acceleration_core
+from jbdl.rbdl.utils import ModelWrapper
+from jbdl.rbdl.contact import calc_contact_jacobian, calc_contact_jacobian_core
+from jbdl.rbdl.contact.calc_contact_jacobian import calc_contact_jacobian_core_jit_flag
+from jbdl.rbdl.contact import calc_contact_jdot_qdot, calc_contact_jdot_qdot_core
+from jbdl.rbdl.contact.calc_contact_jdot_qdot import calc_contact_jdot_qdot_core_jit_flag
+from jbdl.rbdl.kinematics.calc_point_jacobian import calc_point_jacobian_core
+from jbdl.rbdl.dynamics import composite_rigid_body_algorithm
+from jbdl.rbdl.dynamics import inverse_dynamics
+from jbdl.rbdl.contact.detect_contact import detect_contact_v0
+from jbdl.rbdl.contact import detect_contact, detect_contact_core, determin_contact_type, determin_contact_type_core
+from jbdl.rbdl.contact import solve_contact_simple_lcp, solve_contact_simple_lcp_core
 import numpy as np
 from test.support import EnvironmentVarGuard
 import time

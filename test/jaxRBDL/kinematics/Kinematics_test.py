@@ -1,16 +1,16 @@
 import os
-from jaxBDL.rbdl.kinematics.calc_point_velocity import calc_point_velocity, calc_point_velocity_core
+from jbdl.rbdl.kinematics.calc_point_velocity import calc_point_velocity, calc_point_velocity_core
 from oct2py import octave
 import numpy as np
 import math
 import unittest
 from test.support import EnvironmentVarGuard
-from jaxBDL.rbdl.kinematics import calc_body_to_base_coordinates
-from jaxBDL.rbdl.kinematics import  calc_point_velocity, calc_point_velocity_core
-from jaxBDL.rbdl.kinematics import calc_point_acceleration
-from jaxBDL.rbdl.kinematics import calc_point_jacobian, calc_point_jacobian_core
-from jaxBDL.rbdl.kinematics import calc_point_jacobian_derivative, calc_point_jacobian_derivative_core
-from jaxBDL.rbdl.utils import ModelWrapper
+from jbdl.rbdl.kinematics import calc_body_to_base_coordinates
+from jbdl.rbdl.kinematics import  calc_point_velocity, calc_point_velocity_core
+from jbdl.rbdl.kinematics import calc_point_acceleration
+from jbdl.rbdl.kinematics import calc_point_jacobian, calc_point_jacobian_core
+from jbdl.rbdl.kinematics import calc_point_jacobian_derivative, calc_point_jacobian_derivative_core
+from jbdl.rbdl.utils import ModelWrapper
 
 
 CURRENT_PATH = os.path.dirname(os.path.realpath(__file__))

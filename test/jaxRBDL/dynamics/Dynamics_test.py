@@ -8,10 +8,10 @@ import math
 import unittest
 from numpy.core.fromnumeric import shape
 from test.support import EnvironmentVarGuard
-from jaxBDL.rbdl.dynamics import composite_rigid_body_algorithm, composite_rigid_body_algorithm_core
-from jaxBDL.rbdl.dynamics import forward_dynamics, forward_dynamics_core
-from jaxBDL.rbdl.dynamics import inverse_dynamics, inverse_dynamics_core
-from jaxBDL.rbdl.utils import ModelWrapper
+from jbdl.rbdl.dynamics import composite_rigid_body_algorithm, composite_rigid_body_algorithm_core
+from jbdl.rbdl.dynamics import forward_dynamics, forward_dynamics_core
+from jbdl.rbdl.dynamics import inverse_dynamics, inverse_dynamics_core
+from jbdl.rbdl.utils import ModelWrapper
 import time
 import timeit
 

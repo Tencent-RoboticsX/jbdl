@@ -3,7 +3,7 @@ import os
 from oct2py import octave
 import math
 import numpy as np
-from jaxBDL.rbdl.model import joint_model
+from jbdl.rbdl.model import joint_model
 from test.support import EnvironmentVarGuard
 
 

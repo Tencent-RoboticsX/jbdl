@@ -4,7 +4,7 @@ Go to home directory, and run
 ```
 pip install -e .
 ```
-to install jaxBDL.rbdl.
+to install jbdl.rbdl.
 ## Examples.
 Go to scripts directory, and run
 ```

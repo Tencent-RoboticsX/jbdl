@@ -1,4 +1,4 @@
-from jaxBDL.rbdl.utils import ModelWrapper
+from jbdl.rbdl.utils import ModelWrapper
 import os
 import numpy as np
 
