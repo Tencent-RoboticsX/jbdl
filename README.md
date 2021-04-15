@@ -1,4 +1,4 @@
-# jaxRBDL
+# jaxRBDL Version 0.7
 ## Installation.
 Go to home directory, and run
 ```
