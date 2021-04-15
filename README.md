@@ -1,10 +1,10 @@
-# jaxRBDL Version 0.7
+# jbdl Version 0.71
 ## Installation.
 Go to home directory, and run
 ```
 pip install -e .
 ```
-to install jbdl.rbdl.
+to install jbdl.
 ## Examples.
 Go to scripts directory, and run
 ```
