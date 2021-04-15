@@ -11,7 +11,7 @@ long_description = (here / 'README.md').read_text(encoding='utf-8')
 
 setup(
 
-    name='jaxRBDL',
+    name='jaxBDL',
     version='0.0.1',
     description='jax rigid body dynamics algorithms',
     long_description=long_description,

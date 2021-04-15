@@ -1,9 +1,9 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import os
-from jaxRBDL.utils import ModelWrapper
+from jaxBDL.rbdl.utils import ModelWrapper
 from mpl_toolkits.mplot3d.axes3d import Axes3D
-from jaxRBDL.tools import plot_model
+from jaxBDL.rbdl.tools import plot_model
 
 CURRENT_PATH = os.path.dirname(os.path.realpath(__file__))
 print(CURRENT_PATH)
