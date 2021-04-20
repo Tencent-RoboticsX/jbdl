@@ -25,6 +25,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.axes3d import Axes3D
 from jbdl.rbdl.tools import plot_model
 import math
+%matplotlib inline
 fig = plt.gcf()
 ax = Axes3D(fig)
 ax.set_ylim3d(-1.0, 1.0)
@@ -38,17 +39,16 @@ ax.set_zlabel('Z')
 ax.set_zlim(-0.1, -0.1+0.8)
 plt.show()
 # %%
+%matplotlib inline
 plt.plot(q[2,:])
 
 # %%
 import matplotlib.pyplot as plt
-%matplotlib
+%matplotlib 
 fig = plt.figure()
 ax = Axes3D(fig)
 for i in range(q.shape[1]):
     print(i)
-
-    
     ax.clear()
     plot_model(model, q[:, i], ax)
     ax.view_init(elev=0,azim=-90)
