@@ -6,7 +6,7 @@ pip install -e .
 ```
 to install jbdl.
 ## Examples.
-Go to scripts directory, and run
+Go to demo directory under the scripts folder, and run
 ```
 python test_whole_max.py
 ```

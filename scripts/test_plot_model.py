@@ -6,9 +6,10 @@ from mpl_toolkits.mplot3d.axes3d import Axes3D
 from jbdl.rbdl.tools import plot_model
 
 CURRENT_PATH = os.path.dirname(os.path.realpath(__file__))
-print(CURRENT_PATH)
+SCRIPTS_PATH = CURRENT_PATH
+MODEL_DATA_PATH = os.path.join(SCRIPTS_PATH, "model_data") 
 mdlw = ModelWrapper()
-mdlw.load(os.path.join(CURRENT_PATH, 'whole_max_v1.json'))
+mdlw.load(os.path.join(MODEL_DATA_PATH, 'whole_max_v1.json'))
 print(type(mdlw))
 model = mdlw.model
 

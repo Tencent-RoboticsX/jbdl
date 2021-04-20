@@ -16,9 +16,10 @@ from jbdl.rbdl.utils import ModelWrapper
 # config.update('jax_disable_jit', True)
 
 CURRENT_PATH = os.path.dirname(os.path.realpath(__file__))
-print(CURRENT_PATH)
+SCRIPTS_PATH = os.path.dirname(CURRENT_PATH)
+MODEL_DATA_PATH = os.path.join(SCRIPTS_PATH, "model_data") 
 mdlw = ModelWrapper()
-mdlw.load(os.path.join(CURRENT_PATH, 'half_max_v1.json'))
+mdlw.load(os.path.join(MODEL_DATA_PATH, 'half_max_v1.json'))
 print(type(mdlw))
 model = mdlw.model
 # print(model["contact_cond"])

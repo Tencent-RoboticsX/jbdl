@@ -20,8 +20,9 @@ from jbdl.rbdl.kinematics import calc_body_to_base_coordinates_core
 import time
 # matplotlib.use('TkAgg')
 
-
 CURRENT_PATH = os.path.dirname(os.path.realpath(__file__))
+SCRIPTS_PATH = os.path.dirname(CURRENT_PATH)
+MODEL_DATA_PATH = os.path.join(SCRIPTS_PATH, "model_data") 
 
 
 def jit_compiled(model):
@@ -106,7 +107,7 @@ def jit_compiled(model):
 
 if __name__ == "__main__":
     mdlw = ModelWrapper()
-    mdlw.load(os.path.join(CURRENT_PATH, 'whole_max_v1.json'))
+    mdlw.load(os.path.join(MODEL_DATA_PATH, 'whole_max_v1.json'))
     model = mdlw.model
     jit_compiled(model)
 
