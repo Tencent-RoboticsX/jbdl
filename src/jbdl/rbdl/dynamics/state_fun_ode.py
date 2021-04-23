@@ -51,9 +51,9 @@ def dynamics_fun(t: float, X: np.ndarray, model: dict, contact_force: dict)->np.
     qdot = X[NB: 2 * NB]
     tau = model["tau"]
 
-    NC = int(model["NC"])
-    NB = int(model["NB"])
-    nf = int(model["nf"])
+    # NC = int(model["NC"])
+    # NB = int(model["NB"])
+    # nf = int(model["nf"])
     contact_cond = model["contact_cond"]
     Xtree = model["Xtree"]
     contactpoint = model["contactpoint"],
