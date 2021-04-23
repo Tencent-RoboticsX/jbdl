@@ -3,6 +3,7 @@ from jbdl.rbdl.kinematics import calc_point_acceleration, calc_point_acceleratio
 import jax.numpy as jnp
 from jax.api import jit
 from functools import partial
+from jbdl.rbdl.utils import xyz2int
 
 @partial(jit, static_argnums=(4, 6, 7, 8, 9, 10, 11))
 def calc_contact_jdot_qdot_core_jit_flag(Xtree, q, qdot, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf):
@@ -84,7 +85,7 @@ def calc_contact_jdot_qdot(model: dict, q: np.ndarray, qdot: np.ndarray, flag_co
     idcontact = tuple(model["idcontact"])
     parent = tuple(model["parent"])
     jtype = tuple(model["jtype"])
-    jaxis = model["jaxis"]
+    jaxis = xyz2int(model["jaxis"])
     contactpoint = model["contactpoint"]
     flag_contact = flag_contact
     JdotQdot = calc_contact_jdot_qdot_core(Xtree, q, qdot, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)

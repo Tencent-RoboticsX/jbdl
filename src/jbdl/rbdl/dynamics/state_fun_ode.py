@@ -14,6 +14,7 @@ import jax.numpy as jnp
 from jbdl.rbdl.contact import get_contact_force
 from jax.api import jit
 from functools import partial
+from jbdl.rbdl.utils import xyz2int
 
 # @partial(jit, static_argnums=(7, 8, 9, 10, 11, 12, 13, 14, 15))
 def dynamics_fun_core(Xtree, I, q, qdot, contactpoint, tau, a_grav, contact_force_lb, contact_force_ub,\
@@ -60,7 +61,7 @@ def dynamics_fun(t: float, X: np.ndarray, model: dict, contact_force: dict)->np.
     idcontact = tuple(model["idcontact"])
     parent = tuple(model["parent"])
     jtype = tuple(model["jtype"])
-    jaxis = model["jaxis"]
+    jaxis = xyz2int(model["jaxis"])
     contactpoint = model["contactpoint"]
     I = model["I"]
     a_grav = model["a_grav"]
@@ -129,7 +130,7 @@ def events_fun(t: float, x: np.ndarray, model: dict, contact_force: dict=dict())
     # print(contactpoint)
     parent = tuple(model["parent"])
     jtype = tuple(model["jtype"])
-    jaxis = model["jaxis"]
+    jaxis = xyz2int(model["jaxis"])
 
 
     

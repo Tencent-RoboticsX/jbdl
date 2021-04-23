@@ -4,6 +4,7 @@ from jbdl.rbdl.kinematics import calc_point_jacobian_core
 import jax.numpy as jnp
 from jax.api import jit
 from jax import lax
+from jbdl.rbdl.utils import xyz2int
 
 @partial(jit, static_argnums=(3, 5, 6, 7, 8, 9, 10))
 def calc_contact_jacobian_core_jit_flag(Xtree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf):
@@ -70,7 +71,7 @@ def calc_contact_jacobian(model: dict, q: np.ndarray, flag_contact: np.ndarray)-
     idcontact = tuple(model["idcontact"])
     parent = tuple(model["parent"])
     jtype = tuple(model["jtype"])
-    jaxis = model["jaxis"]
+    jaxis = xyz2int(model["jaxis"])
     contactpoint = model["contactpoint"]
     flag_contact = flag_contact
     Jc = calc_contact_jacobian_core(Xtree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)

@@ -4,6 +4,7 @@ from jax.api import jit
 from jbdl.rbdl.model import joint_model
 from jbdl.rbdl.math import cross_motion_space, cross_force_space
 from functools import partial
+from jbdl.rbdl.utils import xyz2int
 
 
 @partial(jit, static_argnums=(2, 3, 4, 5))
@@ -66,9 +67,9 @@ def forward_dynamics(model, q, qdot, tau):
     tau = tau.flatten()
     a_grav = model["a_grav"]
     NB = model["NB"]
-    jtype = model["jtype"]
-    jaxis = model["jaxis"]
-    parent = model["parent"]
+    jtype = tuple(model["jtype"])
+    jaxis = xyz2int(model["jaxis"])
+    parent = tuple(model["parent"])
     Xtree = model["Xtree"]
     I = model["I"]
 

@@ -4,6 +4,7 @@ from jbdl.rbdl.math import Xtrans
 import jax.numpy as jnp
 from jax.api import jit
 from functools import partial
+from jbdl.rbdl.utils import xyz2int
 
 @partial(jit, static_argnums=(1, 2, 3, 4))
 def calc_point_velocity_core(Xtree, parent, jtype, jaxis, body_id, q, qdot, point_pos):
@@ -36,9 +37,9 @@ def calc_point_velocity(model: dict, q: np.ndarray, qdot: np.ndarray, body_id: i
     q = q.flatten()
     qdot = qdot.flatten()
     point_pos = point_pos.flatten()
-    jtype = model['jtype']
-    jaxis = model['jaxis']
-    parent = model['parent']
+    jtype = tuple(model['jtype'])
+    jaxis = xyz2int(model['jaxis'])
+    parent = tuple(model['parent'])
     Xtree = model['Xtree']
     vel = calc_point_velocity_core(Xtree, tuple(parent), tuple(jtype), jaxis, body_id, q, qdot, point_pos)
     return vel

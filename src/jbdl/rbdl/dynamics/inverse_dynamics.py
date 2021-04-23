@@ -4,6 +4,7 @@ from jax.api import jit
 from jbdl.rbdl.model import joint_model
 from jbdl.rbdl.math import cross_motion_space, cross_force_space
 from functools import partial
+from jbdl.rbdl.utils import xyz2int
 
 @partial(jit, static_argnums=(2, 3, 4, 5))
 def inverse_dynamics_core(Xtree, I, parent, jtype, jaxis, NB, q, qdot, qddot, a_grav):
@@ -44,9 +45,9 @@ def inverse_dynamics(model, q, qdot, qddot):
     qddot = qddot.flatten()
     NB = model["NB"] 
 
-    jtype = model["jtype"]
-    jaxis = model["jaxis"]
-    parent = model["parent"]
+    jtype = tuple(model["jtype"])
+    jaxis = xyz2int(model["jaxis"])
+    parent = tuple(model["parent"])
     Xtree = model["Xtree"]
     I = model["I"]
 

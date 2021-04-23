@@ -4,6 +4,7 @@ from jbdl.rbdl.model import joint_model
 from jbdl.rbdl.math import Xtrans, inverse_motion_space
 from jax.api import jit
 from functools import partial
+from jbdl.rbdl.utils import xyz2int
 
 @partial(jit, static_argnums=(1, 2, 3, 4, 5))
 def calc_point_jacobian_core(Xtree, parent, jtype, jaxis, NB, body_id, q, point_pos):
@@ -39,9 +40,9 @@ def calc_point_jacobian_core(Xtree, parent, jtype, jaxis, NB, body_id, q, point_
 def calc_point_jacobian(model: dict, q: np.ndarray, body_id: int, point_pos: np.ndarray)->np.ndarray:
     q = q.flatten()
     point_pos = point_pos.flatten()
-    jtype = model['jtype']
-    jaxis = model['jaxis']
-    parent = model['parent']
+    jtype = tuple(model['jtype'])
+    jaxis = xyz2int(model['jaxis'])
+    parent = tuple(model['parent'])
     NB = model["NB"]
     Xtree = model['Xtree']
 

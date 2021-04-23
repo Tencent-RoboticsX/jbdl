@@ -11,6 +11,7 @@ import scipy.sparse.linalg as spla
 from scipy.sparse.linalg import gmres
 from jax.api import jit
 import jax.numpy as jnp
+from jbdl.rbdl.utils import xyz2int
 
 def check_contact_force(model: dict, flag_contact: np.ndarray, fqp: np.ndarray):
     NC = int(model["NC"])
@@ -56,7 +57,7 @@ def calc_contact_force_direct(model: dict, q: np.ndarray, qdot: np.ndarray, tau:
     idcontact = tuple(model["idcontact"])
     parent = tuple(model["parent"])
     jtype = tuple(model["jtype"])
-    jaxis = model["jaxis"]
+    jaxis = xyz2int(model["jaxis"])
     contactpoint = model["contactpoint"]
     flag_contact = flag_contact
     H = model["H"]

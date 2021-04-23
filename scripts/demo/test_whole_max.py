@@ -18,6 +18,7 @@ from jbdl.rbdl.dynamics import composite_rigid_body_algorithm_core, forward_dyna
 from jbdl.rbdl.kinematics import *
 from jbdl.rbdl.kinematics import calc_body_to_base_coordinates_core
 import time
+from jbdl.rbdl.utils import xyz2int
 # matplotlib.use('TkAgg')
 
 CURRENT_PATH = os.path.dirname(os.path.realpath(__file__))
@@ -34,7 +35,7 @@ def jit_compiled(model):
     idcontact = tuple(model["idcontact"])
     parent = tuple(model["parent"])
     jtype = tuple(model["jtype"])
-    jaxis = model["jaxis"]
+    jaxis = xyz2int(model["jaxis"])
     contactpoint = model["contactpoint"]
     contact_cond = model["contact_cond"]
     contact_pos_lb = contact_cond["contact_pos_lb"]

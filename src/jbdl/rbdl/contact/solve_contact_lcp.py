@@ -12,6 +12,7 @@ from jbdl.rbdl.contact import calc_contact_jdot_qdot_core
 import jax.numpy as jnp
 import jax
 from jax import jacfwd
+from jbdl.rbdl.utils import xyz2int
 
 def get_A(mu, nf):
     A = jnp.empty([])
@@ -283,7 +284,7 @@ def solve_contact_lcp(model: dict, q: np.ndarray, qdot: np.ndarray, tau: np.ndar
     idcontact = tuple(model["idcontact"])
     parent = tuple(model["parent"])
     jtype = tuple(model["jtype"])
-    jaxis = model["jaxis"]
+    jaxis = xyz2int(model["jaxis"])
     contactpoint = model["contactpoint"]
     flag_contact = flag_contact
     H = model["H"]

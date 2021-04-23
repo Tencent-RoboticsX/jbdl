@@ -8,6 +8,7 @@ from jbdl.rbdl.model import joint_model
 from functools import partial
 from jax.api import jit
 from jax import lax
+from jbdl.rbdl.utils import xyz2int
 
 
 @partial(jit, static_argnums=(2, 3, 4, 5))
@@ -50,9 +51,9 @@ def composite_rigid_body_algorithm_core(Xtree, I, parent, jtype, jaxis, NB, q):
 def composite_rigid_body_algorithm(model: dict, q):
 
     NB = int(model["NB"])
-    jtype = model["jtype"]
-    jaxis = model['jaxis']
-    parent = model['parent']
+    jtype = tuple(model["jtype"])
+    jaxis = xyz2int(model['jaxis'])
+    parent = tuple(model['parent'])
     Xtree = model["Xtree"]
     I = model["I"]
 

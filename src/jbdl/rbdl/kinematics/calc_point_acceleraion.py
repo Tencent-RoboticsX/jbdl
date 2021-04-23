@@ -4,6 +4,7 @@ from jbdl.rbdl.math import cross_motion_space, Xtrans
 from jbdl.rbdl.model import joint_model
 from jax.api import jit
 from functools import partial
+from jbdl.rbdl.utils import xyz2int
 
 @partial(jit, static_argnums=(1, 2, 3, 4))
 def calc_point_acceleration_core(Xtree, parent, jtype, jaxis, body_id, q, qdot, qddot, point_pos):
@@ -43,9 +44,9 @@ def calc_point_acceleration(model: dict, q: np.ndarray, qdot: np.ndarray, qddot:
     qdot = qdot.flatten()
     qddot = qddot.flatten()
     point_pos = point_pos.flatten()
-    jtype = model['jtype']
-    jaxis = model['jaxis']
-    parent = model['parent']
+    jtype = tuple(model['jtype'])
+    jaxis = xyz2int(model['jaxis'])
+    parent = tuple(model['parent'])
     Xtree = model['Xtree']
 
     acc = calc_point_acceleration_core(Xtree, tuple(parent), tuple(jtype), jaxis, body_id, q, qdot, qddot, point_pos)

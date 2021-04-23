@@ -8,6 +8,7 @@ from jbdl.rbdl.contact.calc_contact_jdot_qdot import calc_contact_jdot_qdot_core
 import jax.numpy as jnp
 from jax.api import grad, jit
 from jbdl.rbdl.contact import get_contact_force
+from jbdl.rbdl.utils import xyz2int
 
 
 def quad_loss(M, d, lam):
@@ -84,7 +85,7 @@ def solve_contact_simple_lcp(model: dict, q: np.ndarray, qdot: np.ndarray, tau: 
     idcontact = tuple(model["idcontact"])
     parent = tuple(model["parent"])
     jtype = tuple(model["jtype"])
-    jaxis = model["jaxis"]
+    jaxis = xyz2int(model["jaxis"])
     contactpoint = model["contactpoint"]
     flag_contact = flag_contact
     H = model["H"]

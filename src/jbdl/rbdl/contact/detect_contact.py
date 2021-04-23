@@ -4,6 +4,7 @@ from jbdl.rbdl.kinematics import calc_point_velocity, calc_point_velocity_core
 import jax.numpy as jnp
 from functools import partial
 from jax.api import jit
+from jbdl.rbdl.utils import xyz2int
 
 # @partial(jit, static_argnums=(2, 3, 4))
 # def DeterminContactTypeCore(pos, vel, contact_pos_lb, contact_vel_lb, contact_vel_ub):
@@ -88,7 +89,7 @@ def detect_contact(model: dict, q: np.ndarray, qdot: np.ndarray)->np.ndarray:
     idcontact = tuple(model["idcontact"])
     parent = tuple(model["parent"])
     jtype = tuple(model["jtype"])
-    jaxis = model["jaxis"]
+    jaxis = xyz2int(model["jaxis"])
     contactpoint = model["contactpoint"]
     contact_pos_lb = contact_cond["contact_pos_lb"]
     contact_vel_lb = contact_cond["contact_vel_lb"]
