@@ -6,6 +6,7 @@ from jax import device_put
 from jbdl.rbdl.utils import xyz2int
 import jax.numpy as jnp
 from jbdl.rbdl.dynamics import forward_dynamics_core
+from jbdl.rbdl.contact import detect_contact_core
 from jbdl.rbdl.dynamics.state_fun_ode import dynamics_fun_core
 from jbdl.rbdl.ode.solve_ivp import integrate_dynamics
 from jax.custom_derivatives import closure_convert
@@ -15,6 +16,7 @@ from functools import partial
 from jbdl.rbdl.tools import plot_model
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.axes3d import Axes3D
+import numpy as np
 
 CURRENT_PATH = os.path.dirname(os.path.realpath(__file__))
 SCRIPTS_PATH = os.path.dirname(CURRENT_PATH)
@@ -42,6 +44,9 @@ a_grav = device_put(model["a_grav"])
 mu = device_put(0.9)
 contact_force_lb = device_put(contact_cond["contact_force_lb"])
 contact_force_ub = device_put(contact_cond["contact_force_ub"])
+contact_pos_lb = contact_cond["contact_pos_lb"]
+contact_vel_lb = contact_cond["contact_vel_lb"]
+contact_vel_ub = contact_cond["contact_vel_ub"]
 
 q0 = jnp.array([0.0,  0.4125, 0.0, math.pi/6, math.pi/6, -math.pi/3, -math.pi/3])
 qdot0 = jnp.zeros((7, ))
@@ -55,30 +60,32 @@ delta_t = 5e-4
 tau = 0.0
 
 flag_contact = (0, 0, 0, 0)
-rankJc = 0
 ncp = 0
 
-def dynamics_fun(x, t, Xtree, I, contactpoint, u, a_grav, contact_force_lb, contact_force_ub, mu,\
-    ST, idcontact, flag_contact,  parent, jtype, jaxis, NB, NC, nf, rankJc, ncp):
+def dynamics_fun(x, t, Xtree, I, contactpoint, u, a_grav, \
+    contact_force_lb, contact_force_ub,  contact_pos_lb, contact_vel_lb, contact_vel_ub, mu,\
+    ST, idcontact,   parent, jtype, jaxis, NB, NC, nf, ncp):
     q = x[0:NB]
     qdot = x[NB:]
     tau = jnp.matmul(ST, u)
+    flag_contact = detect_contact_core(Xtree, q, qdot, contactpoint, contact_pos_lb, contact_vel_lb, contact_vel_ub,\
+        idcontact, parent, jtype, jaxis, NC)
     xdot,fqp, H = dynamics_fun_core(Xtree, I, q, qdot, contactpoint, tau, a_grav, contact_force_lb, contact_force_ub,\
-    idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, rankJc, ncp, mu)
+    idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, ncp, mu)
     return xdot
 
-pure_dynamics_fun = partial(dynamics_fun, ST=ST, idcontact=idcontact, flag_contact=flag_contact, \
-    parent=parent, jtype=jtype, jaxis=jaxis, NB=NB, NC=NC, nf=nf, rankJc=rankJc, ncp=ncp)
+pure_dynamics_fun = partial(dynamics_fun, ST=ST, idcontact=idcontact, \
+        parent=parent, jtype=jtype, jaxis=jaxis, NB=NB, NC=NC, nf=nf, ncp=ncp)
 
-def dynamics_step(y0, t_span, delta_t, event, *args):
+def dynamics_step(pure_dynamics_fun, y0, t_span, delta_t, event, *args):
     t_eval, sol =  integrate_dynamics(pure_dynamics_fun, y0, t_span, delta_t, event, args=args)
     yT = sol[-1, :]
     return yT
 
 u = jnp.zeros((4,))
-pure_args = (Xtree, I, contactpoint, u, a_grav, contact_force_lb, contact_force_ub, mu)
+pure_args = (Xtree, I, contactpoint, u, a_grav, contact_force_lb, contact_force_ub,  contact_pos_lb, contact_vel_lb, contact_vel_ub, mu)
 
-print(dynamics_step(x0, t_span, delta_t, None, *pure_args))
+print(dynamics_step(pure_dynamics_fun, x0, t_span, delta_t, None, *pure_args))
 
 kp = 200
 kd = 3
@@ -98,8 +105,8 @@ ax = Axes3D(fig)
 for i in range(200):
     print(i)
     u = kp * (q_star[3:7] - xk[3:7]) + kd * (qdot_star[3:7] - xk[10:14])
-    pure_args = (Xtree, I, contactpoint, u, a_grav, contact_force_lb, contact_force_ub, mu)
-    xk = dynamics_step(xk, t_span, delta_t, None, *pure_args)
+    pure_args = (Xtree, I, contactpoint, u, a_grav, contact_force_lb, contact_force_ub, contact_pos_lb, contact_vel_lb, contact_vel_ub,mu)
+    xk = dynamics_step(pure_dynamics_fun, xk, t_span, delta_t, None, *pure_args)
 
 
     # xksv.append(xk)

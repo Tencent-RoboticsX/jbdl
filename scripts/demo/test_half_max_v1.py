@@ -66,7 +66,7 @@ q_star = jnp.array([0.0,  0.0, 0.0, math.pi/6, math.pi/6, -math.pi/3, -math.pi/3
 qdot_star = jnp.zeros((7,))
 tau = jnp.zeros((7,))
 
-flag_contact = (0, 0, 0, 0)
+flag_contact = jnp.array([0, 0, 0, 0])
 rankJc = 0
 ncp = 0
 
@@ -77,21 +77,25 @@ x = jnp.hstack([q, qdot])
 #     idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, rankJc, ncp, mu)
 
 def dynamics_fun(x, t, Xtree, I, contactpoint, tau, a_grav, contact_force_lb, contact_force_ub, mu,\
-    idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, rankJc, ncp):
+    flag_contact, idcontact,  parent, jtype, jaxis, NB, NC, nf, ncp):
     q = x[0:NB]
     qdot = x[NB:]
     xdot,fqp, H = dynamics_fun_core(Xtree, I, q, qdot, contactpoint, tau, a_grav, contact_force_lb, contact_force_ub,\
-    idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, rankJc, ncp, mu)
+    idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, ncp, mu)
     return xdot
 t = device_put(0.0)
 xdot = dynamics_fun(x, t, Xtree, I, contactpoint, tau, a_grav, contact_force_lb, contact_force_ub, mu, \
-    idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, rankJc, ncp)
+    flag_contact, idcontact,  parent, jtype, jaxis, NB, NC, nf, ncp)
 
-pure_dynamics_fun = partial(dynamics_fun, idcontact=idcontact, flag_contact=flag_contact, \
-    parent=parent, jtype=jtype, jaxis=jaxis, NB=NB, NC=NC, nf=nf, rankJc=rankJc, ncp=ncp)
-pure_args = (x, t, Xtree, I, contactpoint, tau, a_grav, contact_force_lb, contact_force_ub, mu)
+print(xdot)
+
+pure_dynamics_fun = partial(dynamics_fun, idcontact=idcontact, \
+    parent=parent, jtype=jtype, jaxis=jaxis, NB=NB, NC=NC, nf=nf, ncp=ncp)
+pure_args = (x, t, Xtree, I, contactpoint, tau, a_grav, contact_force_lb, contact_force_ub, mu, flag_contact)
 
 converted, consts = closure_convert(pure_dynamics_fun, *pure_args)
+
+pure_dynamics_fun(*pure_args)
 
 
 
@@ -105,20 +109,21 @@ qdot0 = jnp.zeros((7, ))
 x0 = jnp.hstack([q0, qdot0])
 t_span = (0.0, 2e-3)
 delta_t = 5e-4
-pure_args = (Xtree, I, contactpoint, tau, a_grav, contact_force_lb, contact_force_ub, mu)
+pure_args = (Xtree, I, contactpoint, tau, a_grav, contact_force_lb, contact_force_ub, mu, flag_contact)
+
 t_eval, sol = integrate_dynamics(pure_dynamics_fun, x0, t_span, delta_t, args=pure_args)
 
-def dynamics_step(y0, t_span, delta_t, event, *args):
-    t_eval, sol =  integrate_dynamics(pure_dynamics_fun, y0, t_span, delta_t, event, args=args)
-    yT = sol[-1, :]
-    return yT
+# def dynamics_step(y0, t_span, delta_t, event, *args):
+#     t_eval, sol =  integrate_dynamics(pure_dynamics_fun, y0, t_span, delta_t, event, args=args)
+#     yT = sol[-1, :]
+#     return yT
 
 # print(dynamics_step(x0, t_span, delta_t, None, *pure_args))
 # start_time = time.time()
-dxTdx0_func = jacrev(dynamics_step, argnums=[0,])
-dxTdx0 = dxTdx0_func(x0, t_span, delta_t, None, *pure_args)
+# dxTdx0_func = jacrev(dynamics_step, argnums=[0,])
+# dxTdx0 = dxTdx0_func(x0, t_span, delta_t, None, *pure_args)
 # dxTdx0.block_until_ready()
-print(dxTdx0)
+# print(dxTdx0)
 # duration = time.time() - start_time
 # print(duration)
 

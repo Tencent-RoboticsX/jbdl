@@ -9,27 +9,45 @@ from jbdl.rbdl.kinematics import calc_body_to_base_coordinates, calc_body_to_bas
 from jbdl.rbdl.contact import solve_contact_lcp_core
 from jbdl.rbdl.contact import impulsive_dynamics
 from jbdl.rbdl.contact import solve_contact_simple_lcp, solve_contact_simple_lcp_core
+from jbdl.rbdl.contact.solve_contact_lcp import solve_contact_lcp_extend_core
 from scipy.integrate import solve_ivp
 import jax.numpy as jnp
 from jbdl.rbdl.contact import get_contact_force
 from jax.api import jit
 from functools import partial
-from jbdl.rbdl.utils import xyz2int
+from jbdl.rbdl.utils import xyz2int, calc_rankJc
+from jax import lax
 
 # @partial(jit, static_argnums=(7, 8, 9, 10, 11, 12, 13, 14, 15))
 def dynamics_fun_core(Xtree, I, q, qdot, contactpoint, tau, a_grav, contact_force_lb, contact_force_ub,\
-    idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, rankJc, ncp, mu):
+    idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, ncp, mu):
     H =  composite_rigid_body_algorithm_core(Xtree, I, parent, jtype, jaxis, NB, q)
     C =  inverse_dynamics_core(Xtree, I, parent, jtype, jaxis, NB, q, qdot, jnp.zeros_like(q), a_grav)
-    lam = jnp.zeros((NB, ))
-    fqp = jnp.zeros((rankJc, 1))
+
+    # lam, fqp = lax.cond(
+    #     jnp.sum(flag_contact),
+    #     lambda _: (jnp.zeros((NB,)), jnp.zeros((NC * nf, 1))),
+    #     lambda _: solve_contact_lcp_extend_core(Xtree, q, qdot, contactpoint, H, tau, C, contact_force_lb, contact_force_ub,\
+    #         idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, ncp, mu),
+    #     operand=None
+    # )
+
+    lam, fqp = (jnp.zeros((NB,)), jnp.zeros((NC * nf, 1)))
+
+    # if jnp.sum(flag_contact):
+    #     lam, fqp = solve_contact_lcp_extend_core(Xtree, q, qdot, contactpoint, H, tau, C, contact_force_lb, contact_force_ub,\
+    #         idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, ncp, mu)
+    # else:
+    #     lam = jnp.zeros((NB,))
+    #     fqp = jnp.zeros((NC * nf, 1))
+
+    # solve_contact_lcp_extend_core(Xtree, q, qdot, contactpoint, H, tau, C, contact_force_lb, contact_force_ub,\
+    #         idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, ncp, mu)
 
 
-
-
-    if np.sum(flag_contact) !=0: 
-        lam, fqp = solve_contact_lcp_core(Xtree, q, qdot, contactpoint, H, tau, C, contact_force_lb, contact_force_ub,\
-            idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, ncp, mu)
+    # if np.sum(flag_contact) !=0: 
+    #     lam, fqp = solve_contact_lcp_core(Xtree, q, qdot, contactpoint, H, tau, C, contact_force_lb, contact_force_ub,\
+    #         idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, ncp, mu)
 
         # lam, fqp = solve_contact_simple_lcp_core(Xtree, q, qdot, contactpoint, H, tau, C, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
         # lam, fqp = calc_contact_force_direct_core(Xtree, q, qdot, contactpoint, H, tau, C, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
