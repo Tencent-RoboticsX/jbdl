@@ -26,13 +26,20 @@ def dynamics_fun_core(Xtree, I, q, qdot, contactpoint, tau, a_grav, contact_forc
 
     # lam, fqp = lax.cond(
     #     jnp.sum(flag_contact),
-    #     lambda _: (jnp.zeros((NB,)), jnp.zeros((NC * nf, 1))),
     #     lambda _: solve_contact_lcp_extend_core(Xtree, q, qdot, contactpoint, H, tau, C, contact_force_lb, contact_force_ub,\
-    #         idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, ncp, mu),
+    #         idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, ncp, mu), 
+    #     lambda _: (jnp.zeros((NB,)), jnp.zeros((NC * nf, 1))),
     #     operand=None
     # )
 
-    lam, fqp = (jnp.zeros((NB,)), jnp.zeros((NC * nf, 1)))
+    lam, fqp = lax.cond(
+        jnp.sum(flag_contact),
+        lambda _: (jnp.zeros((NB,)), jnp.zeros((NC * nf, 1))), 
+        lambda _: (jnp.zeros((NB,)), jnp.zeros((NC * nf, 1))),
+        operand=None
+    )
+
+    # lam, fqp = (jnp.zeros((NB,)), jnp.zeros((NC * nf, 1)))
 
     # if jnp.sum(flag_contact):
     #     lam, fqp = solve_contact_lcp_extend_core(Xtree, q, qdot, contactpoint, H, tau, C, contact_force_lb, contact_force_ub,\

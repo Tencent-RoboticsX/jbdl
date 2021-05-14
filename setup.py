@@ -1,114 +1,141 @@
-from setuptools import setup, find_packages
+#!/usr/bin/env python
+
+import codecs
+import os
 import pathlib
+import subprocess
 
-here = pathlib.Path(__file__).parent.resolve()
+from setuptools import Extension, find_packages, setup
+from setuptools.command.build_ext import build_ext
 
-# Get the long description from the README file
-long_description = (here / 'README.md').read_text(encoding='utf-8')
+HERE = pathlib.Path(__file__).parent.resolve()
 
-# Arguments marked as "Required" below must be included for upload to PyPI.
-# Fields marked as "Optional" may be commented out.
+def read(*parts):
+    with codecs.open(pathlib.Path(HERE).joinpath(*parts), "rb", "utf-8") as f:
+        return f.read()
+
+
+# This custom class for building the extensions uses CMake to compile. You
+# don't have to use CMake for this task, but I found it to be the easiest when
+# compiling ops with GPU support since setuptools doesn't have great CUDA
+# support.
+class CMakeBuildExt(build_ext):
+    def build_extensions(self):
+        # First: configure CMake build
+        import platform
+        import sys
+        import distutils.sysconfig
+
+        import pybind11
+
+        # Work out the relevant Python paths to pass to CMake, adapted from the
+        # PyTorch build system
+        if platform.system() == "Windows":
+            cmake_python_library = "{}/libs/python{}.lib".format(
+                distutils.sysconfig.get_config_var("prefix"),
+                distutils.sysconfig.get_config_var("VERSION"),
+            )
+            if not os.path.exists(cmake_python_library):
+                cmake_python_library = "{}/libs/python{}.lib".format(
+                    sys.base_prefix,
+                    distutils.sysconfig.get_config_var("VERSION"),
+                )
+        else:
+            cmake_python_library = "{}/{}".format(
+                distutils.sysconfig.get_config_var("LIBDIR"),
+                distutils.sysconfig.get_config_var("INSTSONAME"),
+            )
+        cmake_python_include_dir = distutils.sysconfig.get_python_inc()
+        install_dir = pathlib.Path(self.get_ext_fullpath("dummy")).parent.resolve()
+        pathlib.Path(install_dir).mkdir(exist_ok=True)
+        cmake_args = [
+            "-DCMAKE_INSTALL_PREFIX={}".format(install_dir),
+            "-DPython_EXECUTABLE={}".format(sys.executable),
+            "-DPython_LIBRARIES={}".format(cmake_python_library),
+            "-DPython_INCLUDE_DIRS={}".format(cmake_python_include_dir),
+            "-DCMAKE_BUILD_TYPE={}".format(
+                "Debug" if self.debug else "Release"
+            ),
+            "-DCMAKE_PREFIX_PATH={}".format(pybind11.get_cmake_dir()),
+        ]
+        if os.environ.get("KEPLER_JAX_CUDA", "no").lower() == "yes":
+            cmake_args.append("-DKEPLER_JAX_CUDA=yes")
+
+        pathlib.Path(self.build_temp).mkdir(exist_ok=True)
+        subprocess.check_call(
+            ["cmake", HERE] + cmake_args, cwd=self.build_temp
+        )
+
+        # Build all the extensions
+        super().build_extensions()
+
+        # Finally run install
+        subprocess.check_call(
+            ["cmake", "--build", ".", "--target", "install"],
+            cwd=self.build_temp,
+        )
+
+    def build_extension(self, ext):
+        target_name = ext.name.split(".")[-1]
+        subprocess.check_call(
+            ["cmake", "--build", ".", "--target", target_name],
+            cwd=self.build_temp,
+        )
+        print() # Add an empty line for cleaner output
+
+
+extensions = [
+    Extension(
+        "jbdl.experimental.math",
+        ["src/jbdl/experimental/math_bindings.cpp"],
+    ),
+    Extension(
+        "jbdl.experimental.tools",
+        ["src/jbdl/experimental/tools_bindings.cpp"],
+    ),
+    Extension(
+        "jbdl.experimental.qpoases",
+        ["src/jbdl/experimental/qpoases_bindings.cpp"],
+    ),
+    Extension(
+        "jbdl.experimental.cpu_ops",
+        ["src/jbdl/experimental/cpu_ops_bindings.cpp"],
+    ),
+    
+    
+]
+
+if os.environ.get("KEPLER_JAX_CUDA", "no").lower() == "yes":
+    extensions.append(
+        Extension(
+            "kepler_jax.gpu_ops",
+            [
+                "src/kepler_jax/src/gpu_ops.cc",
+                "src/kepler_jax/src/cuda_kernels.cc.cu",
+            ],
+        )
+    )
+
 
 setup(
-
-    name='jbdl',
-    version='0.0.1',
-    description='jax rigid body dynamics algorithms',
-    long_description=long_description,
-    long_description_content_type='text/markdown',
-    url='http://git.code.oa.com/AgentLearningRobotX/jaxRBDL',
-    author='mikechzhou',
-    author_email='mikechzhou@tencent.com',
-
-    # Classifiers help users find your project by categorizing it.
-    #
-    # For a list of valid classifiers, see https://pypi.org/classifiers/
-    classifiers=[  # Optional
-        # How mature is this project? Common values are
-        #   3 - Alpha
-        #   4 - Beta
-        #   5 - Production/Stable
-        'Development Status :: 3 - Alpha',
-
-        # Indicate who your project is intended for
-        'Intended Audience :: Researchers',
-        'Topic :: Reinforcement Learning :: Envrionments',
-
-        # Pick your license as you wish
-        'License :: OSI Approved :: MIT License',
-
-        # Specify the Python versions you support here. In particular, ensure
-        # that you indicate you support Python 3. These classifiers are *not*
-        # checked by 'pip install'. See instead 'python_requires' below.
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: 3 :: Only',
-    ],
-
-
-    keywords='python, ',
-    package_dir={'': 'src'},
-    packages=find_packages(where='src'),
-    python_requires='>=3.5, <4',
-    install_requires=['numpy',  'wheel', 'jax', 'jaxlib', 'matplotlib==3.3.4', 'cvxopt'],
-
-    # List additional groups of dependencies here (e.g. development
-    # dependencies). Users will be able to install these using the "extras"
-    # syntax, for example:
-    #
-    #   $ pip install sampleproject[dev]
-    #
-    # Similar to `install_requires` above, these must be valid existing
-    # projects.
-    # extras_require={  # Optional
-    #     'dev': ['check-manifest'],
-    #     'test': ['coverage'],
-    # },
-
-    # If there are data files included in your packages that need to be
-    # installed, specify them here.
-    # package_data={  # Optional
-    #     '': ['data/humanoid/*.txt', 'urdf/*.urdf']
-    # },
-
-    # Although 'package_data' is the preferred approach, in some case you may
-    # need to place data files outside of your packages. See:
-    # http://docs.python.org/distutils/setupscript.html#installing-additional-files
-    #
-    # In this case, 'data_file' will be installed into '<sys.prefix>/my_data'
-    # data_files=[('my_data', ['data/data_file'])],  # Optional
-
-    # To provide executable scripts, use entry points in preference to the
-    # "scripts" keyword. Entry points provide cross-platform support and allow
-    # `pip` to create the appropriate form of executable for the target
-    # platform.
-    #
-    # For example, the following would provide a command called `sample` which
-    # executes the function `main` from this package when invoked:
-    # entry_points={  # Optional
-    #     'console_scripts': [
-    #         'sample=sample:main',
-    #     ],
-    # },
-
-    # List additional URLs that are relevant to your project as a dict.
-    #
-    # This field corresponds to the "Project-URL" metadata fields:
-    # https://packaging.python.org/specifications/core-metadata/#project-url-multiple-use
-    #
-    # Examples listed include a pattern for specifying where the package tracks
-    # issues, where the source is hosted, where to say thanks to the package
-    # maintainers, and where to support the project financially. The key is
-    # what's used to render the link text on PyPI.
-    # project_urls={  # Optional
-    #     'Bug Reports': 'https://github.com/pypa/sampleproject/issues',
-    #     'Funding': 'https://donate.pypi.org',
-    #     'Say Thanks!': 'http://saythanks.io/to/example',
-    #     'Source': 'https://github.com/pypa/sampleproject/',
-    # },
+    name="jbdl",
+    version="0.1.0",
+    author="mikechzhou",
+    author_email="mikechzhou@tencent.com",
+    url="https://git.woa.com/AgentLearningRobotX/jbdl",
+    license="MIT",
+    description=(
+        "A simple demonstration of how you can extend JAX with custom C++ and "
+        "CUDA ops"
+    ),
+    long_description=read("README.md"),
+    long_description_content_type="text/markdown",
+    python_requires='>=3.8, <4',
+    packages=find_packages("src"),
+    package_dir={"": "src"},
+    include_package_data=True,
+    install_requires=['numpy', 'wheel',"jax", "jaxlib", "matplotlib"],
+    extras_require={"test": "pytest"},
+    ext_modules=extensions,
+    cmdclass={"build_ext": CMakeBuildExt},
 )
-
-print(find_packages(where='src'))
