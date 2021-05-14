@@ -20,7 +20,8 @@ from jax import jacfwd
 from jbdl.rbdl.utils import xyz2int
 from jax import lax
 from jbdl.rbdl.utils import cvxopt_quadprog
-from jbdl.rbdl.utils.lcp_quadprog import lcp_prim
+# from jbdl.rbdl.utils.lcp_quadprog import lcp_prim
+from jbdl.experimental.custom_ops.lcp import lcp
 import cvxopt
 
 def get_A(mu, nf):
@@ -264,8 +265,8 @@ def solve_contact_lcp_extend_core(Xtree, q, qdot, contactpoint, H, tau, C, conta
     contact_force_lb = jnp.reshape(contact_force_lb, (-1,))
     contact_force_ub = jnp.reshape(contact_force_ub, (-1,))
     if nf == 2:
-        contact_force_lb = contact_force_lb[[0, 2]]
-        contact_force_ub = contact_force_ub[[0, 2]]
+        contact_force_lb = jnp.array([contact_force_lb[0], contact_force_lb[2]])
+        contact_force_ub = jnp.array([contact_force_ub[0], contact_force_ub[2]])
     tau = jnp.reshape(tau, (-1, 1))
     C = jnp.reshape(C, (-1, 1))
     M = jnp.matmul(Jc, jnp.linalg.solve(H, jnp.transpose(Jc)))
@@ -303,7 +304,7 @@ def solve_contact_lcp_extend_core(Xtree, q, qdot, contactpoint, H, tau, C, conta
     # lb = np.asfarray(lb)
     # ub = np.asfarray(ub)
     # fqp, _, _, _ = cvxopt_quadprog(H, d, A, b, None, None, lb, ub)
-    fqp = lcp_prim(H, d, A, b, lb, ub)
+    fqp = lcp(H, d, A, b, lb, ub)
 
     # fqp, _ = quadprog(H, d, A, b, None, None, lb, ub)
     # print(fqp.shape)

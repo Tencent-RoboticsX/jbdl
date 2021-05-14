@@ -20,24 +20,50 @@ from jax import lax
 
 # @partial(jit, static_argnums=(7, 8, 9, 10, 11, 12, 13, 14, 15))
 def dynamics_fun_core(Xtree, I, q, qdot, contactpoint, tau, a_grav, contact_force_lb, contact_force_ub,\
+    idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, rankJc, ncp, mu):
+    H =  composite_rigid_body_algorithm_core(Xtree, I, parent, jtype, jaxis, NB, q)
+    C =  inverse_dynamics_core(Xtree, I, parent, jtype, jaxis, NB, q, qdot, jnp.zeros_like(q), a_grav)
+    lam = jnp.zeros((NB, ))
+    fqp = jnp.zeros((rankJc, 1))
+
+
+
+
+    if np.sum(flag_contact) !=0: 
+        lam, fqp = solve_contact_lcp_core(Xtree, q, qdot, contactpoint, H, tau, C, contact_force_lb, contact_force_ub,\
+            idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, ncp, mu)
+
+        # lam, fqp = solve_contact_simple_lcp_core(Xtree, q, qdot, contactpoint, H, tau, C, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
+        # lam, fqp = calc_contact_force_direct_core(Xtree, q, qdot, contactpoint, H, tau, C, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
+
+    ttau = tau + lam
+    qddot = forward_dynamics_core(Xtree, I, parent, jtype, jaxis, NB, q, qdot, ttau, a_grav)
+    # print("========")
+    # print(qddot)
+    xdot = jnp.hstack([qdot, qddot])
+    return xdot, fqp, H
+
+# @partial(jit, static_argnums=(7, 8, 9, 10, 11, 12, 13, 14, 15))
+def dynamics_fun_extend_core(Xtree, I, q, qdot, contactpoint, tau, a_grav, contact_force_lb, contact_force_ub,\
     idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, ncp, mu):
     H =  composite_rigid_body_algorithm_core(Xtree, I, parent, jtype, jaxis, NB, q)
     C =  inverse_dynamics_core(Xtree, I, parent, jtype, jaxis, NB, q, qdot, jnp.zeros_like(q), a_grav)
 
-    # lam, fqp = lax.cond(
-    #     jnp.sum(flag_contact),
-    #     lambda _: solve_contact_lcp_extend_core(Xtree, q, qdot, contactpoint, H, tau, C, contact_force_lb, contact_force_ub,\
-    #         idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, ncp, mu), 
-    #     lambda _: (jnp.zeros((NB,)), jnp.zeros((NC * nf, 1))),
-    #     operand=None
-    # )
-
     lam, fqp = lax.cond(
         jnp.sum(flag_contact),
-        lambda _: (jnp.zeros((NB,)), jnp.zeros((NC * nf, 1))), 
+        lambda _: solve_contact_lcp_extend_core(Xtree, q, qdot, contactpoint, H, tau, C, contact_force_lb, contact_force_ub,\
+            idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, ncp, mu), 
         lambda _: (jnp.zeros((NB,)), jnp.zeros((NC * nf, 1))),
         operand=None
     )
+    # print(lam)
+
+    # lam, fqp = lax.cond(
+    #     jnp.sum(flag_contact),
+    #     lambda _: (jnp.zeros((NB,)), jnp.zeros((NC * nf, 1))), 
+    #     lambda _: (jnp.zeros((NB,)), jnp.zeros((NC * nf, 1))),
+    #     operand=None
+    # )
 
     # lam, fqp = (jnp.zeros((NB,)), jnp.zeros((NC * nf, 1)))
 
