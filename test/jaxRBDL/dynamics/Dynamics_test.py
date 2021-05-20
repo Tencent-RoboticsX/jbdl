@@ -12,6 +12,10 @@ from jbdl.rbdl.dynamics import composite_rigid_body_algorithm, composite_rigid_b
 from jbdl.rbdl.dynamics import forward_dynamics, forward_dynamics_core
 from jbdl.rbdl.dynamics import inverse_dynamics, inverse_dynamics_core
 from jbdl.rbdl.utils import ModelWrapper
+from jbdl.rbdl.dynamics.state_fun_ode import calc_contact_point_to_base_cooridnates_core, events_fun_extend_core
+from jbdl.rbdl.utils import xyz2int
+from jax.api import device_put
+import jax.numpy as jnp
 import time
 import timeit
 
@@ -65,6 +69,34 @@ class TestDynamics(unittest.TestCase):
     def tearDown(self):
         t = time.time() - self.startTime
         print('%s: %.3f' % (self.id(), t))
+
+    def test_calc_contact_point_to_base_cooridnates_core(self):
+        model = self.model
+        NC = int(model["NC"])
+        Xtree = device_put(model["Xtree"])
+        contactpoint = device_put(model["contactpoint"])
+        idcontact = tuple(model["idcontact"])
+        parent = tuple(model["parent"])
+        jtype = tuple(model["jtype"])
+        jaxis = xyz2int(model["jaxis"])
+        flag_contact = jnp.array([0, 2, 2, 2])
+        q = device_put(self.q)
+        input = (Xtree, q, contactpoint, idcontact, parent, jtype, jaxis, NC)
+        print(calc_contact_point_to_base_cooridnates_core(*input))
+
+    def test_EventsFunExtendCore(self):
+        model = self.model
+        NC = int(model["NC"])
+        Xtree = device_put(model["Xtree"])
+        contactpoint = device_put(model["contactpoint"])
+        idcontact = tuple(model["idcontact"])
+        parent = tuple(model["parent"])
+        jtype = tuple(model["jtype"])
+        jaxis = xyz2int(model["jaxis"])
+        flag_contact = jnp.array([0, 1, 1, 2])
+        q = device_put(self.q)
+        input = (Xtree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NC)
+        print(events_fun_extend_core(*input))
 
     def test_EventsFunCore(self):
         pass
@@ -192,19 +224,20 @@ class TestDynamics(unittest.TestCase):
     #     forward_dynamics_core(*input)
         
     def test_inverse_dynamics(self):
-        model = self.model
-        q = self.q * np.random.randn(*self.q.shape)
-        qdot = self.qdot * np.random.randn(*self.q.shape)
-        qddot = self.qddot * np.random.randn(*self.q.shape)
-        input = (self.model, q, qdot, qddot)
-        inverse_dynamics(*input)
+        pass
+        # model = self.model
+        # q = self.q * np.random.randn(*self.q.shape)
+        # qdot = self.qdot * np.random.randn(*self.q.shape)
+        # qddot = self.qddot * np.random.randn(*self.q.shape)
+        # input = (self.model, q, qdot, qddot)
+        # inverse_dynamics(*input)
 
-        def inverse_dynamics_with_jit():
-            input = (model, q * np.random.randn(*q.shape), qdot * np.random.randn(*qdot.shape), qddot * np.random.randn(*qddot.shape))
-            inverse_dynamics(*input)
+        # def inverse_dynamics_with_jit():
+        #     input = (model, q * np.random.randn(*q.shape), qdot * np.random.randn(*qdot.shape), qddot * np.random.randn(*qddot.shape))
+        #     inverse_dynamics(*input)
 
-        print("inverse_dynamics:")
-        print(timeit.Timer(inverse_dynamics_with_jit).repeat(repeat=3, number=1000))
+        # print("inverse_dynamics:")
+        # print(timeit.Timer(inverse_dynamics_with_jit).repeat(repeat=3, number=1000))
 
 
     # def test_inverse_dynamics_grad(self):

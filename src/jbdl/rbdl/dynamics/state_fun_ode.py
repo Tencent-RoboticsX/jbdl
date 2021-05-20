@@ -1,3 +1,4 @@
+from matplotlib.pyplot import flag
 import numpy as np
 from jbdl.rbdl.dynamics import composite_rigid_body_algorithm, composite_rigid_body_algorithm_core
 from jbdl.rbdl.dynamics import inverse_dynamics, inverse_dynamics_core
@@ -165,6 +166,31 @@ def events_fun_core(Xtree, q, contactpoint, idcontact, flag_contact, parent, jty
             endpos = calc_body_to_base_coordinates_core(Xtree, parent, jtype, jaxis, idcontact[i], q, contactpoint[i])
             value = value.at[i].set(endpos[2, 0])
     return value
+
+@partial(jit, static_argnums=(3, 4, 5, 6, 7))
+def calc_contact_point_to_base_cooridnates_core(Xtree, q, contactpoint, idcontact, parent, jtype, jaxis, NC):
+    value = jnp.zeros((NC,))
+    for i in range(NC):
+        endpos = calc_body_to_base_coordinates_core(Xtree, parent, jtype, jaxis, idcontact[i], q, contactpoint[i])
+        value = value.at[i].set(endpos[2, 0])
+
+    return value
+
+@partial(jit, static_argnums=(3, 5, 6, 7, 8))
+def events_fun_extend_core(Xtree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NC):
+    event_value = lax.cond(
+        jnp.any(jnp.logical_not(flag_contact-2.0)),
+        lambda _: jnp.min(calc_contact_point_to_base_cooridnates_core(Xtree, q, contactpoint, idcontact, parent, jtype, jaxis, NC)),
+        lambda _: 1.0,
+        operand = None,
+    )
+    return event_value
+
+
+        
+
+
+
 
 def events_fun(t: float, x: np.ndarray, model: dict, contact_force: dict=dict()):
     # print("6666666666666666666666")

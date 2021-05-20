@@ -1,6 +1,7 @@
 import numpy as np
 from numpy.core.shape_base import hstack
 from jbdl.rbdl.contact import calc_contact_jacobian, calc_contact_jacobian_core
+from jbdl.rbdl.contact.calc_contact_jacobian import calc_contact_jacobian_extend_core
 from numpy.linalg import matrix_rank
 import jax.numpy as jnp
 from jax.api import jit
@@ -21,6 +22,22 @@ def impulsive_dynamics_core(Xtree, q, qdot, contactpoint, H, idcontact, flag_con
     b = jnp.hstack([b0, b1])
 
     QdotI = jnp.linalg.solve(A, b)
+    qdot_impulse = jnp.reshape(QdotI[0:NB], (-1, 1))
+    return qdot_impulse
+
+def impulsive_dynamics_extend_core(Xtree, q, qdot, contactpoint, H, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf):
+    Jc = calc_contact_jacobian_extend_core(Xtree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
+    rankJc = nf * NC
+    # Calcualet implusive dynamics for qdot after impulsive
+    A0 = jnp.hstack([H, -jnp.transpose(Jc)])
+    A1 = jnp.hstack([Jc, jnp.zeros((rankJc, rankJc))])
+    A = jnp.vstack([A0, A1])
+
+    b0 = jnp.matmul(H, qdot)
+    b1 = jnp.zeros((rankJc, ))
+    b = jnp.hstack([b0, b1])
+
+    QdotI, residuals, rank, s  = jnp.linalg.lstsq(A, b)
     qdot_impulse = jnp.reshape(QdotI[0:NB], (-1, 1))
     return qdot_impulse
 

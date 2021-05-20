@@ -296,7 +296,7 @@ def solve_contact_lcp_extend_core(Xtree, q, qdot, contactpoint, H, tau, C, conta
     # QP optimize contact force in world space
     # M = jnp.eye(nf * NC)
     # d = jnp.zeros((nf * NC, 1))
-    H = 0.5 * (M+jnp.transpose(M))
+    M = 0.5 * (M+jnp.transpose(M))
     # H = np.asfarray(H)
     # d = np.asfarray(d)
     # A = np.asfarray(A)
@@ -304,7 +304,10 @@ def solve_contact_lcp_extend_core(Xtree, q, qdot, contactpoint, H, tau, C, conta
     # lb = np.asfarray(lb)
     # ub = np.asfarray(ub)
     # fqp, _, _, _ = cvxopt_quadprog(H, d, A, b, None, None, lb, ub)
-    fqp = lcp(H, d, A, b, lb, ub)
+    # print(A.shape)
+    # print(b.shape)
+    fqp = lcp(M, d, A, b, lb, ub)
+    # fqp = jnp.zeros(())
 
     # fqp, _ = quadprog(H, d, A, b, None, None, lb, ub)
     # print(fqp.shape)
@@ -353,7 +356,7 @@ def solve_contact_lcp_core(Xtree, q, qdot, contactpoint, H, tau, C, contact_forc
         ub = ub.at[i*nf:(i+1)*nf, 0].set(contact_force_ub)
 
     # QP optimize contact force in world space
-    H = 0.5 * (M+jnp.transpose(M))
+    M = 0.5 * (M+jnp.transpose(M))
     # H = np.asfarray(H)
     # d = np.asfarray(d)
     # A = np.asfarray(A)
@@ -361,7 +364,8 @@ def solve_contact_lcp_core(Xtree, q, qdot, contactpoint, H, tau, C, contact_forc
     # lb = np.asfarray(lb)
     # ub = np.asfarray(ub)
     # fqp, _, _, _ = cvxopt_quadprog(H, d, A, b, None, None, lb, ub)
-    fqp = lcp_quadprog(H, d, A, b, lb, ub)
+    # fqp = lcp_quadprog(H, d, A, b, lb, ub)
+    fqp = lcp(M, d, A, b, lb, ub)
 
     # fqp, _ = quadprog(H, d, A, b, None, None, lb, ub)
     # print(fqp.shape)

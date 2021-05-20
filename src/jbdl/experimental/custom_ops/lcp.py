@@ -7,7 +7,7 @@ from jax.abstract_arrays import ShapedArray
 from jbdl.experimental.custom_ops.trace import trace, expectNotImplementedError
 from jax.lib import xla_client
 from jbdl.experimental import cpu_ops
-from jax.api import jit
+from jax.api import jit, vmap
 from jax.api import jacfwd, device_put
 
 
@@ -265,7 +265,11 @@ def lcp_jvp(arg_values, arg_tangents):
 
 ad.primitive_jvps[lcp_prim] = lcp_jvp
 
-  
+
+# ************************************
+# *  SUPPORT FOR BATCHING WITH VMAP  *
+# ************************************
+
 
 
 
@@ -286,27 +290,39 @@ if __name__ == "__main__":
     print(fwd)
     print(fwd.shape)
 
-    from jax import random
+    # from jax import random
 
-    seed = 1701
-    num_steps = 100
-    key = random.PRNGKey(seed)
-    sum = 0.0
-    for i in range(num_steps):
-        key, subkey = random.split(key)
-        x = random.randint(subkey, (4, ), 0, 2)
-        print(x)
-        sum += lax.cond(
-            jnp.sum(x),
-            lambda _: jnp.ones((2, 1)),
-            lambda _: lcp(H, f, L, k, lb, ub),
-            operand = None
-        )
-        print(sum)
+    # seed = 1701
+    # num_steps = 100
+    # key = random.PRNGKey(seed)
+    # sum = 0.0
+    # for i in range(num_steps):
+    #     key, subkey = random.split(key)
+    #     x = random.randint(subkey, (4, ), 0, 2)
+    #     print(x)
+    #     sum += lax.cond(
+    #         jnp.sum(x),
+    #         lambda _: jnp.ones((2, 1)),
+    #         lambda _: lcp(H, f, L, k, lb, ub),
+    #         operand = None
+    #     )
+    #     print(sum)
 
-    print(sum)
-        
-       
+    # print(sum)
+
+    batch_size = 10
+
+    
+
+    batch_H = jnp.repeat(jnp.expand_dims(H, axis=0), batch_size, axis=0)
+    batch_f = jnp.repeat(jnp.expand_dims(f, axis=0), batch_size, axis=0)
+    batch_L = jnp.repeat(jnp.expand_dims(L, axis=0), batch_size, axis=0)
+    batch_k = jnp.repeat(jnp.expand_dims(k, axis=0), batch_size, axis=0)
+    batch_lb = jnp.repeat(jnp.expand_dims(lb, axis=0), batch_size, axis=0)
+    batch_ub = jnp.repeat(jnp.expand_dims(ub, axis=0), batch_size, axis=0)
+    # batch_x = vmap(lcp, 0, 0)(batch_H, batch_f, batch_L, batch_k, batch_lb, batch_ub)
+    # print(batch_x)
+    # print(batch_x.shape)
     # print(fwd0)
     # print(fwd0.shape)
     # print(fwd1)

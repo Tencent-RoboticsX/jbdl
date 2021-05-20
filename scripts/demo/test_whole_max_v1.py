@@ -1,33 +1,39 @@
+# %%
 import os
-
-import jax
-from jbdl.rbdl.utils import ModelWrapper
-from jax import device_put
-from jbdl.rbdl.utils import xyz2int
-import jax.numpy as jnp
-from jbdl.rbdl.dynamics import forward_dynamics_core
-from jbdl.rbdl.contact import detect_contact_core
-from jbdl.rbdl.dynamics.state_fun_ode import dynamics_fun_extend_core, events_fun_extend_core
-from jbdl.rbdl.dynamics import composite_rigid_body_algorithm_core
-from jbdl.rbdl.contact.impulsive_dynamics import impulsive_dynamics_extend_core
-from jbdl.rbdl.ode.solve_ivp import integrate_dynamics
-from jax.custom_derivatives import closure_convert
+import re
+from jax.interpreters.xla import jaxpr_replicas
+from numpy.core.shape_base import block
+import numpy as np
 import math
-from jax.api import jit
-from functools import partial
-from jbdl.rbdl.tools import plot_model
+from jbdl.rbdl.kinematics import calc_pos_vel_point_to_base
+from jbdl.rbdl.kinematics import calc_whole_body_com
+from jbdl.rbdl.tools import plot_model, plot_contact_force, plot_com_inertia
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.axes3d import Axes3D
-import numpy as np
+from jbdl.rbdl.dynamics.state_fun_ode import events_fun_extend_core, dynamics_fun_extend_core
+from jbdl.rbdl.contact.impulsive_dynamics import impulsive_dynamics_extend_core
+from jbdl.rbdl.ode.solve_ivp import integrate_dynamics
+import matplotlib
+from jbdl.rbdl.utils import ModelWrapper
+from jbdl.rbdl.contact import detect_contact, detect_contact_core
+from jbdl.rbdl.contact import impulsive_dynamics, impulsive_dynamics_core
+from jbdl.rbdl.dynamics import composite_rigid_body_algorithm_core, forward_dynamics_core, inverse_dynamics_core
+from jbdl.rbdl.kinematics import *
+from jbdl.rbdl.kinematics import calc_body_to_base_coordinates_core
+import time
+from jbdl.rbdl.utils import xyz2int
+from jax.api import device_put
+import jax.numpy as jnp
+from functools import partial
+# matplotlib.use('TkAgg')
 
 CURRENT_PATH = os.path.dirname(os.path.realpath(__file__))
 SCRIPTS_PATH = os.path.dirname(CURRENT_PATH)
 MODEL_DATA_PATH = os.path.join(SCRIPTS_PATH, "model_data") 
+
 mdlw = ModelWrapper()
-mdlw.load(os.path.join(MODEL_DATA_PATH, 'half_max_v1.json'))
+mdlw.load(os.path.join(MODEL_DATA_PATH, 'whole_max_v1.json'))
 model = mdlw.model
-
-
 
 NC = int(model["NC"])
 NB = int(model["NB"])
@@ -50,18 +56,25 @@ contact_pos_lb = contact_cond["contact_pos_lb"]
 contact_vel_lb = contact_cond["contact_vel_lb"]
 contact_vel_ub = contact_cond["contact_vel_ub"]
 
-q0 = jnp.array([0.0,  0.4125, 0.0, math.pi/6, math.pi/6, -math.pi/3, -math.pi/3])
-qdot0 = jnp.zeros((7, ))
+q0 = jnp.array([0, 0, 0.5, 0.0, 0, 0,
+        0, 0.5, -0.8,  # fr
+        0, 0.5, -0.8,  # fl
+        0, 0.5, -0.8,  # br
+        0, 0.5, -0.8]) # bl
+qdot0 = jnp.zeros((18, ))
 
-q_star = jnp.array([0.0,  0.0, 0.0, math.pi/3, math.pi/3, -2*math.pi/3, -2*math.pi/3])
-qdot_star = jnp.zeros((7, ))
+q_star = jnp.array([0, 0, 0.5, 0.0, 0, 0,
+        0, 0.5, -0.8,  # fr
+        0, 0.5, -0.8,  # fl
+        0, 0.5, -0.8,  # br
+        0, 0.5, -0.8]) # bl
+qdot_star = jnp.zeros((18, ))
 
 x0 = jnp.hstack([q0, qdot0])
 t_span = (0.0, 2e-3)
 delta_t = 5e-4
 tau = 0.0
 
-# flag_contact = (0, 0)
 ncp = 0
 
 def dynamics_fun(x, t, Xtree, I, contactpoint, u, a_grav, \
@@ -114,10 +127,31 @@ def dynamics_step(pure_dynamics_fun, y0, t_span, delta_t, event, impulsive, *arg
     return yT
 
 
-u = jnp.zeros((4,))
+u = jnp.zeros((12,))
 pure_args = (Xtree, I, contactpoint, u, a_grav, contact_force_lb, contact_force_ub,  contact_pos_lb, contact_vel_lb, contact_vel_ub, mu)
 
 print(dynamics_step(pure_dynamics_fun, x0, t_span, delta_t, pure_events_fun, pure_impulsive_fun, *pure_args))
+
+
+
+# %%
+%matplotlib 
+
+q0 = jnp.array([0, 0, 0.5, 0.0, 0, 0,
+        0, 0.5, -0.8,  # fr
+        0, 0.5, -0.8,  # fl
+        0, 0.5, -0.8,  # br
+        0, 0.5, -0.8]) # bl
+qdot0 = jnp.zeros((18, ))
+x0 = jnp.hstack([q0, qdot0])
+
+q_star = jnp.array([0, 0, 0.5, 0.0, 0, 0,
+        0, 0.5, -0.8,  # fr
+        0, 0.5, -0.8,  # fl
+        0, 0.5, -0.8,  # br
+        0, 0.5, -0.8]) # bl
+qdot_star = jnp.zeros((18, ))
+
 
 kp = 200
 kd = 3
@@ -134,16 +168,19 @@ fig = plt.gcf()
 ax = Axes3D(fig)
 
 
-for i in range(200):
+for i in range(500):
     print(i)
-    u = kp * (q_star[3:7] - xk[3:7]) + kd * (qdot_star[3:7] - xk[10:14])
+    # u = kp * (q_star[3:7] - xk[3:7]) + kd * (qdot_star[3:7] - xk[10:14])
+    u = kp * (q_star[6:18] - xk[6:18]) + kd * (qdot_star[6:18] - xk[24:36])
     pure_args = (Xtree, I, contactpoint, u, a_grav, contact_force_lb, contact_force_ub, contact_pos_lb, contact_vel_lb, contact_vel_ub,mu)
+    # print("xk:", xk)
+    # print("u", u)
     xk = dynamics_step(pure_dynamics_fun, xk, t_span, delta_t, pure_events_fun, pure_impulsive_fun, *pure_args)
 
 
     # xksv.append(xk)
     ax.clear()
-    plot_model(model, xk[0:7], ax)
+    plot_model(model, xk[0:18], ax)
     # fcqp = np.array([0, 0, 1, 0, 0, 1])
     # plot_contact_force(model, xk[0:7], contact_force["fc"], contact_force["fcqp"], contact_force["fcpd"], 'fcqp', ax)
     ax.view_init(elev=0,azim=-90)
@@ -157,16 +194,4 @@ for i in range(200):
     plt.pause(1e-8)
     # fig.canvas.draw()
 plt.ioff()
-
-# args = (x0, t0, Xtree, I,  a_grav)
-
-# def forward_dynamics(x, t, Xtree, I, a_grav, parent, jtype, jaxis, NB):
-#     q = jnp.zeros((7,))
-#     qdot = jnp.zeros((7,))
-#     ttau = jnp.zeros((7,))
-#     qddot = forward_dynamics_core(Xtree, I, parent, jtype, jaxis, NB, q, qdot, ttau, a_grav)
-#     return qddot
-
-# test = partial(forward_dynamics, parent0=parent, jtype0=jtype, jaxis0=jaxis, NB0=NB)
-# test(*args)
-# converted, consts = closure_convert(partial(forward_dynamics, parent=parent, jtype=jtype, jaxis=jaxis, NB=NB), *args)
+# %%

@@ -5,7 +5,7 @@ from scipy.integrate.quadpack import tplquad
 import jax.numpy as jnp
 from jax import device_put
 
-def integrate_dynamics(func, y0, t_span, delta_t, event=None, args=None, rtol=1e-5, atol=1e-5, mxstep=jnp.inf):
+def integrate_dynamics(func, y0, t_span, delta_t, event=None, e_fun=None, args=None, rtol=1e-5, atol=1e-5, mxstep=jnp.inf):
     t0, tf = t_span
     t0 = device_put(t0)
     tf = device_put(tf)
@@ -14,7 +14,7 @@ def integrate_dynamics(func, y0, t_span, delta_t, event=None, args=None, rtol=1e
     t_eval = [t0]
     sol = [y0]
     if event is not None:
-        e = [event(y0, t0)]
+        e = [event(y0, t0, *args)]
         events = []
     t2 = t0
 
@@ -26,19 +26,19 @@ def integrate_dynamics(func, y0, t_span, delta_t, event=None, args=None, rtol=1e
         y1 = sol[-1]
 
         if args is not None:      
-            y2 = odeint(func, y1, jnp.linspace(t1, t2, 2), *args)
+            y12 = odeint(func, y1, jnp.linspace(t1, t2, 2), *args)
         else:
-            y2 = odeint(func, y1, jnp.linspace(t1, t2, 2))
-
+            y12 = odeint(func, y1, jnp.linspace(t1, t2, 2))
+        y2 = y12[-1, :]
 
         if event is None:
             t_eval += [t2]
-            sol += [y2[-1, :]]
+            sol += [y2]
         else:
             # t_eval += [t2]
             # sol += [y2[-1, :]]
             # now evaluate the event at the last position
-            next_e = event(y2[-1, :], t2)
+            next_e = event(y2, t2, *args)
             # e += [next_e]
             # print(e)
 
@@ -47,7 +47,7 @@ def integrate_dynamics(func, y0, t_span, delta_t, event=None, args=None, rtol=1e
                 # event is between t_left = X[-2] and t_right = X[-1]. run a modified bisect
                 # function to narrow down to find where event = 0
                 t_right = t2
-                y_right = y2[-1, :]
+                y_right = y2
                 e_right = next_e
 
                 t_left = t_eval[-1]
@@ -69,11 +69,14 @@ def integrate_dynamics(func, y0, t_span, delta_t, event=None, args=None, rtol=1e
                         # print(y1, t1, t2)
 
                         if args is not None:      
-                            y2 = odeint(func, y1, jnp.linspace(t1, t2, 2), *args)
+                            y12 = odeint(func, y1, jnp.linspace(t1, t2, 2), *args)
                         else:
-                            y2 = odeint(func, y1, jnp.linspace(t1, t2, 2))
+                            y12 = odeint(func, y1, jnp.linspace(t1, t2, 2))
 
-                        y2 = -y2
+                        if e_fun is not None:
+                            y2 = e_fun(y12[-1, :], t2, *args)
+                        else:
+                            y2 = y12[-1, :]
                         break # and return to integrating
                     #slope of line connecting points bracketing zero
                     m = (e_left - e_right)/(t_left - t_right) 
@@ -110,11 +113,11 @@ def integrate_dynamics(func, y0, t_span, delta_t, event=None, args=None, rtol=1e
                     j += 1
         
                 t_eval += [t2]
-                sol += [y2[-1, :]]
+                sol += [y2]
                 e += [next_e]
             else:
                 t_eval += [t2]
-                sol += [y2[-1, :]]
+                sol += [y2]
                 e += [next_e]
     
     sol = jnp.vstack(sol)
@@ -140,35 +143,39 @@ if __name__ == "__main__":
     delta_t = 0.1
     t_num = 102
 
-    def event(y, t):
+    def event(y, t, *args):
         return y[0] 
 
+    def e_fun(y, t, *args):
+        return -y
+
     # event = None
+    # e_fun = None
 
 
-    def forward(y0, t_span, delta_t, event, b, c):
-        t_eval, sol =  integrate_dynamics(pend, y0, t_span, delta_t, event, args=(b, c))
+    def forward(y0, t_span, delta_t, event, e_fun, b, c):
+        t_eval, sol =  integrate_dynamics(pend, y0, t_span, delta_t, event, e_fun, args=(b, c))
         yT = sol[-1, :]
         return yT
 
-    def forward_all(y0, t_span, delta_t, event, b, c):
-        t_eval, sol =  integrate_dynamics(pend, y0, t_span, delta_t, event, args=(b, c))
+    def forward_all(y0, t_span, delta_t, event, e_fun, b, c):
+        t_eval, sol =  integrate_dynamics(pend, y0, t_span, delta_t, event, e_fun, args=(b, c))
         return t_eval, sol
 
 
-    t_eval, sol = forward_all(y0, t_span, delta_t, event, b, c)
+    t_eval, sol = forward_all(y0, t_span, delta_t, event, e_fun, b, c)
     print(t_eval)
     print(len(t_eval))
     print(sol.shape)
 
-    # import matplotlib.pyplot as plt
-    # plt.plot(t_eval, sol[:, 0], 'b', label='theta(t)')
-    # plt.plot(t_eval, sol[:, 1], 'g', label='omega(t)')
-    # plt.legend(loc='best')
-    # plt.xlabel('t')
-    # plt.grid()
-    # plt.show()
+    import matplotlib.pyplot as plt
+    plt.plot(t_eval, sol[:, 0], 'b', label='theta(t)')
+    plt.plot(t_eval, sol[:, 1], 'g', label='omega(t)')
+    plt.legend(loc='best')
+    plt.xlabel('t')
+    plt.grid()
+    plt.show()
 
-    print(jacrev(forward, argnums=[0,])(y0, t_span, delta_t, event, b, c))
+    print(jacrev(forward, argnums=[0,])(y0, t_span, delta_t, event, e_fun, b, c))
 
     

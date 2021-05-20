@@ -1,3 +1,4 @@
+# %%
 import os
 
 import jax
@@ -118,6 +119,27 @@ u = jnp.zeros((4,))
 pure_args = (Xtree, I, contactpoint, u, a_grav, contact_force_lb, contact_force_ub,  contact_pos_lb, contact_vel_lb, contact_vel_ub, mu)
 
 print(dynamics_step(pure_dynamics_fun, x0, t_span, delta_t, pure_events_fun, pure_impulsive_fun, *pure_args))
+# %%
+xk = jnp.array([0.00652783, 0.2478803, -0.06356288, \
+    1.0361857, 1.0312966, -2.095648, -2.098419, \
+    0.00470335, -1.7301282,  -0.03855195, \
+    0.3507634, 0.19818218, 0.05037037, 0.05680534])
+u = jnp.array([0.19982854, 0.5968663, 0.01227411, 0.14438418])
+xkp1 = dynamics_step(pure_dynamics_fun, xk, t_span, delta_t, pure_events_fun, pure_impulsive_fun, *pure_args)
+# print(pure_impulsive_fun(xk, 0.1, *pure_args))
+# q = xk[NB:]
+# H =  composite_rigid_body_algorithm_core(Xtree, I, parent, jtype, jaxis, NB, q)
+# print(H)
+
+# %%
+%matplotlib 
+
+q0 = np.array([0,  0.5, 0, math.pi/6, -math.pi/6, -math.pi/3, math.pi/3]) # stand with leg in
+qdot0 = jnp.zeros((7, ))
+x0 = jnp.hstack([q0, qdot0])
+
+q_star = jnp.array([0.0,  0.0, 0.0, math.pi/6, -math.pi/6, -math.pi/3, math.pi/3])
+qdot_star = jnp.zeros((7, ))
 
 kp = 200
 kd = 3
@@ -134,10 +156,12 @@ fig = plt.gcf()
 ax = Axes3D(fig)
 
 
-for i in range(200):
+for i in range(500):
     print(i)
     u = kp * (q_star[3:7] - xk[3:7]) + kd * (qdot_star[3:7] - xk[10:14])
     pure_args = (Xtree, I, contactpoint, u, a_grav, contact_force_lb, contact_force_ub, contact_pos_lb, contact_vel_lb, contact_vel_ub,mu)
+    # print("xk:", xk)
+    # print("u", u)
     xk = dynamics_step(pure_dynamics_fun, xk, t_span, delta_t, pure_events_fun, pure_impulsive_fun, *pure_args)
 
 
@@ -157,16 +181,4 @@ for i in range(200):
     plt.pause(1e-8)
     # fig.canvas.draw()
 plt.ioff()
-
-# args = (x0, t0, Xtree, I,  a_grav)
-
-# def forward_dynamics(x, t, Xtree, I, a_grav, parent, jtype, jaxis, NB):
-#     q = jnp.zeros((7,))
-#     qdot = jnp.zeros((7,))
-#     ttau = jnp.zeros((7,))
-#     qddot = forward_dynamics_core(Xtree, I, parent, jtype, jaxis, NB, q, qdot, ttau, a_grav)
-#     return qddot
-
-# test = partial(forward_dynamics, parent0=parent, jtype0=jtype, jaxis0=jaxis, NB0=NB)
-# test(*args)
-# converted, consts = closure_convert(partial(forward_dynamics, parent=parent, jtype=jtype, jaxis=jaxis, NB=NB), *args)
+# %%

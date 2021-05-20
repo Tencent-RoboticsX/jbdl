@@ -5,6 +5,7 @@ from jax.api import jacfwd
 from jax.api_util import argnums_partial
 from jbdl.rbdl.contact import calc_contact_force_direct, calc_contact_force_direct_core
 from jbdl.rbdl.contact import impulsive_dynamics, impulsive_dynamics_core
+from jbdl.rbdl.contact.impulsive_dynamics import impulsive_dynamics_extend_core
 from jbdl.rbdl.kinematics import calc_point_acceleration_core
 from jbdl.rbdl.utils import ModelWrapper, xyz2int
 from jbdl.rbdl.contact import calc_contact_jacobian, calc_contact_jacobian_core
@@ -24,6 +25,7 @@ import time
 import timeit
 import timeit, functools
 import jax.numpy as jnp
+from jbdl.rbdl.utils import xyz2int
 
 CURRENT_PATH = os.path.dirname(os.path.realpath(__file__))
 DATA_PATH = os.path.join(os.path.dirname(CURRENT_PATH), "Data")
@@ -261,28 +263,49 @@ class TestContact(unittest.TestCase):
 
         # print(list(map(partial(DeterminContactType, contact_cond=contact_cond), end_pos, end_vel)))
 
+    
+    def test_impulsive_dynamics_extend_core(self):
+
+        model = self.model
+        q = self.q
+        qdot = self.qdot
+        flag_contact = jnp.array([1, 1, 0, 0])
+        input_A = (model, q, qdot, flag_contact)
+        input_CRBA = (model, q)
+        model["H"] = composite_rigid_body_algorithm(*input_CRBA)
+
+        rankJc = np.sum( [1 for item in flag_contact if item != 0]) * model["nf"]
+        # print(rankJc)
+
+        input = (model["Xtree"], self.q, self.qdot, model["contactpoint"],
+                    model["H"], tuple(model["idcontact"]), flag_contact,
+                        tuple(model["parent"]), tuple(model["jtype"]), xyz2int(model["jaxis"]),
+                        model["NB"], model["NC"], model["nf"])
+        
+        print(impulsive_dynamics_extend_core(*input))
 
 
     
     def test_impulsive_dynamics(self):
-        pass
-    #     model = self.model
-    #     q = self.q
-    #     qdot = self.qdot
-    #     flag_contact = (1, 1, 1, 1)
-    #     input_A = (model, q, qdot, flag_contact)
-    #     input_CRBA = (model, q)
-    #     model["H"] = composite_rigid_body_algorithm(*input_CRBA)
+        model = self.model
+        q = self.q
+        qdot = self.qdot
+        flag_contact = (1, 1, 0, 0)
+        input_A = (model, q, qdot, flag_contact)
+        input_CRBA = (model, q)
+        model["H"] = composite_rigid_body_algorithm(*input_CRBA)
 
-    #     rankJc = np.sum( [1 for item in flag_contact if item != 0]) * model["nf"]
-    #     # print(rankJc)
+        rankJc = np.sum( [1 for item in flag_contact if item != 0]) * model["nf"]
+        # print(rankJc)
 
-    #     input = (model["Xtree"], self.q, self.qdot, model["contactpoint"],
-    #                 model["H"], tuple(model["idcontact"]), tuple(flag_contact),
-    #                     tuple(model["parent"]), tuple(model["jtype"]), model["jaxis"],
-    #                     model["NB"], model["NC"], model["nf"], rankJc)
+        input = (model["Xtree"], self.q, self.qdot, model["contactpoint"],
+                    model["H"], tuple(model["idcontact"]), tuple(flag_contact),
+                        tuple(model["parent"]), tuple(model["jtype"]), xyz2int(model["jaxis"]),
+                        model["NB"], model["NC"], model["nf"], rankJc)
 
-    #     impulsive_dynamics_core(*input).block_until_ready()
+        print( impulsive_dynamics_core(*input))
+
+    #    .block_until_ready()
     #     # print(impulsive_dynamics(*input_A))
     #     # from jax import make_jaxpr
     #     # print(make_jaxpr(impulsive_dynamics_core, static_argnums=(5, 6, 7, 8, 9, 10, 11, 12, 13))(*input))
@@ -324,24 +347,24 @@ class TestContact(unittest.TestCase):
 
     def test_lcp_quadprog(self):
         pass
-        H = jnp.array([[1.0, -1.0],
-                       [-1.0, 2.0]])
-        f = jnp.array([[-2.0], [-6.0]])
-        L = jnp.array([[1.0, 1.0],
-                       [-1.0, 2.0], 
-                       [2.0, 1.0]])
-        k = jnp.array([[2.0], [2.0], [3.0]])
+        # H = jnp.array([[1.0, -1.0],
+        #                [-1.0, 2.0]])
+        # f = jnp.array([[-2.0], [-6.0]])
+        # L = jnp.array([[1.0, 1.0],
+        #                [-1.0, 2.0], 
+        #                [2.0, 1.0]])
+        # k = jnp.array([[2.0], [2.0], [3.0]])
 
-        lb = jnp.array([[0.0], [0.0]])
-        ub = jnp.array([[0.5], [5.0]])
+        # lb = jnp.array([[0.0], [0.0]])
+        # ub = jnp.array([[0.5], [5.0]])
 
-        from jax.test_util import check_jvp
-        from jax import jvp
-        from functools import partial
-        check_jvp(lcp_quadprog, partial(jvp, lcp_quadprog), (H, f, L, k, lb, ub))
-        dx2dk = jacfwd(lcp_quadprog, argnums=3)(H, f, L, k, lb, ub)
-        print(dx2dk)
-        print(dx2dk.shape)
+        # from jax.test_util import check_jvp
+        # from jax import jvp
+        # from functools import partial
+        # check_jvp(lcp_quadprog, partial(jvp, lcp_quadprog), (H, f, L, k, lb, ub))
+        # dx2dk = jacfwd(lcp_quadprog, argnums=3)(H, f, L, k, lb, ub)
+        # print(dx2dk)
+        # print(dx2dk.shape)
 
     def test_solve_contact_lcp_extend_core(self):
         pass
