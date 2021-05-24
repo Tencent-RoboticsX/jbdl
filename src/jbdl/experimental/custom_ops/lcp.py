@@ -9,6 +9,7 @@ from jax.lib import xla_client
 from jbdl.experimental import cpu_ops
 from jax.api import jit, vmap
 from jax.api import jacfwd, device_put
+from jax.lib import xla_bridge
 
 
 # Register the CPU XLA custom calls
@@ -29,8 +30,8 @@ def lcp(H, f, L, k, lb, ub):
     # We're going to apply array broadcasting here since the logic of our op
     # is much simpler if we require the inputs to all have the same shapes
 
-    x, _ = lcp_prim.bind(H, f, L, k, lb, ub)
-    return x
+    x, z = lcp_prim.bind(H, f, L, k, lb, ub)
+    return x, z
 
 
 # *********************************
@@ -270,6 +271,31 @@ ad.primitive_jvps[lcp_prim] = lcp_jvp
 # *  SUPPORT FOR BATCHING WITH VMAP  *
 # ************************************
 
+def lcp_batch(batched_args, batch_dims):
+    Hs, fs, Ls, ks, lbs, ubs = batched_args
+    Hs_bd, fs_bd, Ls_bd, ks_bd, lbs_bd, ubs_bd = batch_dims
+
+    size = next(t.shape[i] for t, i in zip(batched_args, batch_dims) if i is not None)
+
+    Hs = batching.bdim_at_front(Hs, Hs_bd, size)
+    fs = batching.bdim_at_front(fs, fs_bd, size)
+    Ls = batching.bdim_at_front(Ls, Ls_bd, size)
+    ks = batching.bdim_at_front(ks, ks_bd, size)
+    lbs = batching.bdim_at_front(lbs, lbs_bd, size)
+    ubs = batching.bdim_at_front(ubs, ubs_bd, size)
+
+    if xla_bridge.get_backend().platform == 'cpu':
+        samples = lax.map(lambda args: lcp(*args), (Hs, fs, Ls, ks, lbs, ubs))
+    else:
+        raise NotImplementedError(f"Unsupported platform")
+    return samples, (0, 0)
+
+
+batching.primitive_batchers[lcp_prim] = lcp_batch
+
+
+    
+
 
 
 
@@ -288,7 +314,7 @@ if __name__ == "__main__":
 
     fwd = jacfwd(lcp, argnums=2)(H, f, L, k, lb, ub)
     print(fwd)
-    print(fwd.shape)
+    # print(fwd.shape)
 
     # from jax import random
 
@@ -320,9 +346,18 @@ if __name__ == "__main__":
     batch_k = jnp.repeat(jnp.expand_dims(k, axis=0), batch_size, axis=0)
     batch_lb = jnp.repeat(jnp.expand_dims(lb, axis=0), batch_size, axis=0)
     batch_ub = jnp.repeat(jnp.expand_dims(ub, axis=0), batch_size, axis=0)
-    # batch_x = vmap(lcp, 0, 0)(batch_H, batch_f, batch_L, batch_k, batch_lb, batch_ub)
-    # print(batch_x)
-    # print(batch_x.shape)
+    print(batch_H.shape)
+    print(batch_f.shape)
+    print(batch_L.shape)
+    print(batch_k.shape)
+    print(batch_lb.shape)
+    print(batch_ub.shape)
+    batch_x, batch_z = vmap(lcp, 0)(batch_H, batch_f, batch_L, batch_k, batch_lb, batch_ub)
+    print(batch_x)
+    print(batch_x.shape)
+
+    print(batch_z)
+    print(batch_z.shape)
     # print(fwd0)
     # print(fwd0.shape)
     # print(fwd1)

@@ -180,20 +180,29 @@ def dynamics_step(y0, t_span, delta_t, event, impulsive, *args):
 
 
 print(dynamics_step(x0, t_span, delta_t, pure_events_fun, pure_impulsive_fun, *pure_args))
+
+
+# %%
+print(dynamics_step(x0, t_span, delta_t, pure_events_fun, pure_impulsive_fun, *pure_args))
 # start_time = time.time()
-# dxTdx0_func = jacrev(dynamics_step, argnums=[0,])
-# dxTdx0 = dxTdx0_func(x0, t_span, delta_t, None, *pure_args)
+dxTdx0_func = jacrev(dynamics_step, argnums=[0,])
+dxTdx0 = dxTdx0_func(x0, t_span, delta_t,  pure_events_fun, pure_impulsive_fun, *pure_args)
 # dxTdx0.block_until_ready()
-# print(dxTdx0)
+print(dxTdx0)
 # duration = time.time() - start_time
 # print(duration)
 
 # %%
-# start_time = time.time()
-# dxTdx0 = dxTdx0_func(x0, t_span, delta_t, None, *pure_args)
-# print(dxTdx0)
-# duration = time.time() - start_time
-# print(duration)
+start_time = time.time()
+dxTdx0 = dxTdx0_func(x0, t_span, delta_t,  pure_events_fun, pure_impulsive_fun, *pure_args)
+print(dxTdx0)
+duration = time.time() - start_time
+print(duration)
+start_time = time.time()
+dxTdx0 = dxTdx0_func(x0, t_span, delta_t,  pure_events_fun, pure_impulsive_fun, *pure_args)
+print(dxTdx0)
+duration = time.time() - start_time
+print(duration)
 
 
 

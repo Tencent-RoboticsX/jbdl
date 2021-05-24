@@ -306,7 +306,7 @@ def solve_contact_lcp_extend_core(Xtree, q, qdot, contactpoint, H, tau, C, conta
     # fqp, _, _, _ = cvxopt_quadprog(H, d, A, b, None, None, lb, ub)
     # print(A.shape)
     # print(b.shape)
-    fqp = lcp(M, d, A, b, lb, ub)
+    fqp, _ = lcp(M, d, A, b, lb, ub)
     # fqp = jnp.zeros(())
 
     # fqp, _ = quadprog(H, d, A, b, None, None, lb, ub)

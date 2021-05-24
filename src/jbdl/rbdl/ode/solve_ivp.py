@@ -1,4 +1,5 @@
-from jax.api import jacrev
+from functools import partial
+from jax.api import jacfwd, jacrev
 from jax.experimental.ode import odeint
 from numpy.core.numeric import argwhere
 from scipy.integrate.quadpack import tplquad
@@ -60,7 +61,7 @@ def integrate_dynamics(func, y0, t_span, delta_t, event=None, e_fun=None, args=N
                     if jnp.abs(e_right) < 1e-3:
                         # we know the interval to a prescribed precision now.
                         # print 'Event found between {0} and {1}'.format(x1t, x2t)
-                        print('t = {0}, event = {1}, y = {2}'.format(t_right, e_right, y_right))
+                        # print('t = {0}, event = {1}, y = {2}'.format(t_right, e_right, y_right))
                         events += [(t_right, y_right)]
 
                         t2 = t_right
@@ -130,6 +131,7 @@ def integrate_dynamics(func, y0, t_span, delta_t, event=None, e_fun=None, args=N
 if __name__ == "__main__":
     import numpy as np
     import jax.numpy as jnp
+    from jax import jit
     
     def pend(y, t, b, c):
         dxdt = jnp.array([y[1], -b*y[1] - c*jnp.sin(y[0])])
@@ -158,24 +160,88 @@ if __name__ == "__main__":
         yT = sol[-1, :]
         return yT
 
+
     def forward_all(y0, t_span, delta_t, event, e_fun, b, c):
         t_eval, sol =  integrate_dynamics(pend, y0, t_span, delta_t, event, e_fun, args=(b, c))
         return t_eval, sol
 
+    # pure_forward_all = partial(forward_all, event=event, e_fun=e_fun)
+
 
     t_eval, sol = forward_all(y0, t_span, delta_t, event, e_fun, b, c)
+
     print(t_eval)
     print(len(t_eval))
     print(sol.shape)
 
-    import matplotlib.pyplot as plt
-    plt.plot(t_eval, sol[:, 0], 'b', label='theta(t)')
-    plt.plot(t_eval, sol[:, 1], 'g', label='omega(t)')
-    plt.legend(loc='best')
-    plt.xlabel('t')
-    plt.grid()
-    plt.show()
+    # import matplotlib.pyplot as plt
+    # plt.plot(t_eval, sol[:, 0], 'b', label='theta(t)')
+    # plt.plot(t_eval, sol[:, 1], 'g', label='omega(t)')
+    # plt.legend(loc='best')
+    # plt.xlabel('t')
+    # plt.grid()
+    # plt.show()
+    import time 
+    # print("====================")
+    # start = time.time()
+    # print(jacrev(forward, argnums=[0,])(y0, t_span, delta_t, event, e_fun, b, c))
+    # duration = time.time() - start
 
-    print(jacrev(forward, argnums=[0,])(y0, t_span, delta_t, event, e_fun, b, c))
+    # print(duration)
+
+    # start = time.time()
+    # print(jacrev(forward, argnums=[0,])(y0, t_span, delta_t, event, e_fun, b, c))
+    # duration = time.time() - start
+
+    # print(duration)
+    print("------------------")
+    start = time.time()
+    result = odeint(pend, y0, jnp.linspace(0, 1, 10), b, c)
+    result.block_until_ready()
+    duration = time.time() - start
+
+    print(duration)
+
+    start = time.time()
+    result = odeint(pend, y0, jnp.linspace(0, 1, 10), b, c)
+    result.block_until_ready()
+    duration = time.time() - start
+
+    print(duration)
+    print("=================")
+    start = time.time()
+    result = jacrev(odeint, argnums=1)(pend, y0, jnp.linspace(0, 1, 10), b, c)
+    result.block_until_ready()
+    duration = time.time() - start
+    print(duration)
+    
+    start = time.time()
+    result = jacrev(odeint, argnums=1)(pend, y0, jnp.linspace(0, 1, 10), b, c)
+    result.block_until_ready()
+    duration = time.time() - start
+    print(duration)
+    print("==============")
+    start = time.time()
+    diff = jit(jacrev(odeint, argnums=1), static_argnums=(0,  3, 4))
+    result = diff(pend, y0, jnp.linspace(0, 1, 10), b, c)
+    result.block_until_ready()
+    duration = time.time() - start
+    print(duration)
+
+    start = time.time()
+    result = jacrev(odeint, argnums=1)(pend, y0, jnp.linspace(0, 1, 10), b, c)
+    result.block_until_ready()
+    duration = time.time() - start
+    print(duration)
+
+
+    start = time.time()
+    result = diff(pend, y0, jnp.linspace(0, 1, 10), b, c)
+    result.block_until_ready()
+    duration = time.time() - start
+    print(duration)
+
+  
+
 
     
