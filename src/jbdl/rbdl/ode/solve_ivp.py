@@ -1,6 +1,7 @@
 from functools import partial
 from jax.api import jacfwd, jacrev
-from jax.experimental.ode import odeint
+# from jax.experimental.ode import odeint
+from jbdl.experimental.ode.runge_kutta import odeint
 from numpy.core.numeric import argwhere
 from scipy.integrate.quadpack import tplquad
 import jax.numpy as jnp
