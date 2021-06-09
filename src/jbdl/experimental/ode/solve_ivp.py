@@ -1,6 +1,7 @@
 import functools
 from jax._src.lax.control_flow import Carry
 from jax._src.numpy.linalg import solve
+from jax.api import jacfwd
 import jax.numpy  as jnp
 from jax import core
 from jax import custom_derivatives
@@ -11,6 +12,7 @@ import jax
 from functools import partial
 from jax import lax
 from jax import device_put
+from numpy import diff
 from jbdl.experimental.ode.runge_kutta import odeint
 
 map = safe_map
@@ -52,8 +54,8 @@ def _solve_ivp(func, event_func, event_handle, rtol, atol, mxstep, y0, ts, *args
         def body_fun(state):
             i, y, f, t, dt, last_t, e = state
             next_y = y + f * dt
-            all_y = odeint(func, y, jnp.linspace(t, t+dt, 5), *args)
-            next_y = all_y[-1, :]
+            # all_y = odeint(func, y, jnp.linspace(t, t+dt, 5), *args)
+            # next_y = all_y[-1, :]
             next_t = t + dt
             next_f = func_(next_y, next_t)
             next_e = event_func_(next_y, next_t)
@@ -91,7 +93,6 @@ def _solve_ivp(func, event_func, event_handle, rtol, atol, mxstep, y0, ts, *args
 if __name__ == "__main__":
     print("Hello!")
     import time
-    from jax import jacrev
 
     def e_handle(y, t, *args):
         return -y
@@ -110,8 +111,8 @@ if __name__ == "__main__":
 
     t_eval =  jnp.linspace(0, 10, 1000)
 
-    # sol = jax.jit(solve_ivp, static_argnums=(0, 3, 4))(pend, y0, t_eval, e_fun, e_handle, b, c)
-    # print(sol)
+    sol = jax.jit(solve_ivp, static_argnums=(0, 3, 4))(pend, y0, t_eval, e_fun, e_handle, b, c)
+    print(sol)
 
     print("------------------")
     start = time.time()
@@ -132,25 +133,46 @@ if __name__ == "__main__":
 
     # pure_solve_ivp = partial(solve_ivp, func=pend, event_fun=e_fun, event_handle=e_handle)
 
+
+    start = time.time()
+    diff = jax.jit(jacfwd(solve_ivp, argnums=1), static_argnums=(0, 3, 4))
+    reslut = diff(pend, y0, jnp.linspace(0, 1, 1000), e_fun, e_handle, b, c)
+    result.block_until_ready()
+    duration = time.time() - start
+    print(duration)
+
+
+    start = time.time()
+    reslut = diff(pend, y0, jnp.linspace(0, 1, 1000), e_fun, e_handle, b, c)
+    result.block_until_ready()
+    duration = time.time() - start
+    print(duration)
+
+    start = time.time()
+    reslut = diff(pend, y0, jnp.linspace(0, 1, 1000), e_fun, e_handle, b, c)
+    result.block_until_ready()
+    duration = time.time() - start
+    print(duration)
+
     # start = time.time()
-    # result = jacrev(solve_ivp, argnums=1)(pend, y0, jnp.linspace(0, 1, 1000), e_fun, e_handle, b, c)
+    # result = jacfwd(solve_ivp, argnums=1)(pend, y0, jnp.linspace(0, 1, 1000), e_fun, e_handle, b, c)
     # result.block_until_ready()
     # duration = time.time() - start
     # print(duration)
     
     # start = time.time()
-    # result = jacrev(solve_ivp, argnums=1)(pend, y0, jnp.linspace(0, 1, 1000), b, c)
+    # result = jacfwd(solve_ivp, argnums=1)(pend, y0, jnp.linspace(0, 1, 1000), e_fun, e_handle,b, c)
     # result.block_until_ready()
     # duration = time.time() - start
     # print(duration)
 
     # start = time.time()
-    # result = jacrev(solve_ivp, argnums=1)(pend, y0, jnp.linspace(0, 1, 1000), b, c)
+    # result = jacfwd(solve_ivp, argnums=1)(pend, y0, jnp.linspace(0, 1, 1000), e_fun, e_handle, b, c)
     # result.block_until_ready()
     # duration = time.time() - start
     # print(duration)
 
-    # print("==============")
+    print("==============")
 
     # import matplotlib.pyplot as plt
     # plt.plot(t_eval, sol[:, 0], 'b', label='theta(t)')
