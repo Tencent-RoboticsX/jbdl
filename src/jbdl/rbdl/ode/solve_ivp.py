@@ -171,17 +171,17 @@ if __name__ == "__main__":
 
     t_eval, sol = forward_all(y0, t_span, delta_t, event, e_fun, b, c)
 
-    print(t_eval)
-    print(len(t_eval))
-    print(sol.shape)
+    # print(t_eval)
+    # print(len(t_eval))
+    # print(sol.shape)
 
-    # import matplotlib.pyplot as plt
-    # plt.plot(t_eval, sol[:, 0], 'b', label='theta(t)')
-    # plt.plot(t_eval, sol[:, 1], 'g', label='omega(t)')
-    # plt.legend(loc='best')
-    # plt.xlabel('t')
-    # plt.grid()
-    # plt.show()
+    import matplotlib.pyplot as plt
+    plt.plot(t_eval, sol[:, 0], 'b', label='theta(t)')
+    plt.plot(t_eval, sol[:, 1], 'g', label='omega(t)')
+    plt.legend(loc='best')
+    plt.xlabel('t')
+    plt.grid()
+    plt.show()
     import time 
     # print("====================")
     # start = time.time()
@@ -197,19 +197,21 @@ if __name__ == "__main__":
     # print(duration)
     print("------------------")
     start = time.time()
-    result = odeint(pend, y0, jnp.linspace(0, 1, 10), b, c)
+    result = odeint(pend, y0, jnp.linspace(0, 1, 1000), b, c)
     result.block_until_ready()
     duration = time.time() - start
 
     print(duration)
 
     start = time.time()
-    result = odeint(pend, y0, jnp.linspace(0, 1, 10), b, c)
+    result = odeint(pend, y0, jnp.linspace(0, 1, 1000), b, c)
     result.block_until_ready()
     duration = time.time() - start
 
     print(duration)
     print("=================")
+    
+
     start = time.time()
     result = jacrev(odeint, argnums=1)(pend, y0, jnp.linspace(0, 1, 10), b, c)
     result.block_until_ready()
@@ -221,13 +223,6 @@ if __name__ == "__main__":
     result.block_until_ready()
     duration = time.time() - start
     print(duration)
-    print("==============")
-    start = time.time()
-    diff = jit(jacrev(odeint, argnums=1), static_argnums=(0,  3, 4))
-    result = diff(pend, y0, jnp.linspace(0, 1, 10), b, c)
-    result.block_until_ready()
-    duration = time.time() - start
-    print(duration)
 
     start = time.time()
     result = jacrev(odeint, argnums=1)(pend, y0, jnp.linspace(0, 1, 10), b, c)
@@ -235,12 +230,41 @@ if __name__ == "__main__":
     duration = time.time() - start
     print(duration)
 
+    print("==============")
 
-    start = time.time()
-    result = diff(pend, y0, jnp.linspace(0, 1, 10), b, c)
-    result.block_until_ready()
-    duration = time.time() - start
-    print(duration)
+    # start = time.time()
+    # result = jacrev(odeint, argnums=1)(pend, y0, jnp.linspace(0, 1, 10), b, c)
+    # result.block_until_ready()
+    # duration = time.time() - start
+    # print(duration)
+
+    # start = time.time()
+    # diff = jit(jacrev(odeint, argnums=1), static_argnums=(0, 3, 4))
+    # result = diff(pend, y0, jnp.linspace(0, 1, 10), b, c)
+    # result.block_until_ready()
+    # duration = time.time() - start
+    # print(duration)
+
+    # start = time.time()
+    # result = jacrev(odeint, argnums=1)(pend, y0, jnp.linspace(0, 1, 10), b, c)
+    # result.block_until_ready()
+    # duration = time.time() - start
+    # print(duration)
+
+  
+
+    # start = time.time()
+    # result = jit(jacrev(odeint, argnums=1), static_argnums=(0,  3, 4))(pend, y0, jnp.linspace(0, 1, 10), b, c)
+    # result.block_until_ready()
+    # duration = time.time() - start
+    # print(duration)
+
+
+    # start = time.time()
+    # result = diff(pend, y0, jnp.linspace(0, 1, 10), b, c)
+    # result.block_until_ready()
+    # duration = time.time() - start
+    # print(duration)
 
   
 
