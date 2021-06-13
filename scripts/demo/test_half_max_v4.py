@@ -170,7 +170,26 @@ pure_args = (Xtree, I, contactpoint, u, a_grav, contact_force_lb, contact_force_
 
 solve_ivp(pure_dynamics_fun, x0, jnp.linspace(0, 2e-3, 4), pure_events_fun, pure_impulsive_fun, *pure_args)
 
+# %% 
 
+import jax
+import time
+from jax import jacfwd
+
+print(solve_ivp(pure_dynamics_fun, x0, jnp.linspace(0, 2e-3, 4), pure_events_fun, pure_impulsive_fun, *pure_args))
+start = time.time()
+diff = jax.jit(jacfwd(solve_ivp, argnums=8), static_argnums=(0, 3, 4))
+result = diff(pure_dynamics_fun, x0, jnp.linspace(0, 2e-3, 4), pure_events_fun, pure_impulsive_fun, *pure_args)
+result.block_until_ready()
+print(result)
+duration = time.time() - start
+print(duration)
+
+start = time.time()
+result = diff(pure_dynamics_fun, x0, jnp.linspace(0, 2e-3, 4), pure_events_fun, pure_impulsive_fun, *pure_args)
+result.block_until_ready()
+duration = time.time() - start
+print(duration)
 
 
 # %%
