@@ -2,7 +2,7 @@ from jax.api import jit
 import jax.numpy as jnp
 
 @jit
-def init_I_by_cholesky(l):
+def init_Ic_by_cholesky(l):
     """
     Args:
         l (jnp.Array): float(6,) non-zero entris of a upper triangle matrix: exp(lxx) lxy lxz exp(lyy) lyz exp(lzz)
@@ -14,8 +14,8 @@ def init_I_by_cholesky(l):
          [0.0, jnp.exp(flatten_l[3]), flatten_l[4]],
          [0.0, 0.0, jnp.exp(flatten_l[5])]])
 
-    I = jnp.matmul(jnp.transpose(L),  L)
-    return I
+    Ic = jnp.matmul(jnp.transpose(L),  L)
+    return Ic
 
 @jit
 def rigid_body_inertia(m: float, c, I):
@@ -37,6 +37,6 @@ if __name__ == "__main__":
     key = random.PRNGKey(0)
     m = 2.0
     c = jnp.array([0.0, 0.0, 0.0])
-    I = init_I_by_cholesky(jnp.array([1.0, 0.0, 0.0, 1.0, 0.0, 1.0]))
+    I = init_Ic_by_cholesky(jnp.array([1.0, 0.0, 0.0, 1.0, 0.0, 1.0]))
     print(make_jaxpr(rigid_body_inertia)(m, c, I))
     print(rigid_body_inertia(m, c, I))
