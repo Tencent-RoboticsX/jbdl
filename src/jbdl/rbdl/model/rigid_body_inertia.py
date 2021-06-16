@@ -2,6 +2,22 @@ from jax.api import jit
 import jax.numpy as jnp
 
 @jit
+def init_I_by_cholesky(l):
+    """
+    Args:
+        l (jnp.Array): float(6,) non-zero entris of a upper triangle matrix: exp(lxx) lxy lxz exp(lyy) lyz exp(lzz)
+
+    """
+    flatten_l = jnp.reshape(l, (-1,))
+    L = jnp.array(
+        [[jnp.exp(flatten_l[0]), flatten_l[1], flatten_l[2]],
+         [0.0, jnp.exp(flatten_l[3]), flatten_l[4]],
+         [0.0, 0.0, jnp.exp(flatten_l[5])]])
+
+    I = jnp.matmul(jnp.transpose(L),  L)
+    return I
+
+@jit
 def rigid_body_inertia(m: float, c, I):
 
     flatten_c = jnp.reshape(c, (-1,))
@@ -19,8 +35,8 @@ if __name__ == "__main__":
     from jax import random
     from jax import make_jaxpr
     key = random.PRNGKey(0)
-    m = 1.0
-    c = jnp.array([1.0, 0.0, 0.0])
-    I = random.normal(key, (3, 3))
+    m = 2.0
+    c = jnp.array([0.0, 0.0, 0.0])
+    I = init_I_by_cholesky(jnp.array([1.0, 0.0, 0.0, 1.0, 0.0, 1.0]))
     print(make_jaxpr(rigid_body_inertia)(m, c, I))
     print(rigid_body_inertia(m, c, I))
