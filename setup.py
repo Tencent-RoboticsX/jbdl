@@ -130,7 +130,7 @@ setup(
     ),
     long_description=read("README.md"),
     long_description_content_type="text/markdown",
-    python_requires='>=3.8, <4',
+    python_requires='>=3.6, <4',
     packages=find_packages("src"),
     package_dir={"": "src"},
     include_package_data=True,
