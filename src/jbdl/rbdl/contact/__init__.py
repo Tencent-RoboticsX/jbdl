@@ -3,7 +3,7 @@ from .calc_contact_jdot_qdot import calc_contact_jdot_qdot, calc_contact_jdot_qd
 from .solve_contact_lcp import solve_contact_lcp, solve_contact_lcp_core, lcp_quadprog
 from .impulsive_dynamics import impulsive_dynamics, impulsive_dynamics_core
 from .detect_contact import detect_contact, detect_contact_core, determin_contact_type, determin_contact_type_core
-from .get_contact_force import get_contact_force
+from .get_contact_force import get_contact_force, get_contact_fcqp
 from .calc_contact_force_direct import calc_contact_force_direct, calc_contact_force_direct_core
 from .solve_contact_simple_lcp import  solve_contact_simple_lcp, solve_contact_simple_lcp_core
 from .calc_contact_force_pd import calc_contact_force_pd

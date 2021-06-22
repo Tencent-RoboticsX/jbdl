@@ -69,6 +69,8 @@ from jax.custom_derivatives import closure_convert
 from jbdl.rbdl.contact import detect_contact_core
 from jbdl.rbdl.dynamics import composite_rigid_body_algorithm_core
 from jbdl.rbdl.contact.impulsive_dynamics import impulsive_dynamics_extend_core
+from jbdl.rbdl.contact import get_contact_fcqp
+import jax
 
 q_star = jnp.array([0.0,  0.0, 0.0, math.pi/6, math.pi/6, -math.pi/3, -math.pi/3])
 qdot_star = jnp.array([0.0, 0.0, 0.0, 1.0, 1.0, -1.0, -1.0])
@@ -127,12 +129,25 @@ def impulsive_dynamics_fun(y, t, Xtree, I, contactpoint, u, a_grav, contact_forc
     y_new = jnp.hstack([q, qdot_impulse])
     return y_new
 
+def fqp_fun(x, t, Xtree, I, contactpoint, u, a_grav, \
+    contact_force_lb, contact_force_ub,  contact_pos_lb, contact_vel_lb, contact_vel_ub, mu,\
+    ST, idcontact,   parent, jtype, jaxis, NB, NC, nf, ncp):
+    q = x[0:NB]
+    qdot = x[NB:]
+    tau = jnp.matmul(ST, u)
+    flag_contact = detect_contact_core(Xtree, q, qdot, contactpoint, contact_pos_lb, contact_vel_lb, contact_vel_ub,\
+        idcontact, parent, jtype, jaxis, NC)
+    xdot, fqp, H = dynamics_fun_extend_core(Xtree, I, q, qdot, contactpoint, tau, a_grav, contact_force_lb, contact_force_ub,\
+    idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, ncp, mu)
+    return fqp, flag_contact
 
 t = device_put(0.0)
 xdot = dynamics_fun(x, t, Xtree, I, contactpoint, u, a_grav, contact_force_lb, contact_force_ub, \
     contact_pos_lb, contact_vel_lb, contact_vel_ub, mu, ST, idcontact,  parent, jtype, jaxis, NB, NC, nf, ncp)
 
-# print(xdot)
+fqp = fqp_fun(x, t, Xtree, I, contactpoint, u, a_grav, contact_force_lb, contact_force_ub, \
+    contact_pos_lb, contact_vel_lb, contact_vel_ub, mu, ST, idcontact,  parent, jtype, jaxis, NB, NC, nf, ncp)
+print(fqp)
 
 
 pure_dynamics_fun = partial(dynamics_fun, ST=ST, idcontact=idcontact, \
@@ -144,6 +159,9 @@ pure_events_fun = partial(events_fun, ST=ST, idcontact=idcontact, \
 pure_impulsive_fun =  partial(impulsive_dynamics_fun, ST=ST, idcontact=idcontact, \
         parent=parent, jtype=jtype, jaxis=jaxis, NB=NB, NC=NC, nf=nf, ncp=ncp)
 
+pure_fqp_fun = partial(fqp_fun, ST=ST, idcontact=idcontact, \
+        parent=parent, jtype=jtype, jaxis=jaxis, NB=NB, NC=NC, nf=nf, ncp=ncp)
+
 pure_args = (x, t, Xtree, I, contactpoint, u, a_grav, contact_force_lb, contact_force_ub,  contact_pos_lb, contact_vel_lb, contact_vel_ub, mu)
 
 # pure_args = (x, t, Xtree, I, contactpoint, tau, a_grav, contact_force_lb, contact_force_ub, mu, flag_contact)
@@ -151,10 +169,31 @@ pure_args = (x, t, Xtree, I, contactpoint, u, a_grav, contact_force_lb, contact_
 converted, consts = closure_convert(pure_dynamics_fun, *pure_args)
 converted, consts = closure_convert(pure_events_fun, *pure_args)
 converted, consts = closure_convert(pure_impulsive_fun, *pure_args)
+converted, consts = closure_convert(pure_fqp_fun, *pure_args)
 
 print(pure_dynamics_fun(*pure_args))
 print(pure_events_fun(*pure_args))
 print(pure_impulsive_fun(*pure_args))
+fqp, flag_contact = jax.jit(pure_fqp_fun)(*pure_args)
+fcqp = get_contact_fcqp(fqp, flag_contact, NC, nf)
+print(fcqp)
+
+#%%
+import time
+start = time.time()
+fqp, flag_contact = jax.jit(pure_fqp_fun)(*pure_args)
+fcqp = get_contact_fcqp(fqp, flag_contact, NC, nf)
+print(fcqp)
+duration = time.time() - start
+print("duration:", duration)
+
+start = time.time()
+fqp, flag_contact = jax.jit(pure_fqp_fun)(*pure_args)
+fcqp = get_contact_fcqp(fqp, flag_contact, NC, nf)
+print(fcqp)
+duration = time.time() - start
+print("duration:", duration)
+
 
 # %%
 from jbdl.experimental.ode.solve_ivp import solve_ivp

@@ -77,6 +77,7 @@ tau = 0.0
 
 ncp = 0
 
+
 def dynamics_fun(x, t, Xtree, I, contactpoint, u, a_grav, \
     contact_force_lb, contact_force_ub,  contact_pos_lb, contact_vel_lb, contact_vel_ub, mu,\
     ST, idcontact,   parent, jtype, jaxis, NB, NC, nf, ncp):

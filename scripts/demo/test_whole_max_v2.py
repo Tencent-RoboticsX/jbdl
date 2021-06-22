@@ -15,7 +15,7 @@ from jbdl.rbdl.contact.impulsive_dynamics import impulsive_dynamics_extend_core
 from jbdl.rbdl.ode.solve_ivp import integrate_dynamics
 import matplotlib
 from jbdl.rbdl.utils import ModelWrapper
-from jbdl.rbdl.contact import detect_contact, detect_contact_core
+from jbdl.rbdl.contact import detect_contact, detect_contact_core, get_contact_fcqp
 from jbdl.rbdl.contact import impulsive_dynamics, impulsive_dynamics_core
 from jbdl.rbdl.dynamics import composite_rigid_body_algorithm_core, forward_dynamics_core, inverse_dynamics_core
 from jbdl.rbdl.kinematics import *
@@ -26,6 +26,7 @@ from jax.api import device_put
 import jax.numpy as jnp
 from functools import partial
 from jbdl.experimental.ode.solve_ivp import solve_ivp
+from jax import jit
 # matplotlib.use('TkAgg')
 
 CURRENT_PATH = os.path.dirname(os.path.realpath(__file__))
@@ -113,6 +114,18 @@ def impulsive_dynamics_fun(y, t, Xtree, I, contactpoint, u, a_grav, contact_forc
     y_new = jnp.hstack([q, qdot_impulse])
     return y_new
 
+def fqp_fun(x, t, Xtree, I, contactpoint, u, a_grav, \
+    contact_force_lb, contact_force_ub,  contact_pos_lb, contact_vel_lb, contact_vel_ub, mu,\
+    ST, idcontact,   parent, jtype, jaxis, NB, NC, nf, ncp):
+    q = x[0:NB]
+    qdot = x[NB:]
+    tau = jnp.matmul(ST, u)
+    flag_contact = detect_contact_core(Xtree, q, qdot, contactpoint, contact_pos_lb, contact_vel_lb, contact_vel_ub,\
+        idcontact, parent, jtype, jaxis, NC)
+    xdot, fqp, H = dynamics_fun_extend_core(Xtree, I, q, qdot, contactpoint, tau, a_grav, contact_force_lb, contact_force_ub,\
+    idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, ncp, mu)
+    return fqp, flag_contact
+
 pure_dynamics_fun = partial(dynamics_fun, ST=ST, idcontact=idcontact, \
         parent=parent, jtype=jtype, jaxis=jaxis, NB=NB, NC=NC, nf=nf, ncp=ncp)
 
@@ -122,6 +135,8 @@ pure_events_fun = partial(events_fun, ST=ST, idcontact=idcontact, \
 pure_impulsive_fun =  partial(impulsive_dynamics_fun, ST=ST, idcontact=idcontact, \
     parent=parent, jtype=jtype, jaxis=jaxis, NB=NB, NC=NC, nf=nf, ncp=ncp)
 
+pure_fqp_fun = partial(fqp_fun, ST=ST, idcontact=idcontact, \
+    parent=parent, jtype=jtype, jaxis=jaxis, NB=NB, NC=NC, nf=nf, ncp=ncp)
 
 
 
@@ -175,12 +190,14 @@ for i in range(500):
     # print("u", u)
     xk = solve_ivp(pure_dynamics_fun, xk, t_eval, pure_events_fun, pure_impulsive_fun, *pure_args)[-1,:]
 
+    fqp, flag_contact = jit(pure_fqp_fun)(xk, 0.0, *pure_args)
+    fcqp = get_contact_fcqp(fqp, flag_contact, NC, nf)
 
     # xksv.append(xk)
     ax.clear()
     plot_model(model, xk[0:18], ax)
     # fcqp = np.array([0, 0, 1, 0, 0, 1])
-    # plot_contact_force(model, xk[0:7], contact_force["fc"], contact_force["fcqp"], contact_force["fcpd"], 'fcqp', ax)
+    plot_contact_force(model, xk[0:7], None, fcqp, None, 'fcqp', ax)
     ax.view_init(elev=0,azim=-90)
     ax.set_xlabel('X')
     ax.set_xlim(-0.3, -0.3+0.6)

@@ -27,3 +27,19 @@ def get_contact_force(model: dict, fqp: np.ndarray, fpd: np.ndarray, flag_contac
     fcpd = fcpd.reshape(-1, 1)
     return fc, fcqp, fcpd
 
+
+def get_contact_fcqp(fqp, flag_contact, NC, nf):
+    fqp = fqp.flatten()
+    fcqp = np.zeros((3*NC,))
+
+    k = 0
+    for i in range(NC):
+        if flag_contact[i]!=0:
+            if nf==2: # Only x/z direction
+                fcqp[3*i:3*i+3] = np.array([fqp[k*nf], 0.0, fqp[k*nf+nf-1]])
+            else: 
+                fcqp[3*i:3*i+3] = fqp[k*nf:k*nf+nf]
+            k = k+1
+    fcqp = fcqp.reshape(-1, 1)
+    return fcqp
+
