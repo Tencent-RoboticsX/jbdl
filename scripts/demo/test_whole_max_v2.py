@@ -192,12 +192,13 @@ for i in range(500):
 
     fqp, flag_contact = jit(pure_fqp_fun)(xk, 0.0, *pure_args)
     fcqp = get_contact_fcqp(fqp, flag_contact, NC, nf)
+    # print(fcqp)
 
     # xksv.append(xk)
     ax.clear()
     plot_model(model, xk[0:18], ax)
     # fcqp = np.array([0, 0, 1, 0, 0, 1])
-    plot_contact_force(model, xk[0:7], None, fcqp, None, 'fcqp', ax)
+    plot_contact_force(model, xk[0:18], None, fcqp, None, 'fcqp', ax)
     ax.view_init(elev=0,azim=-90)
     ax.set_xlabel('X')
     ax.set_xlim(-0.3, -0.3+0.6)
