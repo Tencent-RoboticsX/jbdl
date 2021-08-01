@@ -137,11 +137,6 @@ def lcp_gpu_translation(c, P, q, A, l, u, *, platform="gpu"):
         )
 
     elif platform == "gpu":
-        if gpu_ops is None:
-            raise ValueError(
-                "The 'lcp_jax' module was not compiled with CUDA support"
-            )
-
         # On the GPU, we do things a little differently and encapsulate the
             # dimension using the 'opaque' parameter
 

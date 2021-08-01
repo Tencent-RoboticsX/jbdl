@@ -50,29 +50,6 @@ set(
 )
 
 set(
-    CUOSQP_SRC
-    "${SOURCE_DIR}/cuosqp/osqp_sources/src/auxil.c"
-    "${SOURCE_DIR}/cuosqp/osqp_sources/src/ctrlc.c"
-    "${SOURCE_DIR}/cuosqp/osqp_sources/src/error.c"
-    "${SOURCE_DIR}/cuosqp/osqp_sources/src/lin_sys.c"
-    "${SOURCE_DIR}/cuosqp/osqp_sources/src/osqp_api.c"
-    "${SOURCE_DIR}/cuosqp/osqp_sources/src/polish.c"
-    "${SOURCE_DIR}/cuosqp/osqp_sources/src/proj.c"
-    "${SOURCE_DIR}/cuosqp/osqp_sources/src/scaling.c"
-    "${SOURCE_DIR}/cuosqp/osqp_sources/src/util.c"
-    "${SOURCE_DIR}/cuosqp/osqp_sources/algebra/cuda/algebra_libs.c"
-    "${SOURCE_DIR}/cuosqp/osqp_sources/algebra/cuda/matrix.cu"
-    "${SOURCE_DIR}/cuosqp/osqp_sources/algebra/cuda/vector.cu"
-    "${SOURCE_DIR}/cuosqp/osqp_sources/algebra/cuda/src/cuda_csr.cu"
-    "${SOURCE_DIR}/cuosqp/osqp_sources/algebra/cuda/src/cuda_handler.cu"
-    "${SOURCE_DIR}/cuosqp/osqp_sources/algebra/cuda/src/cuda_lin_alg.cu"
-    "${SOURCE_DIR}/cuosqp/osqp_sources/algebra/cuda/src/cuda_malloc.cu"
-    "${SOURCE_DIR}/cuosqp/osqp_sources/lin_sys/cuda/cuda_pcg/cuda_pcg_interface.c"
-    "${SOURCE_DIR}/cuosqp/osqp_sources/lin_sys/cuda/cuda_pcg/src/cuda_pcg.cu"
-)
-
-
-set(
     CUOSQP_SRC_gpu
     "${SOURCE_DIR}/lcp_gpu/kernels.cc.cu"
     "${SOURCE_DIR}/cuosqp/osqp_sources/src/auxil.c"
