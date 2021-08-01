@@ -6,7 +6,8 @@ from jbdl.experimental.tools import Pet
 from jbdl.experimental import qpoases
 from jbdl.experimental.qpoases import QProblem
 # from jbdl.experimental.cpu_ops import lcp
-from jbdl.experimental.custom_ops.lcp import lcp
+#from jbdl.experimental.custom_ops.lcp import lcp
+from jbdl.experimental.custom_ops.lcp_gpu import lcp_gpu
 import numpy as np
 print(math.__name__)
 print(tools.__name__)
@@ -33,4 +34,5 @@ k = np.array([2.0, 2.0, 3.0]).reshape(3, 1)
 lb = np.array([0.0, 0.0]).reshape(2, 1)
 ub = np.array([0.5, 5.0 ]).reshape(2, 1)
 
-print(lcp(H, f, L, k, lb, ub))
+#print(lcp(H, f, L, k, lb, ub))
+print(lcp_gpu(H, f, L, k, lb, ub))
