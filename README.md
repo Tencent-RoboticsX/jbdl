@@ -6,7 +6,7 @@ pip install -e .
 ```
 to install jbdl.
 
-If you want to install JaxRBDL with both CPU and NVidia GPU support, you must first install CUDA and CuDNN,
+If you want to install jaxRBDL with both CPU and NVidia GPU support, you must first install CUDA and CuDNN, 
 and make sure the environment variable CUDA_PATH and option -DCMAKE_CUDA_COMPILER in setup.py are set to the CUDA Toolkit install directory:
 ```
 CUDA_PATH = '/usr/local/cuda'
@@ -25,6 +25,14 @@ pip install jaxlib-0.1.68+cuda111-cp36-none-manylinux2010_x86_64.whl
 pip install jax==0.2.16
 ```
 ** A warning: Other versions of jax, jaxlib and python has not been tested. Some may lead to unpredictable errors. **
+
+Then, set the environment variable ```LCP_JAX_CUDA=yes``` to enable CUDA  CUDA support before installation:
+```
+vim ~/.bashrc
+export LCP_JAX_CUDA="yes"
+source ~/.bashrc
+```
+
 ## Examples.
 Go to demo directory under the scripts folder, and run
 ```

@@ -12,6 +12,7 @@ from shutil import copyfile, copy
 from setuptools import Extension, find_packages, setup
 from setuptools.command.build_ext import build_ext
 
+
 HERE = pathlib.Path(__file__).parent.resolve()
 
 def read(*parts):
@@ -61,11 +62,10 @@ class CMakeBuildExt(build_ext):
                 "Debug" if self.debug else "Release"
             ),
             "-DCMAKE_PREFIX_PATH={}".format(pybind11.get_cmake_dir()),
-            "-DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc",
         ]
-
-        if os.environ.get("KEPLER_JAX_CUDA", "no").lower() == "yes":
-            cmake_args.append("-DKEPLER_JAX_CUDA=yes")
+        if os.environ.get("LCP_JAX_CUDA", "no").lower() == "yes":
+            cmake_args.append("-DCUDA_SUPPORT=ON")
+            cmake_args.append("-DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc")
 
         pathlib.Path(self.build_temp).mkdir(parents=True, exist_ok=True)
         subprocess.check_call(
@@ -128,51 +128,8 @@ class CMakeBuildExt(build_ext):
         print() # Add an empty line for cleaner output
 
 
-define_macros = []
-define_macros += [('PYTHON', None)]
-
-libraries = ['cublas', 'cusparse', 'cudart']
-libraries += ['rt']
-
-# Make sure the environment variable CUDA_PATH
-# is set to the CUDA Toolkit install directory.
-CUDA_PATH = '/usr/local/cuda'
-library_dirs = [os.path.join(CUDA_PATH, 'lib64')]
-
-current_dir = os.getcwd()
-osqp_source_dir = os.path.join('src/jbdl/experimental/cuosqp/osqp_sources')
-osqp_extension_dir = os.path.join(current_dir, 'src/jbdl/experimental/cuosqp/extension')
-
-
-include_dirs = [
-    os.path.join(osqp_source_dir, 'include'),
-    os.path.join(osqp_extension_dir, 'include'),
-    numpy.get_include()]
-
-lib_name = 'libosqp.a'
-extra_objects = [os.path.join(osqp_extension_dir, 'src', lib_name)]
-
-sources_files = glob(os.path.join(osqp_extension_dir, 'src', '*.c'))
-
-compile_args = ["-O3"]
-
-packages = find_packages("src") 
-
 
 extensions = [
-    Extension('jbdl.experimental.cuosqp._osqp',
-                  define_macros=define_macros,
-                  libraries=libraries,
-                  library_dirs=library_dirs,
-                  include_dirs=include_dirs,
-                  extra_objects=extra_objects,
-                  sources=sources_files,
-                  extra_compile_args=compile_args),
-    Extension(
-        "jbdl.experimental.gpu_ops",
-        ["src/jbdl/experimental/lcp_gpu/gpu_ops.cc",
-         "src/jbdl/experimental/lcp_gpu/kernels.cc.cu",],
-    ),
     Extension(
         "jbdl.experimental.math",
         ["src/jbdl/experimental/math_bindings.cpp"],
@@ -190,6 +147,49 @@ extensions = [
         ["src/jbdl/experimental/cpu_ops_bindings.cpp"],
     ),
 ]
+
+if os.environ.get("LCP_JAX_CUDA", "no").lower() == "yes":
+    define_macros = []
+    define_macros += [('PYTHON', None)]
+
+    libraries = ['cublas', 'cusparse', 'cudart']
+    libraries += ['rt']
+
+    # Make sure the environment variable CUDA_PATH
+    # is set to the CUDA Toolkit install directory.
+    CUDA_PATH = '/usr/local/cuda'
+    library_dirs = [os.path.join(CUDA_PATH, 'lib64')]
+
+    current_dir = os.getcwd()
+    osqp_source_dir = os.path.join('src/jbdl/experimental/cuosqp/osqp_sources')
+    osqp_extension_dir = os.path.join(current_dir, 'src/jbdl/experimental/cuosqp/extension')
+
+    include_dirs = [
+        os.path.join(osqp_source_dir, 'include'),
+        os.path.join(osqp_extension_dir, 'include'),
+        numpy.get_include()]
+
+    lib_name = 'libosqp.a'
+    extra_objects = [os.path.join(osqp_extension_dir, 'src', lib_name)]
+
+    sources_files = glob(os.path.join(osqp_extension_dir, 'src', '*.c'))
+
+    compile_args = ["-O3"]
+
+    packages = find_packages("src")
+
+    extensions += [Extension('jbdl.experimental.cuosqp._osqp',
+                      define_macros=define_macros,
+                      libraries=libraries,
+                      library_dirs=library_dirs,
+                      include_dirs=include_dirs,
+                      extra_objects=extra_objects,
+                      sources=sources_files,
+                      extra_compile_args=compile_args),
+                    Extension(
+                        "jbdl.experimental.gpu_ops",
+                        ["src/jbdl/experimental/lcp_gpu/gpu_ops.cc",
+                         "src/jbdl/experimental/lcp_gpu/kernels.cc.cu", ],)]
 
 
 setup(

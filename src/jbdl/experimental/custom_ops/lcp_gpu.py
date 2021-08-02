@@ -8,16 +8,20 @@ from jax.abstract_arrays import ShapedArray
 from jbdl.experimental.custom_ops.trace import trace, expectNotImplementedError
 from jax.lib import xla_client
 #from jbdl.experimental import cpu_ops
-from jbdl.experimental import gpu_ops
 from jax.api import jit, vmap
 from jax.api import jacfwd, device_put
-from jax.lib import xla_bridge
 
 
-# Register the GPU XLA custom calls
-for name, value in gpu_ops.registrations().items():     #  gpu_lcp_double
-    if "lcp" in name:
-        xla_client.register_custom_call_target(name, value, platform="gpu")
+# If the GPU version exists, also register those
+try:
+    from jbdl.experimental import gpu_ops
+except ImportError:
+    gpu_ops = None
+else:
+    # Register the GPU XLA custom calls
+    for name, value in gpu_ops.registrations().items():     #  gpu_lcp_double
+        if "lcp" in name:
+            xla_client.register_custom_call_target(name, value, platform="gpu")
 
 
 lcp_gpu_prim = core.Primitive("lcp_gpu")
@@ -117,29 +121,13 @@ def lcp_gpu_translation(c, P, q, A, l, u, *, platform="gpu"):
     op_name = b"gpu_lcp_double"
 
     if platform == "cpu":
-        # On the CPU, we pass the size of the data as a the first input
-        # argument
-        return xla_client.ops.CustomCallWithLayout(
-            c,
-            op_name,
-            operands=(P, q, A, l, u, xla_client.ops.ConstantLiteral(c, n), xla_client.ops.ConstantLiteral(c, m)),
-            # The input shapes:
-            operand_shapes_with_layout=(
-                P_array_shape,
-                q_array_shape,
-                A_array_shape,
-                l_array_shape,
-                u_array_shape,
-                n_array_shape,
-                m_array_shape,
-            ),
-            shape_with_layout=xla_client.Shape.tuple_shape((primal_array_shape, dual_array_shape)),
-        )
+        raise ValueError("You are using the gpu version lcp. Not implemented for platform 'cpu'")
 
     elif platform == "gpu":
-        # On the GPU, we do things a little differently and encapsulate the
-            # dimension using the 'opaque' parameter
-
+        if gpu_ops is None:
+            raise ValueError(
+                "The 'lcp_gpu' module has not been compiled."
+            )
         opaque = gpu_ops.build_osqp_descriptor(n, m)
         return xla_client.ops.CustomCallWithLayout(
             c,

@@ -22,8 +22,14 @@ from jax import lax
 from jbdl.rbdl.utils import cvxopt_quadprog
 # from jbdl.rbdl.utils.lcp_quadprog import lcp_prim
 # from jbdl.experimental.custom_ops.lcp import lcp
-from jbdl.experimental.custom_ops.lcp_gpu import lcp_gpu as lcp
+# from jbdl.experimental.custom_ops.lcp_gpu import lcp_gpu as lcp
 import cvxopt
+from jax.lib import xla_bridge as xb
+if xb.get_backend().platform == 'gpu':
+    from jbdl.experimental.custom_ops.lcp_gpu import lcp_gpu as lcp
+else:
+    from jbdl.experimental.custom_ops.lcp import lcp
+
 
 def get_A(mu, nf):
     A = jnp.empty([])
