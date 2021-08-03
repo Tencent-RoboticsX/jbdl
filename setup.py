@@ -178,18 +178,23 @@ if os.environ.get("LCP_JAX_CUDA", "no").lower() == "yes":
 
     packages = find_packages("src")
 
-    extensions += [Extension('jbdl.experimental.cuosqp._osqp',
-                      define_macros=define_macros,
-                      libraries=libraries,
-                      library_dirs=library_dirs,
-                      include_dirs=include_dirs,
-                      extra_objects=extra_objects,
-                      sources=sources_files,
-                      extra_compile_args=compile_args),
-                    Extension(
-                        "jbdl.experimental.gpu_ops",
-                        ["src/jbdl/experimental/lcp_gpu/gpu_ops.cc",
-                         "src/jbdl/experimental/lcp_gpu/kernels.cc.cu", ],)]
+    extensions.append(
+        Extension('jbdl.experimental.cuosqp._osqp',
+                  define_macros=define_macros,
+                  libraries=libraries,
+                  library_dirs=library_dirs,
+                  include_dirs=include_dirs,
+                  extra_objects=extra_objects,
+                  sources=sources_files,
+                  extra_compile_args=compile_args)
+        )
+
+    extensions.append(
+        Extension(
+            "jbdl.experimental.gpu_ops",
+            ["src/jbdl/experimental/lcp_gpu/gpu_ops.cc",
+             "src/jbdl/experimental/lcp_gpu/kernels.cc.cu", ], )
+        )
 
 
 setup(
