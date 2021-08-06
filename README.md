@@ -27,15 +27,15 @@ the folder under /usr/local/cuda.
 
 Take installation with CUDA 11.1 for example:
 ```
-wget https://storage.googleapis.com/jax-releases/cuda111/jaxlib-0.1.68+cuda111-cp36-none-manylinux2010_x86_64.whl
-pip install jaxlib-0.1.68+cuda111-cp36-none-manylinux2010_x86_64.whl
-pip install jax==0.2.16
+pip install --upgrade pip
+pip install --upgrade "jax[cuda111]" -f https://storage.googleapis.com/jax-releases/jax_releases.html
 ```
+
 ** A warning: Other versions of jax, jaxlib and python has not been tested. Some may lead to unpredictable errors. **
 
-Then, set the environment variable ```LCP_JAX_CUDA=yes``` to enable CUDA support before installation:
+Then, set the environment variable ```WITH_JAX_CUDA=yes``` to enable CUDA support before installation:
 ```
-export LCP_JAX_CUDA=yes
+export WITH_JAX_CUDA=yes
 ```
 
 ## Examples.

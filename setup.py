@@ -63,7 +63,7 @@ class CMakeBuildExt(build_ext):
             ),
             "-DCMAKE_PREFIX_PATH={}".format(pybind11.get_cmake_dir()),
         ]
-        if os.environ.get("LCP_JAX_CUDA", "no").lower() == "yes":
+        if os.environ.get("WITH_JAX_CUDA", "no").lower() == "yes":
             cmake_args.append("-DCUDA_SUPPORT=ON")
             cmake_args.append("-DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc")
 
@@ -148,7 +148,7 @@ extensions = [
     ),
 ]
 
-if os.environ.get("LCP_JAX_CUDA", "no").lower() == "yes":
+if os.environ.get("WITH_JAX_CUDA", "no").lower() == "yes":
     define_macros = []
     define_macros += [('PYTHON', None)]
 
