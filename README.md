@@ -19,7 +19,8 @@ CUDA_PATH = '/usr/local/cuda'
 -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc
 ```
 
-The jaxlib version must correspond to the version of the existing CUDA installation you want to use:
+The jaxlib version must correspond to the version of the existing CUDA installation. In ubuntu, you can check the cuda version by cheking
+the folder under /usr/local/cuda.
 * For CUDA 11.1, use cuda111. 
 * For CUDA 11.0, use cuda110.
 * Other CUDA versions has not been tested with jaxRBDL(cuosqp).
