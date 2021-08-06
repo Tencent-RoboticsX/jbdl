@@ -199,13 +199,13 @@ if os.environ.get("WITH_JAX_CUDA", "no").lower() == "yes":
 
 setup(
     name="jbdl",
-    version="0.1.0",
+    version="0.0.89",
     author="mikechzhou",
     author_email="mikechzhou@tencent.com",
     url="https://git.woa.com/AgentLearningRobotX/jbdl",
     license="MIT",
     description=(
-        "A simple demonstration of how you can extend JAX with custom C++ and "
+        "A Jax Physical Body Dynamic Library with GPU Support"
         "CUDA ops"
     ),
     long_description=read("README.md"),
