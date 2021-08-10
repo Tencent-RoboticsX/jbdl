@@ -41,11 +41,11 @@ export WITH_JAX_CUDA=yes
 ## Examples.
 Go to demo directory under the scripts folder, and run
 ```
-python test_half_max_v5.py
+python test_experimental_math.py
 ```
 or 
 ```
-python test_whole_max_v2.py
+python test_half_max_v5.py
 ```
 to test the functionality of jbdl.
  
