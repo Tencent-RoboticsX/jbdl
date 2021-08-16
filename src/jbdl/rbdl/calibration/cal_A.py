@@ -59,10 +59,10 @@ def phi_to_I(phi):
     return jnp.concatenate([np.zeros((5, 6, 6)), I], axis=0)
 
 
-def use_dyn_core(Xtree, phi, parent, jtype, jaxis, NB, q, qdot, qddot, a_grav):
+def use_dyn_core(x_tree, phi, parent, jtype, jaxis, NB, q, qdot, qddot, a_grav):
     I = phi_to_I(phi)
     return inverse_dynamics_core(
-        Xtree, I, parent, jtype, jaxis, NB, q, qdot, qddot, a_grav
+        x_tree, I, parent, jtype, jaxis, NB, q, qdot, qddot, a_grav
     )
 
 
@@ -79,7 +79,7 @@ if __name__ == "__main__":
     q = np.random.rand(NB)
     qdot = np.random.rand(NB)
     qddot = np.random.rand(NB)
-    Xtree = np.array(model["Xtree"])
+    x_tree = np.array(model["x_tree"])
     phi = I_to_phi(np.array(model["I"]))
     parent = tuple(model["parent"])
     jtype = tuple(model["jtype"])
@@ -88,7 +88,7 @@ if __name__ == "__main__":
     a_grav = np.array(model["a_grav"]).reshape((6, 1))
     # get A
     A_jax = jax_grad_jit(
-        Xtree,
+        x_tree,
         phi,
         parent,
         jtype,

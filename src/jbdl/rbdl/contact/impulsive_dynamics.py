@@ -9,8 +9,8 @@ from functools import partial
 from jbdl.rbdl.utils import xyz2int
 
 # @partial(jit, static_argnums=(5, 6, 7, 8, 9, 10, 11, 12, 13))
-def impulsive_dynamics_core(Xtree, q, qdot, contactpoint, H, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, rankJc):
-    Jc = calc_contact_jacobian_core(Xtree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
+def impulsive_dynamics_core(x_tree, q, qdot, contactpoint, H, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, rankJc):
+    Jc = calc_contact_jacobian_core(x_tree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
 
     # Calcualet implusive dynamics for qdot after impulsive
     A0 = jnp.hstack([H, -jnp.transpose(Jc)])
@@ -25,8 +25,8 @@ def impulsive_dynamics_core(Xtree, q, qdot, contactpoint, H, idcontact, flag_con
     qdot_impulse = jnp.reshape(QdotI[0:NB], (-1, 1))
     return qdot_impulse
 
-def impulsive_dynamics_extend_core(Xtree, q, qdot, contactpoint, H, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf):
-    Jc = calc_contact_jacobian_extend_core(Xtree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
+def impulsive_dynamics_extend_core(x_tree, q, qdot, contactpoint, H, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf):
+    Jc = calc_contact_jacobian_extend_core(x_tree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
     rankJc = nf * NC
     # Calcualet implusive dynamics for qdot after impulsive
     A0 = jnp.hstack([H, -jnp.transpose(Jc)])
@@ -51,7 +51,7 @@ def impulsive_dynamics(model: dict, q: np.ndarray, qdot: np.ndarray, flag_contac
     NC = int(model["NC"])
     NB = int(model["NB"])
     nf = int(model["nf"])
-    Xtree = model["Xtree"]
+    x_tree = model["x_tree"]
     contactpoint = model["contactpoint"],
     idcontact = tuple(model["idcontact"])
     parent = tuple(model["parent"])
@@ -62,7 +62,7 @@ def impulsive_dynamics(model: dict, q: np.ndarray, qdot: np.ndarray, flag_contac
     H = model["H"]
     rankJc = int(np.sum( [1 for item in flag_contact if item != 0]) * model["nf"])
 
-    qdot_impulse = impulsive_dynamics_core(Xtree, q, qdot, contactpoint, H, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, rankJc)
+    qdot_impulse = impulsive_dynamics_core(x_tree, q, qdot, contactpoint, H, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, rankJc)
     return qdot_impulse
 
 

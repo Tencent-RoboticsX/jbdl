@@ -9,11 +9,11 @@ from functools import partial
 from jbdl.rbdl.utils import xyz2int
 
 @partial(jit, static_argnums=(1, 2, 3, 4))
-def calc_body_to_base_coordinates_core(Xtree, parent, jtype, jaxis, body_id, q, point_pos):
+def calc_body_to_base_coordinates_core(x_tree, parent, jtype, jaxis, body_id, q, point_pos):
     X0 = []
     for i in range(body_id):
         XJ, _ = joint_model(jtype[i], jaxis[i], q[i])
-        Xup = jnp.matmul(XJ, Xtree[i])
+        Xup = jnp.matmul(XJ, x_tree[i])
         if parent[i] == 0:
             X0.append(Xup)
         else:
@@ -31,6 +31,6 @@ def calc_body_to_base_coordinates(model: dict, q: np.ndarray, body_id: int, poin
     jtype = model['jtype']
     jaxis = xyz2int(model['jaxis'])
     parent = model['parent']
-    Xtree = model['Xtree']
-    pos = calc_body_to_base_coordinates_core(Xtree, tuple(parent), tuple(jtype), tuple(jaxis), body_id, q, point_pos)
+    x_tree = model['x_tree']
+    pos = calc_body_to_base_coordinates_core(x_tree, tuple(parent), tuple(jtype), tuple(jaxis), body_id, q, point_pos)
     return pos

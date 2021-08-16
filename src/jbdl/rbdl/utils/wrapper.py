@@ -31,12 +31,12 @@ class ModelWrapper(object):
             self._model = model
 
     @property
-    def Xtree(self):
-        Xtree = self._model["Xtree"]
-        while type(Xtree[0]) is not np.ndarray:
-            Xtree = Xtree[0]
-        Xtree = [Xtree[i].copy() for i in range(len(Xtree))]
-        return Xtree
+    def x_tree(self):
+        x_tree = self._model["x_tree"]
+        while type(x_tree[0]) is not np.ndarray:
+            x_tree = x_tree[0]
+        x_tree = [x_tree[i].copy() for i in range(len(x_tree))]
+        return x_tree
 
 
     @property
@@ -330,7 +330,7 @@ class ModelWrapper(object):
         model["a_grav"] = self.a_grav
         model["jtype"] = self.jtype
         model["jaxis"] = self.jaxis
-        model["Xtree"] = self.Xtree
+        model["x_tree"] = self.x_tree
         model["I"] = self.I
         model["parent"] = self.parent
         model["idcomplot"] = self.idcomplot
@@ -361,7 +361,7 @@ class ModelWrapper(object):
         model = dict() 
         for key, value in json_model.items():
             model[key] = value
-            if key in ["Xtree", "I", "CoM", "linkplot", "contactpoint", "Inertia"]:
+            if key in ["x_tree", "I", "CoM", "linkplot", "contactpoint", "Inertia"]:
                 model[key] = [np.asarray(elem) for elem in value]
             elif key in ["a_grav", "Mass", "ST"]:
                 model[key] = np.asfarray(value)

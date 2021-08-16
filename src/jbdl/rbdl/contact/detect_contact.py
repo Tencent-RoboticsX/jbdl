@@ -61,15 +61,15 @@ def determin_contact_type(pos: np.ndarray, vel: np.ndarray, contact_cond: dict)-
     return contact_type
 
 @partial(jit, static_argnums=(7, 8, 9, 10, 11))
-def detect_contact_core(Xtree, q, qdot, contactpoint, contact_pos_lb, contact_vel_lb, contact_vel_ub,\
+def detect_contact_core(x_tree, q, qdot, contactpoint, contact_pos_lb, contact_vel_lb, contact_vel_ub,\
     idcontact, parent, jtype, jaxis, NC):
     # flag_contact_list = []
     end_pos_list = []
     end_vel_list = []
     for i in range(NC):
         # Calcualte pos and vel of foot endpoint, column vector
-        endpos_item = calc_body_to_base_coordinates_core(Xtree, parent, jtype, jaxis, idcontact[i], q, contactpoint[i])
-        endvel_item = calc_point_velocity_core(Xtree, parent, jtype, jaxis, idcontact[i], q, qdot, contactpoint[i])
+        endpos_item = calc_body_to_base_coordinates_core(x_tree, parent, jtype, jaxis, idcontact[i], q, contactpoint[i])
+        endvel_item = calc_point_velocity_core(x_tree, parent, jtype, jaxis, idcontact[i], q, qdot, contactpoint[i])
         end_pos_list.append(endpos_item)
         end_vel_list.append(endvel_item)
 
@@ -84,7 +84,7 @@ def detect_contact_core(Xtree, q, qdot, contactpoint, contact_pos_lb, contact_ve
 def detect_contact(model: dict, q: np.ndarray, qdot: np.ndarray)->np.ndarray:
     contact_cond = model["contact_cond"]
     NC = int(model["NC"])
-    Xtree = model["Xtree"]
+    x_tree = model["x_tree"]
     contactpoint = model["contactpoint"],
     idcontact = tuple(model["idcontact"])
     parent = tuple(model["parent"])
@@ -94,7 +94,7 @@ def detect_contact(model: dict, q: np.ndarray, qdot: np.ndarray)->np.ndarray:
     contact_pos_lb = contact_cond["contact_pos_lb"]
     contact_vel_lb = contact_cond["contact_vel_lb"]
     contact_vel_ub = contact_cond["contact_vel_ub"]
-    flag_contact = detect_contact_core(Xtree, q, qdot, contactpoint, contact_pos_lb, contact_vel_lb, contact_vel_ub, idcontact, parent, jtype, jaxis, NC)
+    flag_contact = detect_contact_core(x_tree, q, qdot, contactpoint, contact_pos_lb, contact_vel_lb, contact_vel_ub, idcontact, parent, jtype, jaxis, NC)
     # flag_contact = DeterminContactTypeCore(end_pos, end_vel, )
 
     return tuple(flag_contact)

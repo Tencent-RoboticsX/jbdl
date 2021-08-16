@@ -7,7 +7,7 @@ from functools import partial
 from jbdl.rbdl.utils import xyz2int
 
 @partial(jit, static_argnums=(1, 2, 3, 4))
-def calc_point_velocity_core(Xtree, parent, jtype, jaxis, body_id, q, qdot, point_pos):
+def calc_point_velocity_core(x_tree, parent, jtype, jaxis, body_id, q, qdot, point_pos):
     X0 = []
     Xup = []
     S = []
@@ -17,7 +17,7 @@ def calc_point_velocity_core(Xtree, parent, jtype, jaxis, body_id, q, qdot, poin
         XJ, Si = joint_model(jtype[i], jaxis[i], q[i])
         S.append(Si)
         vJ = jnp.multiply(S[i], qdot[i])
-        Xup = jnp.matmul(XJ, Xtree[i])
+        Xup = jnp.matmul(XJ, x_tree[i])
         if parent[i] == 0:
             v.append(vJ)
             X0.append(Xup)
@@ -40,6 +40,6 @@ def calc_point_velocity(model: dict, q: np.ndarray, qdot: np.ndarray, body_id: i
     jtype = tuple(model['jtype'])
     jaxis = xyz2int(model['jaxis'])
     parent = tuple(model['parent'])
-    Xtree = model['Xtree']
-    vel = calc_point_velocity_core(Xtree, tuple(parent), tuple(jtype), jaxis, body_id, q, qdot, point_pos)
+    x_tree = model['x_tree']
+    vel = calc_point_velocity_core(x_tree, tuple(parent), tuple(jtype), jaxis, body_id, q, qdot, point_pos)
     return vel

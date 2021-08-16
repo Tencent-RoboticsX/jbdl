@@ -8,7 +8,7 @@ from jbdl.rbdl.utils import xyz2int
 
 
 @partial(jit, static_argnums=(1, 2, 3, 4, 5))
-def calc_point_jacobian_derivative_core(Xtree, parent, jtype, jaxis, body_id, NB, q, qdot, point_pos):
+def calc_point_jacobian_derivative_core(x_tree, parent, jtype, jaxis, body_id, NB, q, qdot, point_pos):
 
     S = []
     Xup = []
@@ -19,7 +19,7 @@ def calc_point_jacobian_derivative_core(Xtree, parent, jtype, jaxis, body_id, NB
         XJ, Si = joint_model(jtype[i], jaxis[i], q[i])
         S.append(Si)
         vJ = jnp.multiply(S[i], qdot[i])
-        Xup.append(jnp.matmul(XJ, Xtree[i]))
+        Xup.append(jnp.matmul(XJ, x_tree[i]))
         if parent[i] == 0:
             v.append(vJ)
             X0.append(Xup[i])
@@ -67,7 +67,7 @@ def calc_point_jacobian_derivative(model: dict, q: np.ndarray, qdot: np.ndarray,
     jaxis = xyz2int(model['jaxis'])
     parent = tuple(model['parent'])
     NB = model["NB"]
-    Xtree = model['Xtree']
+    x_tree = model['x_tree']
 
-    JDot = calc_point_jacobian_derivative_core(Xtree, tuple(parent), tuple(jtype), jaxis, body_id, NB, q, qdot, point_pos)
+    JDot = calc_point_jacobian_derivative_core(x_tree, tuple(parent), tuple(jtype), jaxis, body_id, NB, q, qdot, point_pos)
     return JDot

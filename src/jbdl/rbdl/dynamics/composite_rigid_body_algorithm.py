@@ -12,7 +12,7 @@ from jbdl.rbdl.utils import xyz2int
 
 
 @partial(jit, static_argnums=(2, 3, 4, 5))
-def composite_rigid_body_algorithm_core(Xtree, I, parent, jtype, jaxis, NB, q):
+def composite_rigid_body_algorithm_core(x_tree, I, parent, jtype, jaxis, NB, q):
     # print("Re-Tracing")
 
     IC = I.copy()
@@ -23,7 +23,7 @@ def composite_rigid_body_algorithm_core(Xtree, I, parent, jtype, jaxis, NB, q):
     for i in range(NB):
         XJ, Si = joint_model(jtype[i], jaxis[i], q[i])
         S.append(Si)
-        Xup.append(jnp.matmul(XJ, Xtree[i]))
+        Xup.append(jnp.matmul(XJ, x_tree[i]))
 
 
     for j in range(NB-1, -1, -1):
@@ -54,11 +54,11 @@ def composite_rigid_body_algorithm(model: dict, q):
     jtype = tuple(model["jtype"])
     jaxis = xyz2int(model['jaxis'])
     parent = tuple(model['parent'])
-    Xtree = model["Xtree"]
+    x_tree = model["x_tree"]
     I = model["I"]
 
     q = q.flatten()
-    H = composite_rigid_body_algorithm_core(Xtree, I, tuple(parent), tuple(jtype), jaxis, NB, q)
+    H = composite_rigid_body_algorithm_core(x_tree, I, tuple(parent), tuple(jtype), jaxis, NB, q)
 
     return H
 

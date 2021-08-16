@@ -8,7 +8,7 @@ from jbdl.rbdl.utils import xyz2int
 
 
 @partial(jit, static_argnums=(2, 3, 4, 5))
-def forward_dynamics_core(Xtree, I, parent, jtype, jaxis, NB, q, qdot, tau, a_grav):  
+def forward_dynamics_core(x_tree, I, parent, jtype, jaxis, NB, q, qdot, tau, a_grav):  
     S = []
     Xup = []
     v = []
@@ -20,7 +20,7 @@ def forward_dynamics_core(Xtree, I, parent, jtype, jaxis, NB, q, qdot, tau, a_gr
         XJ, Si = joint_model(jtype[i], jaxis[i], q[i])
         S.append(Si)
         vJ = jnp.multiply(S[i], qdot[i])
-        Xup.append(jnp.matmul(XJ, Xtree[i]))
+        Xup.append(jnp.matmul(XJ, x_tree[i]))
         if parent[i] == 0:
             v.append(vJ)
             c.append(jnp.zeros((6, 1)))
@@ -70,10 +70,10 @@ def forward_dynamics(model, q, qdot, tau):
     jtype = tuple(model["jtype"])
     jaxis = xyz2int(model["jaxis"])
     parent = tuple(model["parent"])
-    Xtree = model["Xtree"]
+    x_tree = model["x_tree"]
     I = model["I"]
 
-    qddot = forward_dynamics_core(Xtree, I, tuple(parent), tuple(jtype), jaxis, NB, q, qdot, tau, a_grav)
+    qddot = forward_dynamics_core(x_tree, I, tuple(parent), tuple(jtype), jaxis, NB, q, qdot, tau, a_grav)
     return qddot
 
 

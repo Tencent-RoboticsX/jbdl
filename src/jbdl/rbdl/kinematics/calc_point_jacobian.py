@@ -7,7 +7,7 @@ from functools import partial
 from jbdl.rbdl.utils import xyz2int
 
 @partial(jit, static_argnums=(1, 2, 3, 4, 5))
-def calc_point_jacobian_core(Xtree, parent, jtype, jaxis, NB, body_id, q, point_pos):
+def calc_point_jacobian_core(x_tree, parent, jtype, jaxis, NB, body_id, q, point_pos):
     S = []
     Xup = []
     X0 = []
@@ -15,7 +15,7 @@ def calc_point_jacobian_core(Xtree, parent, jtype, jaxis, NB, body_id, q, point_
     for i in range(body_id):
         XJ, Si = joint_model(jtype[i], jaxis[i], q[i])
         S.append(Si)
-        Xup.append(jnp.matmul(XJ, Xtree[i]))
+        Xup.append(jnp.matmul(XJ, x_tree[i]))
         if parent[i] == 0:
             X0.append(Xup[i])
         else:
@@ -44,7 +44,7 @@ def calc_point_jacobian(model: dict, q: np.ndarray, body_id: int, point_pos: np.
     jaxis = xyz2int(model['jaxis'])
     parent = tuple(model['parent'])
     NB = model["NB"]
-    Xtree = model['Xtree']
+    x_tree = model['x_tree']
 
-    J = calc_point_jacobian_core(Xtree, tuple(parent), tuple(jtype), jaxis, NB, body_id, q, point_pos)
+    J = calc_point_jacobian_core(x_tree, tuple(parent), tuple(jtype), jaxis, NB, body_id, q, point_pos)
     return J

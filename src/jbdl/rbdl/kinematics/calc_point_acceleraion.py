@@ -7,7 +7,7 @@ from functools import partial
 from jbdl.rbdl.utils import xyz2int
 
 @partial(jit, static_argnums=(1, 2, 3, 4))
-def calc_point_acceleration_core(Xtree, parent, jtype, jaxis, body_id, q, qdot, qddot, point_pos):
+def calc_point_acceleration_core(x_tree, parent, jtype, jaxis, body_id, q, qdot, qddot, point_pos):
     Xup = []
     v = []
     avp = []
@@ -16,7 +16,7 @@ def calc_point_acceleration_core(Xtree, parent, jtype, jaxis, body_id, q, qdot, 
     for i in range(body_id):
         XJ, Si = joint_model(jtype[i], jaxis[i], q[i])
         vJ = jnp.multiply(Si,  qdot[i])
-        Xup.append(jnp.matmul(XJ, Xtree[i]))
+        Xup.append(jnp.matmul(XJ, x_tree[i]))
         if parent[i] == 0:
             v.append(vJ)
             avp.append(jnp.matmul(Xup[i], jnp.zeros((6, 1))))
@@ -47,7 +47,7 @@ def calc_point_acceleration(model: dict, q: np.ndarray, qdot: np.ndarray, qddot:
     jtype = tuple(model['jtype'])
     jaxis = xyz2int(model['jaxis'])
     parent = tuple(model['parent'])
-    Xtree = model['Xtree']
+    x_tree = model['x_tree']
 
-    acc = calc_point_acceleration_core(Xtree, tuple(parent), tuple(jtype), jaxis, body_id, q, qdot, qddot, point_pos)
+    acc = calc_point_acceleration_core(x_tree, tuple(parent), tuple(jtype), jaxis, body_id, q, qdot, qddot, point_pos)
     return acc

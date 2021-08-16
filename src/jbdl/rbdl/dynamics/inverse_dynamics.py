@@ -7,7 +7,7 @@ from functools import partial
 from jbdl.rbdl.utils import xyz2int
 
 @partial(jit, static_argnums=(2, 3, 4, 5))
-def inverse_dynamics_core(Xtree, I, parent, jtype, jaxis, NB, q, qdot, qddot, a_grav):
+def inverse_dynamics_core(x_tree, I, parent, jtype, jaxis, NB, q, qdot, qddot, a_grav):
     S = []
     Xup = []
     v = []
@@ -18,7 +18,7 @@ def inverse_dynamics_core(Xtree, I, parent, jtype, jaxis, NB, q, qdot, qddot, a_
         XJ, Si = joint_model(jtype[i], jaxis[i], q[i])
         S.append(Si)
         vJ = jnp.multiply(S[i], qdot[i])
-        Xup.append(jnp.matmul(XJ, Xtree[i]))
+        Xup.append(jnp.matmul(XJ, x_tree[i]))
         if parent[i] == 0:
             v.append(vJ)
             avp.append(jnp.matmul(Xup[i], -a_grav) + S[i] * qddot[i])
@@ -48,10 +48,10 @@ def inverse_dynamics(model, q, qdot, qddot):
     jtype = tuple(model["jtype"])
     jaxis = xyz2int(model["jaxis"])
     parent = tuple(model["parent"])
-    Xtree = model["Xtree"]
+    x_tree = model["x_tree"]
     I = model["I"]
 
-    tau = inverse_dynamics_core(Xtree, I, tuple(parent), tuple(jtype), jaxis, NB, q, qdot, qddot, a_grav)
+    tau = inverse_dynamics_core(x_tree, I, tuple(parent), tuple(jtype), jaxis, NB, q, qdot, qddot, a_grav)
     return tau 
 
 
