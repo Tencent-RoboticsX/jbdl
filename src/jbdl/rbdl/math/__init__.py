@@ -3,7 +3,7 @@ from .inverse_motion_space import inverse_motion_space
 from .spatial_transform import spatial_transform
 from .cross_motion_space import cross_motion_space
 from .cross_force_space import cross_force_space
-from .Xrotx import Xrotx
-from .Xroty import Xroty
-from .Xrotz import Xrotz
-from .Xtrans import Xtrans
+from .x_rotx import x_rotx
+from .x_roty import x_roty
+from .x_rotz import x_rotz
+from .x_trans import x_trans

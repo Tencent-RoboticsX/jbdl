@@ -3,7 +3,7 @@ import jax.numpy as jnp
 
 
 @jit
-def Xrotx(theta):
+def x_rotx(theta):
     c = jnp.cos(theta)
     s = jnp.sin(theta)
     X = jnp.array([[1.0, 0.0, 0.0, 0.0, 0.0, 0.0],
@@ -17,5 +17,5 @@ def Xrotx(theta):
 if __name__ == "__main__":
     import math
     from jax import make_jaxpr
-    print(make_jaxpr(Xrotx)(math.pi))
-    print(Xrotx(math.pi))
+    print(make_jaxpr(x_rotx)(math.pi))
+    print(x_rotx(math.pi))

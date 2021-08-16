@@ -2,7 +2,7 @@ import jax.numpy as jnp
 from jax.api import jit
 
 @jit
-def Xrotz(theta):  
+def x_rotz(theta):  
     c = jnp.cos(theta)
     s = jnp.sin(theta)
     X = jnp.array([[c, s, 0.0, 0.0, 0.0, 0.0],
@@ -16,5 +16,5 @@ def Xrotz(theta):
 if __name__ == "__main__":
     import math
     from jax import make_jaxpr
-    print(make_jaxpr(Xrotz)(math.pi))
-    print(Xrotz(math.pi))
+    print(make_jaxpr(x_rotz)(math.pi))
+    print(x_rotz(math.pi))

@@ -1,6 +1,6 @@
 import numpy as np
 import jax.numpy as jnp
-from jbdl.rbdl.math import cross_motion_space, Xtrans
+from jbdl.rbdl.math import cross_motion_space, x_trans
 from jbdl.rbdl.model import joint_model
 from jax.api import jit
 from functools import partial
@@ -27,7 +27,7 @@ def calc_point_acceleration_core(x_tree, parent, jtype, jaxis, body_id, q, qdot,
             X0.append(jnp.matmul(Xup[i], X0[parent[i]-1]))
 
     E_point = X0[body_id-1][0:3,0:3]
-    XT_point = Xtrans(point_pos)
+    XT_point = x_trans(point_pos)
     vel_p = jnp.matmul(XT_point, v[body_id-1])
     avp_p = jnp.matmul(XT_point, avp[body_id-1])
     

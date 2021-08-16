@@ -1,7 +1,7 @@
 import numpy as np
 import jax.numpy as jnp
 from jbdl.rbdl.model import joint_model
-from jbdl.rbdl.math import Xtrans, inverse_motion_space
+from jbdl.rbdl.math import x_trans, inverse_motion_space
 from jax.api import jit
 from functools import partial
 from jbdl.rbdl.utils import xyz2int
@@ -21,7 +21,7 @@ def calc_point_jacobian_core(x_tree, parent, jtype, jaxis, NB, body_id, q, point
         else:
             X0.append(jnp.matmul(Xup[i], X0[parent[i]-1]))
 
-    XT_point = Xtrans(point_pos)
+    XT_point = x_trans(point_pos)
     X0_point = jnp.matmul(XT_point, X0[body_id-1])
 
     j_p = body_id - 1

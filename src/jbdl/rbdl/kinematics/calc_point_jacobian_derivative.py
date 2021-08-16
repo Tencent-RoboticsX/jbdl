@@ -2,7 +2,7 @@ import numpy as np
 import jax.numpy as jnp
 from jax.api import jit
 from jbdl.rbdl.model import joint_model
-from jbdl.rbdl.math import Xtrans, cross_motion_space, inverse_motion_space
+from jbdl.rbdl.math import x_trans, cross_motion_space, inverse_motion_space
 from functools import partial
 from jbdl.rbdl.utils import xyz2int
 
@@ -27,7 +27,7 @@ def calc_point_jacobian_derivative_core(x_tree, parent, jtype, jaxis, body_id, N
             v.append(jnp.add(jnp.matmul(Xup[i], v[parent[i]-1]), vJ))
             X0.append(jnp.matmul(Xup[i], X0[parent[i]-1]))
 
-    XT_point = Xtrans(point_pos)
+    XT_point = x_trans(point_pos)
     X0_point = jnp.matmul(XT_point, X0[body_id-1])
     v_point = jnp.matmul(XT_point, v[body_id-1])
 

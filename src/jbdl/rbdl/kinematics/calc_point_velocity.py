@@ -1,6 +1,6 @@
 import numpy as np
 from jbdl.rbdl.model import joint_model
-from jbdl.rbdl.math import Xtrans
+from jbdl.rbdl.math import x_trans
 import jax.numpy as jnp
 from jax.api import jit
 from functools import partial
@@ -25,7 +25,7 @@ def calc_point_velocity_core(x_tree, parent, jtype, jaxis, body_id, q, qdot, poi
             v.append(jnp.add(jnp.matmul(Xup, v[parent[i] - 1]), vJ))
             X0.append(jnp.matmul(Xup, X0[parent[i] - 1]))
     
-    XT_point = Xtrans(point_pos)
+    XT_point = x_trans(point_pos)
     X0_point = jnp.matmul(XT_point,  X0[body_id-1])
     vel_spatial = jnp.matmul(XT_point, v[body_id-1])
     vel = jnp.matmul(jnp.transpose(X0_point[0:3,0:3]), vel_spatial[3:6])

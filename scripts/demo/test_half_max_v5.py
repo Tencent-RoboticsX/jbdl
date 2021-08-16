@@ -157,7 +157,7 @@ print(xkp1[-1, :])
 
 
 # %%
-%matplotlib 
+# %matplotlib 
 
 q0 = np.array([0,  0.5, 0, math.pi/6, -math.pi/6, -math.pi/3, math.pi/3]) # stand with leg in
 qdot0 = jnp.zeros((7, ))

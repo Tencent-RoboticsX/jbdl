@@ -1,4 +1,4 @@
-from jbdl.rbdl.math import Xrotx, Xroty, Xrotz, Xtrans
+from jbdl.rbdl.math import x_rotx, x_roty, x_rotz, x_trans
 import jax.numpy as jnp
 from functools import partial
 from jax.api import jit
@@ -11,26 +11,26 @@ def joint_model(jtype: int, jaxis: int, q: float):
         # revolute joint
         # print("revolute joint")
         if jaxis == 0:
-            Xj = Xrotx(q)
+            Xj = x_rotx(q)
             S = jnp.array([[1.0], [0.0], [0.0], [0.0], [0.0], [0.0]])
         if jaxis == 1:
-            Xj = Xroty(q)
+            Xj = x_roty(q)
             S = jnp.array([[0.0], [1.0], [0.0], [0.0], [0.0], [0.0]])
         if jaxis == 2:
-            Xj = Xrotz(q)
+            Xj = x_rotz(q)
             S = jnp.array([[0.0], [0.0], [1.0], [0.0], [0.0], [0.0]])
     if jtype == 1:
         # prismatic joint
         # print("prismatic joint")
         # print(jaxis)
         if jaxis == 0:
-            Xj = Xtrans(jnp.array([[q], [0.0], [0.0]]))
+            Xj = x_trans(jnp.array([[q], [0.0], [0.0]]))
             S = jnp.array([[0.0], [0.0], [0.0], [1.0], [0.0], [0.0]])
         if jaxis == 1:
-            Xj = Xtrans(jnp.array([[0.0], [q], [0.0]]))
+            Xj = x_trans(jnp.array([[0.0], [q], [0.0]]))
             S = jnp.array([[0.0], [0.0], [0.0], [0.0], [1.0], [0.0]])
         if jaxis == 2:
-            Xj = Xtrans(jnp.array([[0.0], [0.0], [q]]))
+            Xj = x_trans(jnp.array([[0.0], [0.0], [q]]))
             S = jnp.array([[0.0], [0.0], [0.0], [0.0], [0.0], [1.0]])
     
     return (Xj, S)
