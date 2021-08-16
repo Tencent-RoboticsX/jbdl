@@ -10,11 +10,11 @@ def plot_contact_force(model: dict, q: np.ndarray, fc: Optional[np.ndarray] , fc
         return
     
     fplot = None
-    if fwho == "fc":
+    if fwho == "fc" and fc is not None:
         fplot = fc.flatten()
-    if fwho == "fcqp":
+    if fwho == "fcqp" and fcqp is not None:
         fplot = fcqp.flatten()
-    if fwho == "fcpd":
+    if fwho == "fcpd" and fcpd is not None:
         fplot = fcpd.flatten()
     if fplot is None:
         print("No contact force available!")

@@ -99,7 +99,7 @@ def calc_contact_jacobian_extend_core(Xtree, q, contactpoint, idcontact, flag_co
     #             Jci = J          
     #     Jc.append(Jci)
     # Jc = jnp.concatenate(Jc, axis=0)
-    return seq_Jc
+    # return seq_Jc
 
 # @partial(jit, static_argnums=(3, 4, 5, 6, 7, 8, 9, 10))
 def calc_contact_jacobian_core(Xtree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf):
