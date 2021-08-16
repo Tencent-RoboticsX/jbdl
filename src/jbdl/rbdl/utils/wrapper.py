@@ -1,5 +1,6 @@
-import numpy as np
 import json
+import numpy as np
+
 
 def jsonize(py_dict: dict)->dict:
     json_model = dict()
