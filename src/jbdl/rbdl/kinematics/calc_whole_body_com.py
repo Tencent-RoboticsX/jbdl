@@ -14,25 +14,24 @@ def calc_whole_body_com(model: dict, q: np.ndarray)-> np.ndarray:
     """  
     q = q.flatten()
     idcomplot = model["idcomplot"]   
-    CoM = model["CoM"]
-    Mass = model["Mass"]
-    
-    
+    com = model["CoM"]
+    mass = model["Mass"]
+
     num = len(idcomplot)
-    CoM_list = []
-    Clink = np.zeros((3,1))
+    com_list = []
+    clink = np.zeros((3,1))
     for i in range(num):
-        Clink = calc_body_to_base_coordinates(model, q, idcomplot[i], CoM[i])
-        CoM_list.append(Clink)
-    
-    C = np.zeros((3, 1))
-    M = 0
+        clink = calc_body_to_base_coordinates(model, q, idcomplot[i], com[i])
+        com_list.append(clink)
+
+    c = np.zeros((3, 1))
+    m = 0
 
     for i in range(num):
-        C = C + np.multiply(CoM_list[i], Mass[i])
-        M = M + Mass[i]
+        c = c + np.multiply(com_list[i], mass[i])
+        m = m + mass[i]
 
-    Pcom = np.asfarray(np.divide(C, M))
-    
-    return Pcom
+    pcom = np.asfarray(np.divide(c, m))
+
+    return pcom
 

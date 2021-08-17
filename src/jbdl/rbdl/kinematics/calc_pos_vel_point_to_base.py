@@ -1,9 +1,16 @@
+from typing import Tuple
 import numpy as np
 from jbdl.rbdl.kinematics import calc_body_to_base_coordinates
 from jbdl.rbdl.kinematics import calc_point_velocity
-from typing import Tuple
 
-def calc_pos_vel_point_to_base(model: dict, q: np.ndarray, qdot: np.ndarray, idbody: int, idbase: int, tarpoint: np.ndarray)->Tuple[np.ndarray, np.ndarray]:
+
+def calc_pos_vel_point_to_base(
+    model: dict,
+    q: np.ndarray,
+    qdot: np.ndarray,
+    idbody: int,
+    idbase: int,
+    tarpoint: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
     
     pos_body = calc_body_to_base_coordinates(model, q, idbody, tarpoint)
     vel_body = calc_point_velocity(model, q, qdot, idbody, tarpoint)

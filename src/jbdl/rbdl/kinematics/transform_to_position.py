@@ -1,10 +1,11 @@
-from jax.api import jit
 import jax.numpy as jnp
+from jax.api import jit
+
 
 @jit
-def transform_to_position(X):  
-    E = X[0:3, 0:3]
-    rx = -jnp.matmul(jnp.transpose(E), X[3:6, 0:3])
+def transform_to_position(x):  
+    e = x[0:3, 0:3]
+    rx = -jnp.matmul(jnp.transpose(e), x[3:6, 0:3])
     r = jnp.reshape(jnp.array([-rx[1, 2], rx[0, 2], -rx[0, 1]]), (3, 1))
     return r
 
