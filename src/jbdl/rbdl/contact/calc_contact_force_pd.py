@@ -5,7 +5,6 @@ from jbdl.rbdl.kinematics import calc_point_velocity
 
 def calc_contact_force_pd(model: dict, q: np.ndarray, qdot: np.ndarray,
     flag_contact: np.ndarray) -> np.ndarray:
-    
     nc = int(model["nc"])
     nf = int(model["nf"])
     q = q.flatten()
@@ -42,11 +41,11 @@ def calc_contact_force_pd(model: dict, q: np.ndarray, qdot: np.ndarray,
                     fpdi = np.zeros((3, 1))
                     fpdi[0, 0] = -contact_force_kp[0] * endvel[0, i]
                     fpdi[1, 0] = -contact_force_kp[1] * endvel[1, i]
-                    fpdi[2, 0] = -contact_force_kp[2] * min(endpos[2, i], 0.0) - contact_force_kd[2] * min(endvel[2, i], 0.0)
+                    fpdi[2, 0] = -contact_force_kp[2] * min(endpos[2, i], 0.0) \
+                        - contact_force_kd[2] * min(endvel[2, i], 0.0)
                 else:
                     fpdi = np.empty((0, 1))
                 fpd.append(fpdi)
         fpd = np.asfarray(np.concatenate(fpd, axis=0))
 
     return fpd
-
