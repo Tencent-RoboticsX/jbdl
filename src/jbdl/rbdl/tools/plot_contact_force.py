@@ -21,7 +21,7 @@ def plot_contact_force(model: dict, q: np.ndarray, fc: Optional[np.ndarray] , fc
         return
 
 
-    NC = model["NC"]
+    nc = model["nc"]
     idcontact = model["idcontact"]
     contactpoint = model["contactpoint"]
 

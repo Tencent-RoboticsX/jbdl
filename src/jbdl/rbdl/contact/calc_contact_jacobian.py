@@ -8,7 +8,7 @@ from jbdl.rbdl.utils import xyz2int
 from jax.tree_util import tree_flatten
 
 @partial(jit, static_argnums=(3, 5, 6, 7, 8, 9, 10))
-def calc_contact_jacobian_core_jit_flag(x_tree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf):
+def calc_contact_jacobian_core_jit_flag(x_tree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, nc, nf):
     # fbool_contact = jnp.heaviside(flag_contact, 0.0)
     # idcontact = jnp.array(idcontact, dtype=int)
     # contactpoint = jnp.vstack(contactpoint)
@@ -30,7 +30,7 @@ def calc_contact_jacobian_core_jit_flag(x_tree, q, contactpoint, idcontact, flag
 
     Jc = []
     fbool_contact = jnp.heaviside(flag_contact, 0.0)
-    for i in range(NC):
+    for i in range(nc):
         Jci = jnp.empty((0, NB))
    
         # Calculate Jacobian
@@ -46,10 +46,10 @@ def calc_contact_jacobian_core_jit_flag(x_tree, q, contactpoint, idcontact, flag
     return Jc
 
 @partial(jit, static_argnums=(3, 5, 6, 7, 8, 9, 10))
-def calc_contact_jacobian_extend_core(x_tree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf):
+def calc_contact_jacobian_extend_core(x_tree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, nc, nf):
     Jc = []
     # fbool_contact = jnp.heaviside(flag_contact, 0.0)
-    for i in range(NC):
+    for i in range(nc):
         Jci = jnp.empty((0, NB))
    
         # Calculate Jacobian
@@ -86,7 +86,7 @@ def calc_contact_jacobian_extend_core(x_tree, q, contactpoint, idcontact, flag_c
 
     # _, seq_Jc = lax.scan(f, 0, (jnp.array(flag_contact),  jnp.array(contactpoint)))
     # Jc = []
-    # for i in range(NC):
+    # for i in range(nc):
     #     Jci = jnp.empty((0, NB))
     #     if flag_contact[i] != 0.0:
     #         # Calculate Jacobian
@@ -102,9 +102,9 @@ def calc_contact_jacobian_extend_core(x_tree, q, contactpoint, idcontact, flag_c
     # return seq_Jc
 
 # @partial(jit, static_argnums=(3, 4, 5, 6, 7, 8, 9, 10))
-def calc_contact_jacobian_core(x_tree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf):
+def calc_contact_jacobian_core(x_tree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, nc, nf):
     Jc = []
-    for i in range(NC):
+    for i in range(nc):
         Jci = jnp.empty((0, NB))
         if flag_contact[i] != 0.0:
             # Calculate Jacobian
@@ -120,7 +120,7 @@ def calc_contact_jacobian_core(x_tree, q, contactpoint, idcontact, flag_contact,
     return Jc
 
 def calc_contact_jacobian(model: dict, q: np.ndarray, flag_contact: np.ndarray)->np.ndarray:
-    NC = int(model["NC"])
+    nc = int(model["nc"])
     NB = int(model["NB"])
     nf = int(model["nf"])
     x_tree = model["x_tree"]
@@ -131,12 +131,12 @@ def calc_contact_jacobian(model: dict, q: np.ndarray, flag_contact: np.ndarray)-
     jaxis = xyz2int(model["jaxis"])
     contactpoint = model["contactpoint"]
     flag_contact = flag_contact
-    Jc = calc_contact_jacobian_core(x_tree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
+    Jc = calc_contact_jacobian_core(x_tree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, nc, nf)
     return Jc
     
 
 # def calc_contact_jacobian(model: dict, q: np.ndarray, flag_contact: np.ndarray)->np.ndarray:
-#     NC = int(model["NC"])
+#     nc = int(model["nc"])
 #     NB = int(model["NB"])
 #     nf = int(model["nf"])
 #     q = q.flatten()
@@ -145,7 +145,7 @@ def calc_contact_jacobian(model: dict, q: np.ndarray, flag_contact: np.ndarray)-
 #     contactpoint = model["contactpoint"]
 
 #     Jc = []
-#     for i in range(NC):
+#     for i in range(nc):
 #         Jci = np.empty((0, NB))
 #         if flag_contact[i] != 0.0:
 #             # Calculate Jacobian

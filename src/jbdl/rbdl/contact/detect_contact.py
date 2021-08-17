@@ -62,11 +62,11 @@ def determin_contact_type(pos: np.ndarray, vel: np.ndarray, contact_cond: dict)-
 
 @partial(jit, static_argnums=(7, 8, 9, 10, 11))
 def detect_contact_core(x_tree, q, qdot, contactpoint, contact_pos_lb, contact_vel_lb, contact_vel_ub,\
-    idcontact, parent, jtype, jaxis, NC):
+    idcontact, parent, jtype, jaxis, nc):
     # flag_contact_list = []
     end_pos_list = []
     end_vel_list = []
-    for i in range(NC):
+    for i in range(nc):
         # Calcualte pos and vel of foot endpoint, column vector
         endpos_item = calc_body_to_base_coordinates_core(x_tree, parent, jtype, jaxis, idcontact[i], q, contactpoint[i])
         endvel_item = calc_point_velocity_core(x_tree, parent, jtype, jaxis, idcontact[i], q, qdot, contactpoint[i])
@@ -83,7 +83,7 @@ def detect_contact_core(x_tree, q, qdot, contactpoint, contact_pos_lb, contact_v
     
 def detect_contact(model: dict, q: np.ndarray, qdot: np.ndarray)->np.ndarray:
     contact_cond = model["contact_cond"]
-    NC = int(model["NC"])
+    nc = int(model["nc"])
     x_tree = model["x_tree"]
     contactpoint = model["contactpoint"],
     idcontact = tuple(model["idcontact"])
@@ -94,24 +94,24 @@ def detect_contact(model: dict, q: np.ndarray, qdot: np.ndarray)->np.ndarray:
     contact_pos_lb = contact_cond["contact_pos_lb"]
     contact_vel_lb = contact_cond["contact_vel_lb"]
     contact_vel_ub = contact_cond["contact_vel_ub"]
-    flag_contact = detect_contact_core(x_tree, q, qdot, contactpoint, contact_pos_lb, contact_vel_lb, contact_vel_ub, idcontact, parent, jtype, jaxis, NC)
+    flag_contact = detect_contact_core(x_tree, q, qdot, contactpoint, contact_pos_lb, contact_vel_lb, contact_vel_ub, idcontact, parent, jtype, jaxis, nc)
     # flag_contact = DeterminContactTypeCore(end_pos, end_vel, )
 
     return tuple(flag_contact)
 
 
 def detect_contact_v0(model: dict, q: np.ndarray, qdot: np.ndarray)->np.ndarray:
-    NC = int(model["NC"])
+    nc = int(model["nc"])
     contact_cond = model["contact_cond"]
     idcontact = model["idcontact"]
     contactpoint = model["contactpoint"]
 
-    flag_contact = np.zeros((NC, 1))
+    flag_contact = np.zeros((nc, 1))
 
 
     flag_contact_list = []
 
-    for i in range(NC):
+    for i in range(nc):
         # Calcualte pos and vel of foot endpoint, column vector
         endpos_item = calc_body_to_base_coordinates(model, q, idcontact[i], contactpoint[i])
         endvel_item = calc_point_velocity(model, q, qdot, idcontact[i], contactpoint[i])

@@ -6,7 +6,7 @@ import jax.numpy as jnp
 from jbdl.rbdl.utils import xyz2int
 
 def check_contact_force(model: dict, flag_contact: np.ndarray, fqp: np.ndarray):
-    NC = int(model["NC"])
+    nc = int(model["nc"])
     nf = int(model["nf"])
     flag_contact = flag_contact
 
@@ -14,7 +14,7 @@ def check_contact_force(model: dict, flag_contact: np.ndarray, fqp: np.ndarray):
     flag_newcontact = list(flag_contact)
 
     k = 0
-    for i in range(NC):
+    for i in range(nc):
         if flag_contact[i] != 0:
             if fqp[k*nf+nf-1, 0] < 0:
                 flag_newcontact[i] = 0
@@ -25,9 +25,9 @@ def check_contact_force(model: dict, flag_contact: np.ndarray, fqp: np.ndarray):
     return flag_newcontact, flag_recalc
 
 # @partial(jit, static_argnums=(7, 8, 9, 10, 11, 12, 13, 14))
-def calc_contact_force_direct_core(x_tree, q, qdot, contactpoint, H, tau, C, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf):
-    Jc = calc_contact_jacobian_core(x_tree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
-    JcdotQdot = calc_contact_jdot_qdot_core(x_tree, q, qdot, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
+def calc_contact_force_direct_core(x_tree, q, qdot, contactpoint, H, tau, C, idcontact, flag_contact, parent, jtype, jaxis, NB, nc, nf):
+    Jc = calc_contact_jacobian_core(x_tree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, nc, nf)
+    JcdotQdot = calc_contact_jdot_qdot_core(x_tree, q, qdot, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, nc, nf)
     tau = jnp.reshape(tau, (-1, 1))
     C = jnp.reshape(C, (-1, 1))
     M = jnp.matmul(Jc, jnp.linalg.solve(H, jnp.transpose(Jc)))
@@ -41,7 +41,7 @@ def calc_contact_force_direct_core(x_tree, q, qdot, contactpoint, H, tau, C, idc
     return flcp, fqp
         
 def calc_contact_force_direct(model: dict, q: np.ndarray, qdot: np.ndarray, tau: np.ndarray, flag_contact: np.ndarray):
-    NC = int(model["NC"])
+    nc = int(model["nc"])
     NB = int(model["NB"])
     nf = int(model["nf"])
     x_tree = model["x_tree"]
@@ -60,14 +60,14 @@ def calc_contact_force_direct(model: dict, q: np.ndarray, qdot: np.ndarray, tau:
     flcp = np.empty((0, 1))
     while flag_recalc:
         if np.sum(flag_contact)==0:
-            fqp = np.zeros((NC*nf, 1))
+            fqp = np.zeros((nc*nf, 1))
             flcp = np.zeros((NB, 1))
-            fc = np.zeros((3*NC,))
-            fcqp = np.zeros((3*NC,))
-            fcpd = np.zeros((3*NC,))
+            fc = np.zeros((3*nc,))
+            fcqp = np.zeros((3*nc,))
+            fcpd = np.zeros((3*nc,))
             break
 
-        flcp, fqp = calc_contact_force_direct_core(x_tree, q, qdot, contactpoint, H, tau, C, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
+        flcp, fqp = calc_contact_force_direct_core(x_tree, q, qdot, contactpoint, H, tau, C, idcontact, flag_contact, parent, jtype, jaxis, NB, nc, nf)
 
 
         # Check whether the Fz is positive
@@ -77,7 +77,7 @@ def calc_contact_force_direct(model: dict, q: np.ndarray, qdot: np.ndarray, tau:
     # Calculate contact force from PD controller
     # fpd = calc_contact_force_pd(model, q, qdot, flag_contact)
     # fc, fcqp, fcpd = get_contact_force(model, fqp, fpd, flag_contact)  
-    fpd = np.zeros((3*NC, 1))
+    fpd = np.zeros((3*nc, 1))
     fc, fcqp, fcpd = get_contact_force(model, fqp, fpd, flag_contact)  
 
     return flcp, fqp, fc, fcqp, fcpd
@@ -85,7 +85,7 @@ def calc_contact_force_direct(model: dict, q: np.ndarray, qdot: np.ndarray, tau:
 
 # def calc_contact_force_direct(model: dict, q: np.ndarray, qdot: np.ndarray, tau: np.ndarray, flag_contact: np.ndarray):
 #     NB = int(model["NB"])
-#     NC = int(model["NC"])
+#     nc = int(model["nc"])
 #     nf = int(model["nf"])
         
 #     flag_recalc = 1
@@ -93,11 +93,11 @@ def calc_contact_force_direct(model: dict, q: np.ndarray, qdot: np.ndarray, tau:
 #     flcp = np.empty((0, 1))  
 #     while flag_recalc:
 #         if np.sum(flag_contact)==0:
-#             fqp = np.zeros((NC*nf, 1))
+#             fqp = np.zeros((nc*nf, 1))
 #             flcp = np.zeros((NB, 1))
-#             fc = np.zeros((3*NC,))
-#             fcqp = np.zeros((3*NC,))
-#             fcpd = np.zeros((3*NC,))
+#             fc = np.zeros((3*nc,))
+#             fcqp = np.zeros((3*nc,))
+#             fcpd = np.zeros((3*nc,))
 #             break
 
 

@@ -265,10 +265,10 @@ def quadprog(H, f, L=None, k=None, Aeq=None, beq=None, lb=None, ub=None, options
 
 
 def solve_contact_lcp_extend_core(x_tree, q, qdot, contactpoint, H, tau, C, contact_force_lb, contact_force_ub,\
-    idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, ncp, mu):
+    idcontact, flag_contact, parent, jtype, jaxis, NB, nc, nf, ncp, mu):
 
-    Jc = calc_contact_jacobian_extend_core(x_tree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
-    JcdotQdot = calc_contact_jdot_qdot_extend_core(x_tree, q, qdot, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
+    Jc = calc_contact_jacobian_extend_core(x_tree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, nc, nf)
+    JcdotQdot = calc_contact_jdot_qdot_extend_core(x_tree, q, qdot, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, nc, nf)
     contact_force_lb = jnp.reshape(contact_force_lb, (-1,))
     contact_force_ub = jnp.reshape(contact_force_ub, (-1,))
     if nf == 2:
@@ -284,25 +284,25 @@ def solve_contact_lcp_extend_core(x_tree, q, qdot, contactpoint, H, tau, C, cont
 
     ncd = 2 + 2 * (nf -1)
 
-    A = jnp.zeros((ncd * NC, nf * NC))
-    b = jnp.zeros((ncd * NC, 1))
-    lb = jnp.zeros((nf * NC, 1))
-    ub = jnp.zeros((nf * NC, 1))
+    A = jnp.zeros((ncd * nc, nf * nc))
+    b = jnp.zeros((ncd * nc, 1))
+    lb = jnp.zeros((nf * nc, 1))
+    ub = jnp.zeros((nf * nc, 1))
 
     A = get_block_diag_A(flag_contact, mu, nf)
     b = get_stack_b(flag_contact, contact_force_lb[-1], contact_force_ub[-1], nf)
-    lb = jnp.reshape(jnp.tile(contact_force_lb, NC), (-1, 1))
-    ub = jnp.reshape(jnp.tile(contact_force_ub, NC), (-1, 1))
+    lb = jnp.reshape(jnp.tile(contact_force_lb, nc), (-1, 1))
+    ub = jnp.reshape(jnp.tile(contact_force_ub, nc), (-1, 1))
 
-    # for i in range(NC):
+    # for i in range(nc):
     #     A = A.at[i*ncd:(i+1)*ncd, i*nf:(i+1)*nf].set(get_A(mu, nf))
     #     b = b.at[i*ncd:(i+1)*ncd, 0].set(get_b(contact_force_lb[-1], contact_force_ub[-1], nf))
     #     lb = lb.at[i*nf:(i+1)*nf, 0].set(contact_force_lb)
     #     ub = ub.at[i*nf:(i+1)*nf, 0].set(contact_force_ub)
 
     # QP optimize contact force in world space
-    # M = jnp.eye(nf * NC)
-    # d = jnp.zeros((nf * NC, 1))
+    # M = jnp.eye(nf * nc)
+    # d = jnp.zeros((nf * nc, 1))
     M = 0.5 * (M+jnp.transpose(M))
     # H = np.asfarray(H)
     # d = np.asfarray(d)
@@ -334,10 +334,10 @@ def solve_contact_lcp_extend_core(x_tree, q, qdot, contactpoint, H, tau, C, cont
 
 
 def solve_contact_lcp_core(x_tree, q, qdot, contactpoint, H, tau, C, contact_force_lb, contact_force_ub,\
-    idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, ncp, mu):
+    idcontact, flag_contact, parent, jtype, jaxis, NB, nc, nf, ncp, mu):
 
-    Jc = calc_contact_jacobian_core(x_tree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
-    JcdotQdot = calc_contact_jdot_qdot_core(x_tree, q, qdot, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
+    Jc = calc_contact_jacobian_core(x_tree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, nc, nf)
+    JcdotQdot = calc_contact_jdot_qdot_core(x_tree, q, qdot, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, nc, nf)
     contact_force_lb = jnp.reshape(contact_force_lb, (-1,))
     contact_force_ub = jnp.reshape(contact_force_ub, (-1,))
     if nf == 2:
@@ -391,7 +391,7 @@ def solve_contact_lcp_core(x_tree, q, qdot, contactpoint, H, tau, C, contact_for
 
 def solve_contact_lcp(model: dict, q: np.ndarray, qdot: np.ndarray, tau: np.ndarray, \
     flag_contact: np.ndarray, mu: float):
-    NC = int(model["NC"])
+    nc = int(model["nc"])
     NB = int(model["NB"])
     nf = int(model["nf"])
     x_tree = model["x_tree"]
@@ -413,15 +413,15 @@ def solve_contact_lcp(model: dict, q: np.ndarray, qdot: np.ndarray, tau: np.ndar
         contact_force_ub = contact_force_ub[[0, 2]]
 
     ncp = 0
-    for i in range(NC):
+    for i in range(nc):
         if flag_contact[i]!=0:
             ncp = ncp + 1
 
 
     flcp, fqp = solve_contact_lcp_core(x_tree, q, qdot, contactpoint, H, tau, C, contact_force_lb, contact_force_ub,\
-        idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, ncp, mu)
+        idcontact, flag_contact, parent, jtype, jaxis, NB, nc, nf, ncp, mu)
 
-    fpd = np.zeros((3*NC, 1))
+    fpd = np.zeros((3*nc, 1))
     fc, fcqp, fcpd = get_contact_force(model, fqp, fpd, flag_contact)
     
     return flcp, fqp, fc, fcqp, fcpd

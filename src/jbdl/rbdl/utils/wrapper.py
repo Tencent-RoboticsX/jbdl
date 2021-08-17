@@ -255,13 +255,13 @@ class ModelWrapper(object):
 
 
     @property
-    def NC(self):
-        NC = int(self._model["NC"])
-        return NC
+    def nc(self):
+        nc = int(self._model["nc"])
+        return nc
 
-    @NC.setter
-    def NC(self, NC):
-        self._model["NC"] = NC
+    @nc.setter
+    def nc(self, nc):
+        self._model["nc"] = nc
 
     @property
     def jtype(self):
@@ -325,7 +325,7 @@ class ModelWrapper(object):
     def model(self):
         model = dict()
         model["NB"] = self.NB
-        model["NC"] = self.NC
+        model["nc"] = self.nc
         model["nf"] = self.nf
         model["a_grav"] = self.a_grav
         model["jtype"] = self.jtype

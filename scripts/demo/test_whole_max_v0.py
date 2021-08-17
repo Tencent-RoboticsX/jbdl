@@ -27,7 +27,7 @@ MODEL_DATA_PATH = os.path.join(SCRIPTS_PATH, "model_data")
 
 
 def jit_compiled(model):
-    NC = int(model["NC"])
+    nc = int(model["nc"])
     NB = int(model["NB"])
     nf = int(model["nf"])
     x_tree = model["x_tree"]
@@ -69,7 +69,7 @@ def jit_compiled(model):
     qddot = forward_dynamics_core(x_tree, I, parent, jtype, jaxis, NB, q, qdot, tau, a_grav)
     H =  composite_rigid_body_algorithm_core(x_tree, I, parent, jtype, jaxis, NB, q)
     C =  inverse_dynamics_core(x_tree, I, parent, jtype, jaxis, NB, q, qdot, np.zeros_like(q), a_grav)
-    flag_contact_calc = detect_contact_core(x_tree, q, qdot, contactpoint, contact_pos_lb, contact_vel_lb, contact_vel_ub,  idcontact, parent, jtype, jaxis, NC)
+    flag_contact_calc = detect_contact_core(x_tree, q, qdot, contactpoint, contact_pos_lb, contact_vel_lb, contact_vel_ub,  idcontact, parent, jtype, jaxis, nc)
     qddot.block_until_ready()
     H.block_until_ready()
     C.block_until_ready()
@@ -82,10 +82,10 @@ def jit_compiled(model):
         # start_time = time.time()
         # rankJc = int(np.sum( [1 for item in flag_contact if item != 0]) * model["nf"])
 
-        # xdot, fqp, H = DynamicsFunCore(x_tree, I, q, qdot, contactpoint, tau, a_grav, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, rankJc)
-        # value = EventsFunCore(x_tree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NC)
-        # flag_contact_calc = detect_contact_core(x_tree, q, qdot, contactpoint, contact_pos_lb, contact_vel_lb, contact_vel_ub,  idcontact, parent, jtype, jaxis, NC)
-        # qdot_impulse = impulsive_dynamics_core(x_tree, q, qdot, contactpoint, H, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf, rankJc)
+        # xdot, fqp, H = DynamicsFunCore(x_tree, I, q, qdot, contactpoint, tau, a_grav, idcontact, flag_contact, parent, jtype, jaxis, NB, nc, nf, rankJc)
+        # value = EventsFunCore(x_tree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, nc)
+        # flag_contact_calc = detect_contact_core(x_tree, q, qdot, contactpoint, contact_pos_lb, contact_vel_lb, contact_vel_ub,  idcontact, parent, jtype, jaxis, nc)
+        # qdot_impulse = impulsive_dynamics_core(x_tree, q, qdot, contactpoint, H, idcontact, flag_contact, parent, jtype, jaxis, NB, nc, nf, rankJc)
 
         # fqp.block_until_ready()
         # xdot.block_until_ready()

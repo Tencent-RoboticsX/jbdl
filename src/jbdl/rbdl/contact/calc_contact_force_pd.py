@@ -6,7 +6,7 @@ from jbdl.rbdl.kinematics import calc_point_velocity ,calc_point_velocity_core
 def calc_contact_force_pd(model: dict, q: np.ndarray, qdot: np.ndarray, 
                        flag_contact: np.ndarray)->np.ndarray:
     
-    NC = int(model["NC"])
+    nc = int(model["nc"])
     NB = int(model["NB"])
     nf = int(model["nf"])
     q = q.flatten()
@@ -26,14 +26,14 @@ def calc_contact_force_pd(model: dict, q: np.ndarray, qdot: np.ndarray,
 
 
     if np.all(flag_contact==0):
-        fpd = np.zeros((NC*nf, 1))
+        fpd = np.zeros((nc*nf, 1))
 
     else:
-        endpos = np.zeros((3, NC))
-        endvel = np.zeros((3, NC))
+        endpos = np.zeros((3, nc))
+        endvel = np.zeros((3, nc))
         fpd = []
 
-        for i in range(NC):
+        for i in range(nc):
             if flag_contact[i] != 0:
                 # Calcualte pos and vel of foot endpoint
                 endpos[:, i:i+1] = calc_body_to_base_coordinates(model, q, idcontact[i], contactpoint[i])

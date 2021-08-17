@@ -21,9 +21,9 @@ def non_negative_z_projector(x, nf):
     x = x.at[nf-1::nf].set(jnp.maximum(x[nf-1::nf], 0))
     return x
 
-def solve_contact_simple_lcp_core_jit_flag(x_tree, q, qdot, contactpoint, H, tau, C,  flag_contact, idcontact,  parent, jtype, jaxis, NB, NC, nf):
-    Jc = calc_contact_jacobian_core_jit_flag(x_tree, q, contactpoint,flag_contact, idcontact,  parent, jtype, jaxis, NB, NC, nf)
-    JcdotQdot = calc_contact_jdot_qdot_core_jit_flag(x_tree, q, qdot, contactpoint, flag_contact, idcontact,  parent, jtype, jaxis, NB, NC, nf)
+def solve_contact_simple_lcp_core_jit_flag(x_tree, q, qdot, contactpoint, H, tau, C,  flag_contact, idcontact,  parent, jtype, jaxis, NB, nc, nf):
+    Jc = calc_contact_jacobian_core_jit_flag(x_tree, q, contactpoint,flag_contact, idcontact,  parent, jtype, jaxis, NB, nc, nf)
+    JcdotQdot = calc_contact_jdot_qdot_core_jit_flag(x_tree, q, qdot, contactpoint, flag_contact, idcontact,  parent, jtype, jaxis, NB, nc, nf)
     tau = jnp.reshape(tau, (-1, 1))
     C = jnp.reshape(C, (-1, 1))
     M = jnp.matmul(Jc, jnp.linalg.solve(H, jnp.transpose(Jc)))
@@ -49,9 +49,9 @@ def solve_contact_simple_lcp_core_jit_flag(x_tree, q, qdot, contactpoint, H, tau
     return flcp, fqp
 
 # @partial(jit, static_argnums=(7, 8, 9, 10, 11, 12, 13, 14))
-def solve_contact_simple_lcp_core(x_tree, q, qdot, contactpoint, H, tau, C, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf):
-    Jc = calc_contact_jacobian_core(x_tree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
-    JcdotQdot = calc_contact_jdot_qdot_core(x_tree, q, qdot, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
+def solve_contact_simple_lcp_core(x_tree, q, qdot, contactpoint, H, tau, C, idcontact, flag_contact, parent, jtype, jaxis, NB, nc, nf):
+    Jc = calc_contact_jacobian_core(x_tree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, nc, nf)
+    JcdotQdot = calc_contact_jdot_qdot_core(x_tree, q, qdot, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, nc, nf)
     tau = jnp.reshape(tau, (-1, 1))
     C = jnp.reshape(C, (-1, 1))
     M = jnp.matmul(Jc, jnp.linalg.solve(H, jnp.transpose(Jc)))
@@ -77,7 +77,7 @@ def solve_contact_simple_lcp_core(x_tree, q, qdot, contactpoint, H, tau, C, idco
     return flcp, fqp
 
 def solve_contact_simple_lcp(model: dict, q: np.ndarray, qdot: np.ndarray, tau: np.ndarray, flag_contact: np.ndarray):
-    NC = int(model["NC"])
+    nc = int(model["nc"])
     NB = int(model["NB"])
     nf = int(model["nf"])
     x_tree = model["x_tree"]
@@ -92,9 +92,9 @@ def solve_contact_simple_lcp(model: dict, q: np.ndarray, qdot: np.ndarray, tau: 
     C = model["C"]
 
     flcp, fqp = solve_contact_simple_lcp_core(x_tree, q, qdot, contactpoint, H, tau, C, \
-        idcontact, flag_contact, parent, jtype, jaxis, NB, NC, nf)
+        idcontact, flag_contact, parent, jtype, jaxis, NB, nc, nf)
 
-    fpd = np.zeros((3*NC, 1))
+    fpd = np.zeros((3*nc, 1))
     fc, fcqp, fcpd = get_contact_force(model, fqp, fpd, flag_contact)
     return flcp, fqp, fc, fcqp, fcpd  
 
