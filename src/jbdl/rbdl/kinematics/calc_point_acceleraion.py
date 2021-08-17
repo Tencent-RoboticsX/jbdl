@@ -32,7 +32,6 @@ def calc_point_acceleration_core(x_tree, parent, jtype, jaxis, body_id, q, qdot,
     x_final_point = x_trans(point_pos)
     vel_p = jnp.matmul(x_final_point, v[body_id-1])
     avp_p = jnp.matmul(x_final_point, avp[body_id-1])
-    
     acc = jnp.matmul(jnp.transpose(e_point), avp_p[3:6]) + \
         jnp.reshape(jnp.cross(jnp.squeeze(jnp.matmul(jnp.transpose(e_point), vel_p[0:3])),
         jnp.squeeze(jnp.matmul(jnp.transpose(e_point), vel_p[3:6]))), (3, 1))
