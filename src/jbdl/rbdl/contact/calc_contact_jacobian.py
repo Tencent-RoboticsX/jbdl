@@ -24,10 +24,11 @@ def calc_contact_jacobian_core_jit_flag(
         if nf == 2:
             jci = jac[[0, 2], :]  # only x\z direction
         elif nf == 3:
-            jci = jac          
+            jci = jac
         jc.append(jci)
     jc = jnp.concatenate(jc, axis=0)
     return jc
+
 
 @partial(jit, static_argnums=(3, 5, 6, 7, 8, 9, 10))
 def calc_contact_jacobian_extend_core(
@@ -40,7 +41,7 @@ def calc_contact_jacobian_extend_core(
 
         # Calculate Jacobian
         jac = lax.cond(
-            flag_contact[i], 
+            flag_contact[i],
             lambda _: calc_point_jacobian_core(x_tree, parent, jtype, jaxis, nb, idcontact[i], q, contactpoint[i]),
             lambda _: jnp.zeros((3, nb)),
             None
