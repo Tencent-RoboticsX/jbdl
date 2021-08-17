@@ -19,7 +19,7 @@ def calc_contact_jdot_qdot_core_jit_flag(
         jd_qd = fbool_contact[i] * \
             calc_point_acceleration_core(
                 x_tree, parent, jtype, jaxis, idcontact[i], q, qdot, qddot, contactpoint[i])
-    
+
         if nf == 2:
             jdot_qdoti = jd_qd[[0, 2], :]  # only x\z direction
         elif nf == 3:
@@ -45,7 +45,7 @@ def calc_contact_jdot_qdot_extend_core(
             flag_contact[i],
             lambda _: calc_point_acceleration_core(x_tree, parent, jtype, jaxis, idcontact[i],
                 q, qdot, qddot, contactpoint[i]),
-            lambda _: jnp.zeros((3,1)),
+            lambda _: jnp.zeros((3, 1)),
             None
         )
 
@@ -58,6 +58,7 @@ def calc_contact_jdot_qdot_extend_core(
     jdot_qdot = jnp.concatenate(jdot_qdot, axis=0)
     return jdot_qdot
 
+
 # @partial(jit, static_argnums=(4, 5, 6, 7, 8, 9, 10, 11))
 def calc_contact_jdot_qdot_core(
     x_tree, q, qdot, contactpoint, idcontact, flag_contact,
@@ -69,7 +70,7 @@ def calc_contact_jdot_qdot_core(
         if flag_contact[i] != 0.0:
             jd_qd = calc_point_acceleration_core(
                 x_tree, parent, jtype, jaxis, idcontact[i], q, qdot, qddot, contactpoint[i])
-     
+
             if nf == 2:
                 jdot_qdoti = jd_qd[[0, 2], :]  # only x\z direction
             elif nf == 3:
@@ -85,14 +86,17 @@ def calc_contact_jdot_qdot(model: dict, q: np.ndarray, qdot: np.ndarray, flag_co
     nb = int(model["nb"])
     nf = int(model["nf"])
     x_tree = model["x_tree"]
-    contactpoint = model["contactpoint"],
+    contactpoint = model["contactpoint"]
     idcontact = tuple(model["idcontact"])
     parent = tuple(model["parent"])
     jtype = tuple(model["jtype"])
     jaxis = xyz2int(model["jaxis"])
     contactpoint = model["contactpoint"]
     flag_contact = flag_contact
-    JdotQdot = calc_contact_jdot_qdot_core(x_tree, q, qdot, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, nb, nc, nf)
+    jdot_qdot = calc_contact_jdot_qdot_core(
+        x_tree, q, qdot, contactpoint, idcontact, flag_contact,
+        parent, jtype, jaxis, nb, nc, nf)
 
-    return JdotQdot
+    return jdot_qdot
+
                 
