@@ -11,7 +11,7 @@ def x_roty(theta):
                   [0.0, 0.0, 0.0, c, 0.0, -s],
                   [0.0, 0.0, 0.0, 0.0, 1.0, 0.0],
                   [0.0, 0.0, 0.0, s, 0.0, c]])
-    return 
+    return x
 
 if __name__ == "__main__":
     import math
