@@ -25,6 +25,7 @@ def check_contact_force(model: dict, flag_contact: np.ndarray, fqp: np.ndarray):
     flag_newcontact = tuple(flag_newcontact)
     return flag_newcontact, flag_recalc
 
+
 # @partial(jit, static_argnums=(7, 8, 9, 10, 11, 12, 13, 14))
 def calc_contact_force_direct_core(
     x_tree, q, qdot, contactpoint, h, tau, c, idcontact, flag_contact,
@@ -83,4 +84,3 @@ def calc_contact_force_direct(model: dict, q: np.ndarray, qdot: np.ndarray, tau:
     fpd = np.zeros((3*nc, 1))
     fc, fcqp, fcpd = get_contact_force(model, fqp, fpd, flag_contact)
     return flcp, fqp, fc, fcqp, fcpd
-
