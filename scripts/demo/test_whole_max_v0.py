@@ -28,7 +28,7 @@ MODEL_DATA_PATH = os.path.join(SCRIPTS_PATH, "model_data")
 
 def jit_compiled(model):
     nc = int(model["nc"])
-    NB = int(model["NB"])
+    nb = int(model["nb"])
     nf = int(model["nf"])
     x_tree = model["x_tree"]
     contactpoint = model["contactpoint"],
@@ -50,13 +50,13 @@ def jit_compiled(model):
         0, 0.5, -0.8,  # fl
         0, 0.5, -0.8,  # br
         0, 0.5, -0.8]) # bl
-    qdot = np.ones(NB)
-    qddot = np.ones(NB)
-    tau = np.concatenate([np.zeros(6), np.ones(NB-6)])
+    qdot = np.ones(nb)
+    qddot = np.ones(nb)
+    tau = np.concatenate([np.zeros(6), np.ones(nb-6)])
     start_time = time.time()
     for body_id, point_pos in zip(idcontact, contactpoint):
         print(body_id, point_pos)
-        J = calc_point_jacobian_core(x_tree, parent, jtype, jaxis, NB, body_id, q, point_pos)
+        J = calc_point_jacobian_core(x_tree, parent, jtype, jaxis, nb, body_id, q, point_pos)
         J.block_until_ready()
         acc = calc_point_acceleration_core(x_tree, parent, jtype, jaxis, body_id, q, qdot, qddot, point_pos)
         acc.block_until_ready()
@@ -66,9 +66,9 @@ def jit_compiled(model):
     print("Jit compiled time for %s is %s." % ("Contact Point Functions", duarion))
 
     start_time = time.time()
-    qddot = forward_dynamics_core(x_tree, I, parent, jtype, jaxis, NB, q, qdot, tau, a_grav)
-    H =  composite_rigid_body_algorithm_core(x_tree, I, parent, jtype, jaxis, NB, q)
-    C =  inverse_dynamics_core(x_tree, I, parent, jtype, jaxis, NB, q, qdot, np.zeros_like(q), a_grav)
+    qddot = forward_dynamics_core(x_tree, I, parent, jtype, jaxis, nb, q, qdot, tau, a_grav)
+    H =  composite_rigid_body_algorithm_core(x_tree, I, parent, jtype, jaxis, nb, q)
+    C =  inverse_dynamics_core(x_tree, I, parent, jtype, jaxis, nb, q, qdot, np.zeros_like(q), a_grav)
     flag_contact_calc = detect_contact_core(x_tree, q, qdot, contactpoint, contact_pos_lb, contact_vel_lb, contact_vel_ub,  idcontact, parent, jtype, jaxis, nc)
     qddot.block_until_ready()
     H.block_until_ready()
@@ -82,10 +82,10 @@ def jit_compiled(model):
         # start_time = time.time()
         # rankJc = int(np.sum( [1 for item in flag_contact if item != 0]) * model["nf"])
 
-        # xdot, fqp, H = DynamicsFunCore(x_tree, I, q, qdot, contactpoint, tau, a_grav, idcontact, flag_contact, parent, jtype, jaxis, NB, nc, nf, rankJc)
+        # xdot, fqp, H = DynamicsFunCore(x_tree, I, q, qdot, contactpoint, tau, a_grav, idcontact, flag_contact, parent, jtype, jaxis, nb, nc, nf, rankJc)
         # value = EventsFunCore(x_tree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, nc)
         # flag_contact_calc = detect_contact_core(x_tree, q, qdot, contactpoint, contact_pos_lb, contact_vel_lb, contact_vel_ub,  idcontact, parent, jtype, jaxis, nc)
-        # qdot_impulse = impulsive_dynamics_core(x_tree, q, qdot, contactpoint, H, idcontact, flag_contact, parent, jtype, jaxis, NB, nc, nf, rankJc)
+        # qdot_impulse = impulsive_dynamics_core(x_tree, q, qdot, contactpoint, H, idcontact, flag_contact, parent, jtype, jaxis, nb, nc, nf, rankJc)
 
         # fqp.block_until_ready()
         # xdot.block_until_ready()

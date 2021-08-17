@@ -12,7 +12,7 @@ from jbdl.rbdl.utils import xyz2int
 
 
 @partial(jit, static_argnums=(2, 3, 4, 5))
-def composite_rigid_body_algorithm_core(x_tree, I, parent, jtype, jaxis, NB, q):
+def composite_rigid_body_algorithm_core(x_tree, I, parent, jtype, jaxis, nb, q):
     # print("Re-Tracing")
 
     IC = I.copy()
@@ -20,20 +20,20 @@ def composite_rigid_body_algorithm_core(x_tree, I, parent, jtype, jaxis, NB, q):
     S = []
     Xup = []
 
-    for i in range(NB):
+    for i in range(nb):
         XJ, Si = joint_model(jtype[i], jaxis[i], q[i])
         S.append(Si)
         Xup.append(jnp.matmul(XJ, x_tree[i]))
 
 
-    for j in range(NB-1, -1, -1):
+    for j in range(nb-1, -1, -1):
         if parent[j] != 0:
             IC[parent[j] - 1] = IC[parent[j] - 1] + jnp.matmul(jnp.matmul(Xup[j].transpose(), IC[j]), Xup[j])
 
 
-    H = jnp.zeros((NB, NB))
+    H = jnp.zeros((nb, nb))
 
-    for i in range(NB):
+    for i in range(nb):
         fh = jnp.matmul(IC[i],  S[i])
         H = H.at[i, i].set(jnp.squeeze(jnp.matmul(S[i].transpose(), fh)))
         j = i
@@ -50,7 +50,7 @@ def composite_rigid_body_algorithm_core(x_tree, I, parent, jtype, jaxis, NB, q):
 
 def composite_rigid_body_algorithm(model: dict, q):
 
-    NB = int(model["NB"])
+    nb = int(model["nb"])
     jtype = tuple(model["jtype"])
     jaxis = xyz2int(model['jaxis'])
     parent = tuple(model['parent'])
@@ -58,7 +58,7 @@ def composite_rigid_body_algorithm(model: dict, q):
     I = model["I"]
 
     q = q.flatten()
-    H = composite_rigid_body_algorithm_core(x_tree, I, tuple(parent), tuple(jtype), jaxis, NB, q)
+    H = composite_rigid_body_algorithm_core(x_tree, I, tuple(parent), tuple(jtype), jaxis, nb, q)
 
     return H
 

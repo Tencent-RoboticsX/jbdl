@@ -25,9 +25,9 @@ def check_contact_force(model: dict, flag_contact: np.ndarray, fqp: np.ndarray):
     return flag_newcontact, flag_recalc
 
 # @partial(jit, static_argnums=(7, 8, 9, 10, 11, 12, 13, 14))
-def calc_contact_force_direct_core(x_tree, q, qdot, contactpoint, H, tau, C, idcontact, flag_contact, parent, jtype, jaxis, NB, nc, nf):
-    Jc = calc_contact_jacobian_core(x_tree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, nc, nf)
-    JcdotQdot = calc_contact_jdot_qdot_core(x_tree, q, qdot, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, nc, nf)
+def calc_contact_force_direct_core(x_tree, q, qdot, contactpoint, H, tau, C, idcontact, flag_contact, parent, jtype, jaxis, nb, nc, nf):
+    Jc = calc_contact_jacobian_core(x_tree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, nb, nc, nf)
+    JcdotQdot = calc_contact_jdot_qdot_core(x_tree, q, qdot, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, nb, nc, nf)
     tau = jnp.reshape(tau, (-1, 1))
     C = jnp.reshape(C, (-1, 1))
     M = jnp.matmul(Jc, jnp.linalg.solve(H, jnp.transpose(Jc)))
@@ -42,7 +42,7 @@ def calc_contact_force_direct_core(x_tree, q, qdot, contactpoint, H, tau, C, idc
         
 def calc_contact_force_direct(model: dict, q: np.ndarray, qdot: np.ndarray, tau: np.ndarray, flag_contact: np.ndarray):
     nc = int(model["nc"])
-    NB = int(model["NB"])
+    nb = int(model["nb"])
     nf = int(model["nf"])
     x_tree = model["x_tree"]
     contactpoint = model["contactpoint"],
@@ -61,13 +61,13 @@ def calc_contact_force_direct(model: dict, q: np.ndarray, qdot: np.ndarray, tau:
     while flag_recalc:
         if np.sum(flag_contact)==0:
             fqp = np.zeros((nc*nf, 1))
-            flcp = np.zeros((NB, 1))
+            flcp = np.zeros((nb, 1))
             fc = np.zeros((3*nc,))
             fcqp = np.zeros((3*nc,))
             fcpd = np.zeros((3*nc,))
             break
 
-        flcp, fqp = calc_contact_force_direct_core(x_tree, q, qdot, contactpoint, H, tau, C, idcontact, flag_contact, parent, jtype, jaxis, NB, nc, nf)
+        flcp, fqp = calc_contact_force_direct_core(x_tree, q, qdot, contactpoint, H, tau, C, idcontact, flag_contact, parent, jtype, jaxis, nb, nc, nf)
 
 
         # Check whether the Fz is positive
@@ -84,7 +84,7 @@ def calc_contact_force_direct(model: dict, q: np.ndarray, qdot: np.ndarray, tau:
 
 
 # def calc_contact_force_direct(model: dict, q: np.ndarray, qdot: np.ndarray, tau: np.ndarray, flag_contact: np.ndarray):
-#     NB = int(model["NB"])
+#     nb = int(model["nb"])
 #     nc = int(model["nc"])
 #     nf = int(model["nf"])
         
@@ -94,7 +94,7 @@ def calc_contact_force_direct(model: dict, q: np.ndarray, qdot: np.ndarray, tau:
 #     while flag_recalc:
 #         if np.sum(flag_contact)==0:
 #             fqp = np.zeros((nc*nf, 1))
-#             flcp = np.zeros((NB, 1))
+#             flcp = np.zeros((nb, 1))
 #             fc = np.zeros((3*nc,))
 #             fcqp = np.zeros((3*nc,))
 #             fcpd = np.zeros((3*nc,))

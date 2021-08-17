@@ -7,7 +7,7 @@ def calc_contact_force_pd(model: dict, q: np.ndarray, qdot: np.ndarray,
                        flag_contact: np.ndarray)->np.ndarray:
     
     nc = int(model["nc"])
-    NB = int(model["NB"])
+    nb = int(model["nb"])
     nf = int(model["nf"])
     q = q.flatten()
     qdot = qdot.flatten()

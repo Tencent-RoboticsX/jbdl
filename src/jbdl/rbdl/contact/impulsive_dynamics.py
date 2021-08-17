@@ -9,8 +9,8 @@ from functools import partial
 from jbdl.rbdl.utils import xyz2int
 
 # @partial(jit, static_argnums=(5, 6, 7, 8, 9, 10, 11, 12, 13))
-def impulsive_dynamics_core(x_tree, q, qdot, contactpoint, H, idcontact, flag_contact, parent, jtype, jaxis, NB, nc, nf, rankJc):
-    Jc = calc_contact_jacobian_core(x_tree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, nc, nf)
+def impulsive_dynamics_core(x_tree, q, qdot, contactpoint, H, idcontact, flag_contact, parent, jtype, jaxis, nb, nc, nf, rankJc):
+    Jc = calc_contact_jacobian_core(x_tree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, nb, nc, nf)
 
     # Calcualet implusive dynamics for qdot after impulsive
     A0 = jnp.hstack([H, -jnp.transpose(Jc)])
@@ -22,11 +22,11 @@ def impulsive_dynamics_core(x_tree, q, qdot, contactpoint, H, idcontact, flag_co
     b = jnp.hstack([b0, b1])
 
     QdotI = jnp.linalg.solve(A, b)
-    qdot_impulse = jnp.reshape(QdotI[0:NB], (-1, 1))
+    qdot_impulse = jnp.reshape(QdotI[0:nb], (-1, 1))
     return qdot_impulse
 
-def impulsive_dynamics_extend_core(x_tree, q, qdot, contactpoint, H, idcontact, flag_contact, parent, jtype, jaxis, NB, nc, nf):
-    Jc = calc_contact_jacobian_extend_core(x_tree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, nc, nf)
+def impulsive_dynamics_extend_core(x_tree, q, qdot, contactpoint, H, idcontact, flag_contact, parent, jtype, jaxis, nb, nc, nf):
+    Jc = calc_contact_jacobian_extend_core(x_tree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, nb, nc, nf)
     rankJc = nf * nc
     # Calcualet implusive dynamics for qdot after impulsive
     A0 = jnp.hstack([H, -jnp.transpose(Jc)])
@@ -38,7 +38,7 @@ def impulsive_dynamics_extend_core(x_tree, q, qdot, contactpoint, H, idcontact, 
     b = jnp.hstack([b0, b1])
 
     QdotI, residuals, rank, s  = jnp.linalg.lstsq(A, b)
-    qdot_impulse = jnp.reshape(QdotI[0:NB], (-1, 1))
+    qdot_impulse = jnp.reshape(QdotI[0:nb], (-1, 1))
     return qdot_impulse
 
 
@@ -49,7 +49,7 @@ def impulsive_dynamics(model: dict, q: np.ndarray, qdot: np.ndarray, flag_contac
     q = q.flatten()
     qdot = qdot.flatten()
     nc = int(model["nc"])
-    NB = int(model["NB"])
+    nb = int(model["nb"])
     nf = int(model["nf"])
     x_tree = model["x_tree"]
     contactpoint = model["contactpoint"],
@@ -62,14 +62,14 @@ def impulsive_dynamics(model: dict, q: np.ndarray, qdot: np.ndarray, flag_contac
     H = model["H"]
     rankJc = int(np.sum( [1 for item in flag_contact if item != 0]) * model["nf"])
 
-    qdot_impulse = impulsive_dynamics_core(x_tree, q, qdot, contactpoint, H, idcontact, flag_contact, parent, jtype, jaxis, NB, nc, nf, rankJc)
+    qdot_impulse = impulsive_dynamics_core(x_tree, q, qdot, contactpoint, H, idcontact, flag_contact, parent, jtype, jaxis, nb, nc, nf, rankJc)
     return qdot_impulse
 
 
 # def impulsive_dynamics(model: dict, q: np.ndarray, qdot: np.ndarray, flag_contact:np.ndarray)->np.ndarray:
 #     q = q.flatten()
 #     qdot = qdot.flatten()
-#     NB = int(model["NB"])
+#     nb = int(model["nb"])
 #     H = model["H"]
 
 
@@ -84,7 +84,7 @@ def impulsive_dynamics(model: dict, q: np.ndarray, qdot: np.ndarray, flag_contac
 #     b1 = np.zeros((rankJc, ))
 #     b = np.hstack([b0, b1])
 #     QdotI = np.linalg.solve(A, b)
-#     qdot_impulse = QdotI[0:NB]
+#     qdot_impulse = QdotI[0:nb]
 #     qdot_impulse = qdot_impulse.reshape(-1, 1)
 #     return qdot_impulse
  

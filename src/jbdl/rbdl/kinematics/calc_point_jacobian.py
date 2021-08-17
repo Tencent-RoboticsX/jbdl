@@ -7,7 +7,7 @@ from functools import partial
 from jbdl.rbdl.utils import xyz2int
 
 @partial(jit, static_argnums=(1, 2, 3, 4, 5))
-def calc_point_jacobian_core(x_tree, parent, jtype, jaxis, NB, body_id, q, point_pos):
+def calc_point_jacobian_core(x_tree, parent, jtype, jaxis, nb, body_id, q, point_pos):
     S = []
     Xup = []
     X0 = []
@@ -25,7 +25,7 @@ def calc_point_jacobian_core(x_tree, parent, jtype, jaxis, NB, body_id, q, point
     X0_point = jnp.matmul(XT_point, X0[body_id-1])
 
     j_p = body_id - 1
-    BJ = jnp.zeros((6, NB))
+    BJ = jnp.zeros((6, nb))
     while j_p != -1:
         Xe = jnp.matmul(X0_point, inverse_motion_space(X0[j_p]))
         BJ = BJ.at[:, [j_p, ]].set(jnp.matmul(Xe, S[j_p]))
@@ -43,8 +43,8 @@ def calc_point_jacobian(model: dict, q: np.ndarray, body_id: int, point_pos: np.
     jtype = tuple(model['jtype'])
     jaxis = xyz2int(model['jaxis'])
     parent = tuple(model['parent'])
-    NB = model["NB"]
+    nb = model["nb"]
     x_tree = model['x_tree']
 
-    J = calc_point_jacobian_core(x_tree, tuple(parent), tuple(jtype), jaxis, NB, body_id, q, point_pos)
+    J = calc_point_jacobian_core(x_tree, tuple(parent), tuple(jtype), jaxis, nb, body_id, q, point_pos)
     return J

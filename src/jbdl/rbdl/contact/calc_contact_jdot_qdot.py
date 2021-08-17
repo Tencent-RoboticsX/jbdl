@@ -7,10 +7,10 @@ from jbdl.rbdl.utils import xyz2int
 from jax import lax
 
 @partial(jit, static_argnums=(4, 6, 7, 8, 9, 10, 11))
-def calc_contact_jdot_qdot_core_jit_flag(x_tree, q, qdot, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, nc, nf):
+def calc_contact_jdot_qdot_core_jit_flag(x_tree, q, qdot, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, nb, nc, nf):
     JdotQdot = []
     fbool_contact = jnp.heaviside(flag_contact, 0.0)
-    qddot = jnp.zeros((NB,))
+    qddot = jnp.zeros((nb,))
     for i in range(nc):
         JdotQdoti = jnp.empty((0, 1))
         # print(fbool_contact.shape)
@@ -30,10 +30,10 @@ def calc_contact_jdot_qdot_core_jit_flag(x_tree, q, qdot, contactpoint, idcontac
 
 
 @partial(jit, static_argnums=(4, 6, 7, 8, 9, 10, 11))
-def calc_contact_jdot_qdot_extend_core(x_tree, q, qdot, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, nc, nf):
+def calc_contact_jdot_qdot_extend_core(x_tree, q, qdot, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, nb, nc, nf):
     JdotQdot = []
     # fbool_contact = jnp.heaviside(flag_contact, 0.0)
-    qddot = jnp.zeros((NB,))
+    qddot = jnp.zeros((nb,))
     for i in range(nc):
         JdotQdoti = jnp.empty((0, 1))
 
@@ -58,9 +58,9 @@ def calc_contact_jdot_qdot_extend_core(x_tree, q, qdot, contactpoint, idcontact,
 
 
 # @partial(jit, static_argnums=(4, 5, 6, 7, 8, 9, 10, 11))
-def calc_contact_jdot_qdot_core(x_tree, q, qdot, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, nc, nf):
+def calc_contact_jdot_qdot_core(x_tree, q, qdot, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, nb, nc, nf):
     JdotQdot = []
-    qddot = jnp.zeros((NB,))
+    qddot = jnp.zeros((nb,))
     for i in range(nc):
         JdotQdoti = jnp.empty((0, 1))
         if flag_contact[i] != 0.0:
@@ -79,7 +79,7 @@ def calc_contact_jdot_qdot_core(x_tree, q, qdot, contactpoint, idcontact, flag_c
 
 # def calc_contact_jdot_qdot(model: dict, q: np.ndarray, qdot: np.ndarray, flag_contact: np.ndarray)->np.ndarray:
 #     nc = int(model["nc"])
-#     NB = int(model["NB"])
+#     nb = int(model["nb"])
 #     nf = int(model["nf"])
 #     q = q.flatten()
 #     qdot = qdot.flatten()
@@ -92,7 +92,7 @@ def calc_contact_jdot_qdot_core(x_tree, q, qdot, contactpoint, idcontact, flag_c
 #     for i in range(nc):
 #         JdotQdoti = np.empty((0, 1))
 #         if flag_contact[i] != 0.0:
-#             JdQd = calc_point_acceleration(model, q, qdot, np.zeros((NB, 1)), idcontact[i], contactpoint[i])
+#             JdQd = calc_point_acceleration(model, q, qdot, np.zeros((nb, 1)), idcontact[i], contactpoint[i])
 #             if nf == 2:
 #                 JdotQdoti = JdQd[[0, 2], :] # only x\z direction
 #             elif nf == 3:
@@ -107,7 +107,7 @@ def calc_contact_jdot_qdot_core(x_tree, q, qdot, contactpoint, idcontact, flag_c
 
 def calc_contact_jdot_qdot(model: dict, q: np.ndarray, qdot: np.ndarray, flag_contact: np.ndarray)->np.ndarray:
     nc = int(model["nc"])
-    NB = int(model["NB"])
+    nb = int(model["nb"])
     nf = int(model["nf"])
     x_tree = model["x_tree"]
     contactpoint = model["contactpoint"],
@@ -117,7 +117,7 @@ def calc_contact_jdot_qdot(model: dict, q: np.ndarray, qdot: np.ndarray, flag_co
     jaxis = xyz2int(model["jaxis"])
     contactpoint = model["contactpoint"]
     flag_contact = flag_contact
-    JdotQdot = calc_contact_jdot_qdot_core(x_tree, q, qdot, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, NB, nc, nf)
+    JdotQdot = calc_contact_jdot_qdot_core(x_tree, q, qdot, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, nb, nc, nf)
 
     return JdotQdot
                 

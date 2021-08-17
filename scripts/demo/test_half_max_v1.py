@@ -39,7 +39,7 @@ plt.show()
 from jax import device_put
 from jbdl.rbdl.utils import xyz2int
 nc = int(model["nc"])
-NB = int(model["NB"])
+nb = int(model["nb"])
 nf = int(model["nf"])
 contact_cond = model["contact_cond"]
 x_tree = device_put(model["x_tree"])
@@ -81,32 +81,32 @@ q = jnp.array([0.0, 0.4125, 0.0, math.pi/6, math.pi/6, -math.pi/3, -math.pi/3])
 qdot = jnp.ones((7, ))
 x = jnp.hstack([q, qdot])
 # xdot, fqp, H = dynamics_fun_core(x_tree, I, q, qdot, contactpoint, tau, a_grav, contact_force_lb, contact_force_ub,\
-#     idcontact, flag_contact, parent, jtype, jaxis, NB, nc, nf, rankJc, ncp, mu)
+#     idcontact, flag_contact, parent, jtype, jaxis, nb, nc, nf, rankJc, ncp, mu)
 
 # def dynamics_fun(x, t, x_tree, I, contactpoint, tau, a_grav, contact_force_lb, contact_force_ub, mu,\
-#     flag_contact, idcontact,  parent, jtype, jaxis, NB, nc, nf, ncp):
-#     q = x[0:NB]
-#     qdot = x[NB:]
+#     flag_contact, idcontact,  parent, jtype, jaxis, nb, nc, nf, ncp):
+#     q = x[0:nb]
+#     qdot = x[nb:]
 #     xdot,fqp, H = dynamics_fun_extend_core(x_tree, I, q, qdot, contactpoint, tau, a_grav, contact_force_lb, contact_force_ub,\
-#     idcontact, flag_contact, parent, jtype, jaxis, NB, nc, nf, ncp, mu)
+#     idcontact, flag_contact, parent, jtype, jaxis, nb, nc, nf, ncp, mu)
 #     return xdot
 
 def dynamics_fun(x, t, x_tree, I, contactpoint, u, a_grav, \
     contact_force_lb, contact_force_ub,  contact_pos_lb, contact_vel_lb, contact_vel_ub, mu,\
-    ST, idcontact,   parent, jtype, jaxis, NB, nc, nf, ncp):
-    q = x[0:NB]
-    qdot = x[NB:]
+    ST, idcontact,   parent, jtype, jaxis, nb, nc, nf, ncp):
+    q = x[0:nb]
+    qdot = x[nb:]
     tau = jnp.matmul(ST, u)
     flag_contact = detect_contact_core(x_tree, q, qdot, contactpoint, contact_pos_lb, contact_vel_lb, contact_vel_ub,\
         idcontact, parent, jtype, jaxis, nc)
     xdot,fqp, H = dynamics_fun_extend_core(x_tree, I, q, qdot, contactpoint, tau, a_grav, contact_force_lb, contact_force_ub,\
-    idcontact, flag_contact, parent, jtype, jaxis, NB, nc, nf, ncp, mu)
+    idcontact, flag_contact, parent, jtype, jaxis, nb, nc, nf, ncp, mu)
     return xdot
 
 def events_fun(y, t, x_tree, I, contactpoint, u, a_grav, contact_force_lb, contact_force_ub, \
-    contact_pos_lb, contact_vel_lb, contact_vel_ub, mu, ST, idcontact,  parent, jtype, jaxis, NB, nc, nf, ncp):
-    q = y[0:NB]
-    qdot = y[NB:]
+    contact_pos_lb, contact_vel_lb, contact_vel_ub, mu, ST, idcontact,  parent, jtype, jaxis, nb, nc, nf, ncp):
+    q = y[0:nb]
+    qdot = y[nb:]
     flag_contact = detect_contact_core(x_tree, q, qdot, contactpoint, contact_pos_lb, contact_vel_lb, contact_vel_ub,\
         idcontact, parent, jtype, jaxis, nc)
 
@@ -114,13 +114,13 @@ def events_fun(y, t, x_tree, I, contactpoint, u, a_grav, contact_force_lb, conta
     return value
 
 def impulsive_dynamics_fun(y, t, x_tree, I, contactpoint, u, a_grav, contact_force_lb, contact_force_ub, \
-    contact_pos_lb, contact_vel_lb, contact_vel_ub, mu, ST, idcontact,  parent, jtype, jaxis, NB, nc, nf, ncp):
-    q = y[0:NB]
-    qdot = y[NB:]
-    H =  composite_rigid_body_algorithm_core(x_tree, I, parent, jtype, jaxis, NB, q)
+    contact_pos_lb, contact_vel_lb, contact_vel_ub, mu, ST, idcontact,  parent, jtype, jaxis, nb, nc, nf, ncp):
+    q = y[0:nb]
+    qdot = y[nb:]
+    H =  composite_rigid_body_algorithm_core(x_tree, I, parent, jtype, jaxis, nb, q)
     flag_contact = detect_contact_core(x_tree, q, qdot, contactpoint, contact_pos_lb, contact_vel_lb, contact_vel_ub,\
         idcontact, parent, jtype, jaxis, nc)
-    qdot_impulse = impulsive_dynamics_extend_core(x_tree, q, qdot, contactpoint, H, idcontact, flag_contact, parent, jtype, jaxis, NB, nc, nf)
+    qdot_impulse = impulsive_dynamics_extend_core(x_tree, q, qdot, contactpoint, H, idcontact, flag_contact, parent, jtype, jaxis, nb, nc, nf)
     qdot_impulse = qdot_impulse.flatten()
     y_new = jnp.hstack([q, qdot_impulse])
     return y_new
@@ -128,19 +128,19 @@ def impulsive_dynamics_fun(y, t, x_tree, I, contactpoint, u, a_grav, contact_for
 
 t = device_put(0.0)
 xdot = dynamics_fun(x, t, x_tree, I, contactpoint, u, a_grav, contact_force_lb, contact_force_ub, \
-    contact_pos_lb, contact_vel_lb, contact_vel_ub, mu, ST, idcontact,  parent, jtype, jaxis, NB, nc, nf, ncp)
+    contact_pos_lb, contact_vel_lb, contact_vel_ub, mu, ST, idcontact,  parent, jtype, jaxis, nb, nc, nf, ncp)
 
 # print(xdot)
 
 
 pure_dynamics_fun = partial(dynamics_fun, ST=ST, idcontact=idcontact, \
-        parent=parent, jtype=jtype, jaxis=jaxis, NB=NB, nc=nc, nf=nf, ncp=ncp)
+        parent=parent, jtype=jtype, jaxis=jaxis, nb=nb, nc=nc, nf=nf, ncp=ncp)
 
 pure_events_fun = partial(events_fun, ST=ST, idcontact=idcontact, \
-        parent=parent, jtype=jtype, jaxis=jaxis, NB=NB, nc=nc, nf=nf, ncp=ncp)
+        parent=parent, jtype=jtype, jaxis=jaxis, nb=nb, nc=nc, nf=nf, ncp=ncp)
 
 pure_impulsive_fun =  partial(impulsive_dynamics_fun, ST=ST, idcontact=idcontact, \
-        parent=parent, jtype=jtype, jaxis=jaxis, NB=NB, nc=nc, nf=nf, ncp=ncp)
+        parent=parent, jtype=jtype, jaxis=jaxis, nb=nb, nc=nc, nf=nf, ncp=ncp)
 
 pure_args = (x, t, x_tree, I, contactpoint, u, a_grav, contact_force_lb, contact_force_ub,  contact_pos_lb, contact_vel_lb, contact_vel_ub, mu)
 
@@ -218,14 +218,14 @@ print(duration)
 # args = (x0, t0, x_tree, I, a_grav)
 
 
-# def forward_dynamics(x, t, x_tree, I,  a_grav, parent, jtype, jaxis, NB):
-#     q = x[0:NB]
-#     qdot = x[NB:]
+# def forward_dynamics(x, t, x_tree, I,  a_grav, parent, jtype, jaxis, nb):
+#     q = x[0:nb]
+#     qdot = x[nb:]
 #     ttau = jnp.zeros((7,))
-#     qddot = forward_dynamics_core(x_tree, I, parent, jtype, jaxis, NB, q, qdot, ttau, a_grav)
+#     qddot = forward_dynamics_core(x_tree, I, parent, jtype, jaxis, nb, q, qdot, ttau, a_grav)
 #     return qddot
 
-# pure_forward_dynamics = partial(forward_dynamics, parent=parent, jtype=jtype, jaxis=jaxis, NB=NB)
+# pure_forward_dynamics = partial(forward_dynamics, parent=parent, jtype=jtype, jaxis=jaxis, nb=nb)
 
 # converted, consts = closure_convert(pure_forward_dynamics, *args)
 

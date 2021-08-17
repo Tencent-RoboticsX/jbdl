@@ -120,13 +120,13 @@ class ModelWrapper(object):
         return parent
 
     @property
-    def NB(self):
-        NB = int(self._model["NB"])
-        return NB
+    def nb(self):
+        nb = int(self._model["nb"])
+        return nb
 
-    @NB.setter
-    def NB(self, NB):
-        self._model["NB"] = NB
+    @nb.setter
+    def nb(self, nb):
+        self._model["nb"] = nb
 
     @property
     def nf(self):
@@ -324,7 +324,7 @@ class ModelWrapper(object):
     @property
     def model(self):
         model = dict()
-        model["NB"] = self.NB
+        model["nb"] = self.nb
         model["nc"] = self.nc
         model["nf"] = self.nf
         model["a_grav"] = self.a_grav

@@ -8,7 +8,7 @@ from jbdl.rbdl.utils import xyz2int
 
 
 @partial(jit, static_argnums=(2, 3, 4, 5))
-def forward_dynamics_core(x_tree, I, parent, jtype, jaxis, NB, q, qdot, tau, a_grav):  
+def forward_dynamics_core(x_tree, I, parent, jtype, jaxis, nb, q, qdot, tau, a_grav):  
     S = []
     Xup = []
     v = []
@@ -16,7 +16,7 @@ def forward_dynamics_core(x_tree, I, parent, jtype, jaxis, NB, q, qdot, tau, a_g
     pA = []
     IA = I.copy()
 
-    for i in range(NB):
+    for i in range(nb):
         XJ, Si = joint_model(jtype[i], jaxis[i], q[i])
         S.append(Si)
         vJ = jnp.multiply(S[i], qdot[i])
@@ -31,11 +31,11 @@ def forward_dynamics_core(x_tree, I, parent, jtype, jaxis, NB, q, qdot, tau, a_g
 
 
 
-    U = [jnp.empty((0,))] * NB
-    d = [jnp.empty((0,))] * NB
-    u = [jnp.empty((0,))] * NB 
+    U = [jnp.empty((0,))] * nb
+    d = [jnp.empty((0,))] * nb
+    u = [jnp.empty((0,))] * nb 
 
-    for i in range(NB-1, -1, -1):
+    for i in range(nb-1, -1, -1):
         U[i] = jnp.matmul(IA[i], S[i])
         d[i] = jnp.squeeze(jnp.matmul(S[i].transpose(), U[i]))
         u[i] = tau[i] - jnp.squeeze(jnp.matmul(S[i].transpose(), pA[i]))
@@ -49,7 +49,7 @@ def forward_dynamics_core(x_tree, I, parent, jtype, jaxis, NB, q, qdot, tau, a_g
     a = []
     qddot = []
 
-    for i in range(NB):
+    for i in range(nb):
         if parent[i] == 0:
             a.append(jnp.matmul(Xup[i],-a_grav) + c[i])
         else:
@@ -58,7 +58,7 @@ def forward_dynamics_core(x_tree, I, parent, jtype, jaxis, NB, q, qdot, tau, a_g
         
         a[i] = a[i] + jnp.multiply(S[i],  qddot[i])
 
-    qddot = jnp.reshape(jnp.stack(qddot), (NB, ))
+    qddot = jnp.reshape(jnp.stack(qddot), (nb, ))
     return qddot
 
 def forward_dynamics(model, q, qdot, tau):    
@@ -66,14 +66,14 @@ def forward_dynamics(model, q, qdot, tau):
     qdot = qdot.flatten()
     tau = tau.flatten()
     a_grav = model["a_grav"]
-    NB = model["NB"]
+    nb = model["nb"]
     jtype = tuple(model["jtype"])
     jaxis = xyz2int(model["jaxis"])
     parent = tuple(model["parent"])
     x_tree = model["x_tree"]
     I = model["I"]
 
-    qddot = forward_dynamics_core(x_tree, I, tuple(parent), tuple(jtype), jaxis, NB, q, qdot, tau, a_grav)
+    qddot = forward_dynamics_core(x_tree, I, tuple(parent), tuple(jtype), jaxis, nb, q, qdot, tau, a_grav)
     return qddot
 
 

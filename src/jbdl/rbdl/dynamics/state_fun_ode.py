@@ -21,10 +21,10 @@ from jax import lax
 
 # @partial(jit, static_argnums=(7, 8, 9, 10, 11, 12, 13, 14, 15))
 def dynamics_fun_core(x_tree, I, q, qdot, contactpoint, tau, a_grav, contact_force_lb, contact_force_ub,\
-    idcontact, flag_contact, parent, jtype, jaxis, NB, nc, nf, rankJc, ncp, mu):
-    H =  composite_rigid_body_algorithm_core(x_tree, I, parent, jtype, jaxis, NB, q)
-    C =  inverse_dynamics_core(x_tree, I, parent, jtype, jaxis, NB, q, qdot, jnp.zeros_like(q), a_grav)
-    lam = jnp.zeros((NB, ))
+    idcontact, flag_contact, parent, jtype, jaxis, nb, nc, nf, rankJc, ncp, mu):
+    H =  composite_rigid_body_algorithm_core(x_tree, I, parent, jtype, jaxis, nb, q)
+    C =  inverse_dynamics_core(x_tree, I, parent, jtype, jaxis, nb, q, qdot, jnp.zeros_like(q), a_grav)
+    lam = jnp.zeros((nb, ))
     fqp = jnp.zeros((rankJc, 1))
 
 
@@ -32,13 +32,13 @@ def dynamics_fun_core(x_tree, I, q, qdot, contactpoint, tau, a_grav, contact_for
 
     if np.sum(flag_contact) !=0: 
         lam, fqp = solve_contact_lcp_core(x_tree, q, qdot, contactpoint, H, tau, C, contact_force_lb, contact_force_ub,\
-            idcontact, flag_contact, parent, jtype, jaxis, NB, nc, nf, ncp, mu)
+            idcontact, flag_contact, parent, jtype, jaxis, nb, nc, nf, ncp, mu)
 
-        # lam, fqp = solve_contact_simple_lcp_core(x_tree, q, qdot, contactpoint, H, tau, C, idcontact, flag_contact, parent, jtype, jaxis, NB, nc, nf)
-        # lam, fqp = calc_contact_force_direct_core(x_tree, q, qdot, contactpoint, H, tau, C, idcontact, flag_contact, parent, jtype, jaxis, NB, nc, nf)
+        # lam, fqp = solve_contact_simple_lcp_core(x_tree, q, qdot, contactpoint, H, tau, C, idcontact, flag_contact, parent, jtype, jaxis, nb, nc, nf)
+        # lam, fqp = calc_contact_force_direct_core(x_tree, q, qdot, contactpoint, H, tau, C, idcontact, flag_contact, parent, jtype, jaxis, nb, nc, nf)
 
     ttau = tau + lam
-    qddot = forward_dynamics_core(x_tree, I, parent, jtype, jaxis, NB, q, qdot, ttau, a_grav)
+    qddot = forward_dynamics_core(x_tree, I, parent, jtype, jaxis, nb, q, qdot, ttau, a_grav)
     # print("========")
     # print(qddot)
     xdot = jnp.hstack([qdot, qddot])
@@ -46,48 +46,48 @@ def dynamics_fun_core(x_tree, I, q, qdot, contactpoint, tau, a_grav, contact_for
 
 # @partial(jit, static_argnums=(7, 8, 9, 10, 11, 12, 13, 14, 15))
 def dynamics_fun_extend_core(x_tree, I, q, qdot, contactpoint, tau, a_grav, contact_force_lb, contact_force_ub,\
-    idcontact, flag_contact, parent, jtype, jaxis, NB, nc, nf, ncp, mu):
-    H =  composite_rigid_body_algorithm_core(x_tree, I, parent, jtype, jaxis, NB, q)
-    C =  inverse_dynamics_core(x_tree, I, parent, jtype, jaxis, NB, q, qdot, jnp.zeros_like(q), a_grav)
+    idcontact, flag_contact, parent, jtype, jaxis, nb, nc, nf, ncp, mu):
+    H =  composite_rigid_body_algorithm_core(x_tree, I, parent, jtype, jaxis, nb, q)
+    C =  inverse_dynamics_core(x_tree, I, parent, jtype, jaxis, nb, q, qdot, jnp.zeros_like(q), a_grav)
 
     lam, fqp = lax.cond(
         jnp.sum(flag_contact),
         lambda _: solve_contact_lcp_extend_core(x_tree, q, qdot, contactpoint, H, tau, C, contact_force_lb, contact_force_ub,\
-            idcontact, flag_contact, parent, jtype, jaxis, NB, nc, nf, ncp, mu), 
-        lambda _: (jnp.zeros((NB,)), jnp.zeros((nc * nf, 1))),
+            idcontact, flag_contact, parent, jtype, jaxis, nb, nc, nf, ncp, mu), 
+        lambda _: (jnp.zeros((nb,)), jnp.zeros((nc * nf, 1))),
         operand=None
     )
     # print(lam)
 
     # lam, fqp = lax.cond(
     #     jnp.sum(flag_contact),
-    #     lambda _: (jnp.zeros((NB,)), jnp.zeros((nc * nf, 1))), 
-    #     lambda _: (jnp.zeros((NB,)), jnp.zeros((nc * nf, 1))),
+    #     lambda _: (jnp.zeros((nb,)), jnp.zeros((nc * nf, 1))), 
+    #     lambda _: (jnp.zeros((nb,)), jnp.zeros((nc * nf, 1))),
     #     operand=None
     # )
 
-    # lam, fqp = (jnp.zeros((NB,)), jnp.zeros((nc * nf, 1)))
+    # lam, fqp = (jnp.zeros((nb,)), jnp.zeros((nc * nf, 1)))
 
     # if jnp.sum(flag_contact):
     #     lam, fqp = solve_contact_lcp_extend_core(x_tree, q, qdot, contactpoint, H, tau, C, contact_force_lb, contact_force_ub,\
-    #         idcontact, flag_contact, parent, jtype, jaxis, NB, nc, nf, ncp, mu)
+    #         idcontact, flag_contact, parent, jtype, jaxis, nb, nc, nf, ncp, mu)
     # else:
-    #     lam = jnp.zeros((NB,))
+    #     lam = jnp.zeros((nb,))
     #     fqp = jnp.zeros((nc * nf, 1))
 
     # solve_contact_lcp_extend_core(x_tree, q, qdot, contactpoint, H, tau, C, contact_force_lb, contact_force_ub,\
-    #         idcontact, flag_contact, parent, jtype, jaxis, NB, nc, nf, ncp, mu)
+    #         idcontact, flag_contact, parent, jtype, jaxis, nb, nc, nf, ncp, mu)
 
 
     # if np.sum(flag_contact) !=0: 
     #     lam, fqp = solve_contact_lcp_core(x_tree, q, qdot, contactpoint, H, tau, C, contact_force_lb, contact_force_ub,\
-    #         idcontact, flag_contact, parent, jtype, jaxis, NB, nc, nf, ncp, mu)
+    #         idcontact, flag_contact, parent, jtype, jaxis, nb, nc, nf, ncp, mu)
 
-        # lam, fqp = solve_contact_simple_lcp_core(x_tree, q, qdot, contactpoint, H, tau, C, idcontact, flag_contact, parent, jtype, jaxis, NB, nc, nf)
-        # lam, fqp = calc_contact_force_direct_core(x_tree, q, qdot, contactpoint, H, tau, C, idcontact, flag_contact, parent, jtype, jaxis, NB, nc, nf)
+        # lam, fqp = solve_contact_simple_lcp_core(x_tree, q, qdot, contactpoint, H, tau, C, idcontact, flag_contact, parent, jtype, jaxis, nb, nc, nf)
+        # lam, fqp = calc_contact_force_direct_core(x_tree, q, qdot, contactpoint, H, tau, C, idcontact, flag_contact, parent, jtype, jaxis, nb, nc, nf)
 
     ttau = tau + lam
-    qddot = forward_dynamics_core(x_tree, I, parent, jtype, jaxis, NB, q, qdot, ttau, a_grav)
+    qddot = forward_dynamics_core(x_tree, I, parent, jtype, jaxis, nb, q, qdot, ttau, a_grav)
     # print("========")
     # print(qddot)
     xdot = jnp.hstack([qdot, qddot])
@@ -97,15 +97,15 @@ def dynamics_fun(t: float, X: np.ndarray, model: dict, contact_force: dict)->np.
     # print(X.shape)
     
     nc = int(model["nc"])
-    NB = int(model["NB"])
+    nb = int(model["nb"])
     nf = int(model["nf"])
 
-    q = X[0:NB]
-    qdot = X[NB: 2 * NB]
+    q = X[0:nb]
+    qdot = X[nb: 2 * nb]
     tau = model["tau"]
 
     # nc = int(model["nc"])
-    # NB = int(model["NB"])
+    # nb = int(model["nb"])
     # nf = int(model["nf"])
     contact_cond = model["contact_cond"]
     x_tree = model["x_tree"]
@@ -140,7 +140,7 @@ def dynamics_fun(t: float, X: np.ndarray, model: dict, contact_force: dict)->np.
     # print("111111111111111111111")
     # print(flag_contact)
     xdot, fqp, H = dynamics_fun_core(x_tree, I, q, qdot, contactpoint, tau, a_grav, contact_force_lb, contact_force_ub, \
-        idcontact, flag_contact, parent, jtype, jaxis, NB, nc, nf, rankJc, ncp, mu)
+        idcontact, flag_contact, parent, jtype, jaxis, nb, nc, nf, rankJc, ncp, mu)
     model["H"] = H
     # Calculate contact force fot plotting.
     fc = np.zeros((3*nc, 1))
@@ -194,12 +194,12 @@ def events_fun_extend_core(x_tree, q, contactpoint, idcontact, flag_contact, par
 
 def events_fun(t: float, x: np.ndarray, model: dict, contact_force: dict=dict()):
     # print("6666666666666666666666")
-    NB = int(model["NB"])
+    nb = int(model["nb"])
     nc = int(model["nc"])
    
     # Get q qdot tau
-    q = x[0: NB]
-    qdot = x[NB: 2*NB]
+    q = x[0: nb]
+    qdot = x[nb: 2*nb]
 
     x_tree = model["x_tree"]
     idcontact = tuple(model["idcontact"])
@@ -227,13 +227,13 @@ def events_fun(t: float, x: np.ndarray, model: dict, contact_force: dict=dict())
 
 def state_fun_ode(model: dict, xk: np.ndarray, uk: np.ndarray, T: float):
 
-    NB = int(model["NB"])
+    nb = int(model["nb"])
     nc = int(model["nc"])
     ST = model["ST"]
 
     # Get q qdot tau
-    q = xk[0: NB]
-    qdot = xk[NB: 2*NB]
+    q = xk[0: nb]
+    qdot = xk[nb: 2*nb]
     tau = np.matmul(ST, uk)
     model["tau"] = tau
 
@@ -294,8 +294,8 @@ def state_fun_ode(model: dict, xk: np.ndarray, uk: np.ndarray, T: float):
             xe = sol.y_events[te_idx].flatten()
 
             # Get q qdot
-            q = xe[0:NB]
-            qdot = xe[NB:2* NB]
+            q = xe[0:nb]
+            qdot = xe[nb:2* nb]
 
             # print("33333333333333333333333")
             # Detect contact
