@@ -98,5 +98,3 @@ def calc_contact_jdot_qdot(model: dict, q: np.ndarray, qdot: np.ndarray, flag_co
         parent, jtype, jaxis, nb, nc, nf)
 
     return jdot_qdot
-
-                
