@@ -5,13 +5,13 @@ from jax.api import jit
 def x_roty(theta):
     c = jnp.cos(theta)
     s = jnp.sin(theta)
-    X = jnp.array([[c, 0.0, -s, 0.0, 0.0, 0.0],
+    x = jnp.array([[c, 0.0, -s, 0.0, 0.0, 0.0],
                   [0.0, 1.0, 0.0, 0.0, 0.0, 0.0],
                   [s, 0.0, c, 0.0, 0.0, 0.0],
                   [0.0, 0.0, 0.0, c, 0.0, -s],
                   [0.0, 0.0, 0.0, 0.0, 1.0, 0.0],
                   [0.0, 0.0, 0.0, s, 0.0, c]])
-    return X
+    return 
 
 if __name__ == "__main__":
     import math

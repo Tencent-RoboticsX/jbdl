@@ -6,13 +6,13 @@ import jax.numpy as jnp
 def x_rotx(theta):
     c = jnp.cos(theta)
     s = jnp.sin(theta)
-    X = jnp.array([[1.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    x = jnp.array([[1.0, 0.0, 0.0, 0.0, 0.0, 0.0],
          [0.0, c, s, 0.0, 0.0, 0.0],
          [0.0, -s, c, 0.0, 0.0, 0.0],
          [0.0, 0.0, 0.0, 1.0, 0.0, 0.0],
          [0.0, 0.0, 0.0, 0.0, c, s],
          [0.0, 0.0, 0.0, 0.0, -s, c]])
-    return X
+    return x
 
 if __name__ == "__main__":
     import math
