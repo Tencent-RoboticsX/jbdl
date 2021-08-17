@@ -24,10 +24,11 @@ def calc_point_acceleration_core(x_tree, parent, jtype, jaxis, body_id, q, qdot,
             x0.append(x_up[i])
         else:
             v.append(jnp.matmul(x_up[i], v[parent[i]-1]) + vj)
-            avp.append(jnp.matmul(x_up[i], avp[parent[i] - 1]) + jnp.multiply(si, qddot[i]) + jnp.matmul(cross_motion_space(v[i]), vj))
+            avp.append(jnp.matmul(x_up[i], avp[parent[i] - 1]) + \
+                jnp.multiply(si, qddot[i]) + jnp.matmul(cross_motion_space(v[i]), vj))
             x0.append(jnp.matmul(x_up[i], x0[parent[i]-1]))
 
-    e_point = x0[body_id-1][0:3,0:3]
+    e_point = x0[body_id-1][0:3, 0:3]
     x_final_point = x_trans(point_pos)
     vel_p = jnp.matmul(x_final_point, v[body_id-1])
     avp_p = jnp.matmul(x_final_point, avp[body_id-1])
