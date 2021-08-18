@@ -25,15 +25,18 @@ def calc_point_velocity_core(x_tree, parent, jtype, jaxis, body_id, q, qdot, poi
         else:
             v.append(jnp.add(jnp.matmul(x_up, v[parent[i] - 1]), vj))
             x0.append(jnp.matmul(x_up, x0[parent[i] - 1]))
-    
+
     x_final_point = x_trans(point_pos)
     x0_point = jnp.matmul(x_final_point,  x0[body_id-1])
     vel_spatial = jnp.matmul(x_final_point, v[body_id-1])
-    vel = jnp.matmul(jnp.transpose(x0_point[0:3,0:3]), vel_spatial[3:6])
+    vel = jnp.matmul(jnp.transpose(x0_point[0:3, 0:3]), vel_spatial[3:6])
     return vel
 
 
-def calc_point_velocity(model: dict, q: np.ndarray, qdot: np.ndarray, body_id: int, point_pos: np.ndarray) -> np.ndarray:
+def calc_point_velocity(
+    model: dict, q: np.ndarray, qdot: np.ndarray,
+    body_id: int, point_pos: np.ndarray) -> np.ndarray:
+
     q = q.flatten()
     qdot = qdot.flatten()
     point_pos = point_pos.flatten()
