@@ -2,7 +2,7 @@ import numpy as np
 from jbdl.rbdl.kinematics import calc_body_to_base_coordinates
 
 
-def calc_whole_body_com(model: dict, q: np.ndarray)-> np.ndarray:
+def calc_whole_body_com(model: dict, q: np.ndarray) -> np.ndarray:
     """calc_whole_body_com - Calculate whole body's CoM position in world frame
 
     Args:
@@ -11,15 +11,16 @@ def calc_whole_body_com(model: dict, q: np.ndarray)-> np.ndarray:
 
     Returns:
         np.ndarray: float (3, 3)
-    """  
+    """
+
     q = q.flatten()
-    idcomplot = model["idcomplot"]   
+    idcomplot = model["idcomplot"]
     com = model["CoM"]
     mass = model["Mass"]
 
     num = len(idcomplot)
     com_list = []
-    clink = np.zeros((3,1))
+    clink = np.zeros((3, 1))
     for i in range(num):
         clink = calc_body_to_base_coordinates(model, q, idcomplot[i], com[i])
         com_list.append(clink)
@@ -34,4 +35,3 @@ def calc_whole_body_com(model: dict, q: np.ndarray)-> np.ndarray:
     pcom = np.asfarray(np.divide(c, m))
 
     return pcom
-

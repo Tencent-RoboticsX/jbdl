@@ -1,6 +1,7 @@
 import jax.numpy as jnp
 from jax import lax
 
+
 def calc_rank_jc(flag_contact, nf):
     # int(np.sum( [1 for item in flag_contact if item != 0]) * nf
     init_carry = 0.0
