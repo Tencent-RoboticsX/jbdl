@@ -32,14 +32,3 @@ def rigid_body_inertia(m: float, c, ic):
          jnp.hstack([m * jnp.transpose(cc), m * jnp.eye(3)])])
 
     return rbi
-
-
-if __name__ == "__main__":
-    from jax import random
-    from jax import make_jaxpr
-    key = random.PRNGKey(0)
-    m = 2.0
-    c = jnp.array([0.0, 0.0, 0.0])
-    ic = init_ic_by_cholesky(jnp.array([1.0, 0.0, 0.0, 1.0, 0.0, 1.0]))
-    print(make_jaxpr(rigid_body_inertia)(m, c, ic))
-    print(rigid_body_inertia(m, c, ic))

@@ -1,17 +1,18 @@
 from matplotlib import pyplot as plt
-from matplotlib.figure import Figure
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 
 
-
 def plot_link(pos_o, pos_e, pos_num, contact_point, ax: Axes3D):
-    ax.scatter(pos_o[0,:], pos_o[1, :], pos_o[2, :], marker="o",color="r")
+    ax.scatter(pos_o[0, :], pos_o[1, :], pos_o[2, :], marker="o", color="r")
     for i in range(pos_num):
-        ax.plot([pos_o[0, i], pos_e[0, i]],[pos_o[1, i], pos_e[1, i]],[pos_o[2, i],pos_e[2, i]])
+        ax.plot(
+            [pos_o[0, i], pos_e[0, i]],
+            [pos_o[1, i], pos_e[1, i]],
+            [pos_o[2, i], pos_e[2, i]])
     ax.scatter(contact_point[0, :], contact_point[1, :], contact_point[2, :], marker="o", color="c")
     return ax
-    
+
 
 if __name__ == "__main__":
     print("======")

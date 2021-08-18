@@ -4,13 +4,12 @@ import codecs
 import os
 import pathlib
 import subprocess
+from setuptools import Extension, find_packages, setup
+from setuptools.command.build_ext import build_ext
 import numpy
 from glob import glob
 import shutil
 from shutil import copyfile, copy
-
-from setuptools import Extension, find_packages, setup
-from setuptools.command.build_ext import build_ext
 
 
 HERE = pathlib.Path(__file__).parent.resolve()
@@ -125,7 +124,7 @@ class CMakeBuildExt(build_ext):
                 cwd=self.build_temp,
             )
 
-        print() # Add an empty line for cleaner output
+        print()  # Add an empty line for cleaner output
 
 
 
@@ -214,7 +213,7 @@ setup(
     packages=find_packages("src"),
     package_dir={"": "src"},
     include_package_data=True,
-    install_requires=['numpy', 'wheel',"jax", "jaxlib", "matplotlib", "chex", "cvxopt"],
+    install_requires=["numpy", "wheel", "jax", "jaxlib", "matplotlib", "chex", "cvxopt"],
     extras_require={"test": "pytest"},
     ext_modules=extensions,
     cmdclass={"build_ext": CMakeBuildExt},

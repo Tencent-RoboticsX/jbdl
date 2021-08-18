@@ -23,9 +23,9 @@ def plot_cuboid(center, size, ax, color, alpha):
     ox, oy, oz = center
     l, w, h = size
 
-    x = np.linspace(ox-l/2,ox+l/2,num=10)
-    y = np.linspace(oy-w/2,oy+w/2,num=10)
-    z = np.linspace(oz-h/2,oz+h/2,num=10)
+    x = np.linspace(ox-l/2, ox+l/2, num=10)
+    y = np.linspace(oy-w/2, oy+w/2, num=10)
+    z = np.linspace(oz-h/2, oz+h/2, num=10)
     x1, z1 = np.meshgrid(x, z)
     y11 = np.ones_like(x1)*(oy-w/2)
     y12 = np.ones_like(x1)*(oy+w/2)
@@ -49,6 +49,7 @@ def plot_cuboid(center, size, ax, color, alpha):
     # right surface
     ax.plot_surface(x32, y3, z3, color=color, alpha=alpha)
 
+
 def plot_inertia_cuboid(lxyz, pcom, ax):
     org = lxyz - 0.5 * pcom
     org = tuple(org.flatten().tolist())
@@ -59,11 +60,11 @@ def plot_inertia_cuboid(lxyz, pcom, ax):
 
 
 if __name__ == "__main__":
-    center = [0, 0, 0]
-    length = 32 * 2
-    width = 50 * 2
-    height = 100 * 2
+    CENTER = [0, 0, 0]
+    LENGTH = 32 * 2
+    WIDTH = 50 * 2
+    HEIGHT = 100 * 2
     fig = plt.gcf()
     ax = Axes3D(fig)
-    plot_cuboid(center, (length, width, height), ax, 'g', 1.0)
+    plot_cuboid(CENTER, (LENGTH, WIDTH, HEIGHT), ax, 'g', 1.0)
     plt.show()
