@@ -1,14 +1,13 @@
-import numpy as np
+from functools import partial
 import jax.numpy as jnp
 from jax.api import jit
 from jbdl.rbdl.model import joint_model
 from jbdl.rbdl.math import cross_motion_space, cross_force_space
-from functools import partial
 from jbdl.rbdl.utils import xyz2int
 
 
 @partial(jit, static_argnums=(2, 3, 4, 5))
-def forward_dynamics_core(x_tree, inertia, parent, jtype, jaxis, nb, q, qdot, tau, a_grav):  
+def forward_dynamics_core(x_tree, inertia, parent, jtype, jaxis, nb, q, qdot, tau, a_grav):
     s = []
     x_up = []
     v = []
@@ -42,7 +41,8 @@ def forward_dynamics_core(x_tree, inertia, parent, jtype, jaxis, nb, q, qdot, ta
         if parent[i] != 0:
             ia = inertia_aa[i] - jnp.matmul(uu[i] / d[i], jnp.transpose(uu[i]))
             pa = p_aa[i] + jnp.matmul(ia, c[i]) + jnp.multiply(uu[i], u[i]) / d[i]
-            inertia_aa[parent[i] - 1] = inertia_aa[parent[i] - 1] + jnp.matmul(jnp.matmul(jnp.transpose(x_up[i]), ia), x_up[i])
+            inertia_aa[parent[i] - 1] = inertia_aa[parent[i] - 1] \
+                + jnp.matmul(jnp.matmul(jnp.transpose(x_up[i]), ia), x_up[i])
             p_aa[parent[i] - 1] = p_aa[parent[i] - 1] + jnp.matmul(jnp.transpose(x_up[i]), pa)
 
     a = []
@@ -53,8 +53,8 @@ def forward_dynamics_core(x_tree, inertia, parent, jtype, jaxis, nb, q, qdot, ta
             a.append(jnp.matmul(x_up[i], -a_grav) + c[i])
         else:
             a.append(jnp.matmul(x_up[i], a[parent[i] - 1]) + c[i])
+
         qddot.append((u[i] - jnp.squeeze(jnp.matmul(jnp.transpose(uu[i]), a[i])))/d[i])
-        
         a[i] = a[i] + jnp.multiply(s[i], qddot[i])
 
     qddot = jnp.reshape(jnp.stack(qddot), (nb, ))
