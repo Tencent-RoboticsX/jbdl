@@ -1,65 +1,76 @@
+from functools import partial
 import numpy as np
 import jax.numpy as jnp
 from jax.api import jit
 from jbdl.rbdl.model import joint_model
 from jbdl.rbdl.math import x_trans, cross_motion_space, inverse_motion_space
-from functools import partial
 from jbdl.rbdl.utils import xyz2int
 
 
 @partial(jit, static_argnums=(1, 2, 3, 4, 5))
 def calc_point_jacobian_derivative_core(x_tree, parent, jtype, jaxis, body_id, nb, q, qdot, point_pos):
 
-    S = []
-    Xup = []
-    X0 = []
+    s = []
+    x_up = []
+    x0 = []
     v = []
 
     for i in range(body_id):
-        XJ, Si = joint_model(jtype[i], jaxis[i], q[i])
-        S.append(Si)
-        vJ = jnp.multiply(S[i], qdot[i])
-        Xup.append(jnp.matmul(XJ, x_tree[i]))
+        xj, si = joint_model(jtype[i], jaxis[i], q[i])
+        s.append(si)
+        vj = jnp.multiply(s[i], qdot[i])
+        x_up.append(jnp.matmul(xj, x_tree[i]))
         if parent[i] == 0:
-            v.append(vJ)
-            X0.append(Xup[i])
+            v.append(vj)
+            x0.append(x_up[i])
         else:
-            v.append(jnp.add(jnp.matmul(Xup[i], v[parent[i]-1]), vJ))
-            X0.append(jnp.matmul(Xup[i], X0[parent[i]-1]))
+            v.append(jnp.add(jnp.matmul(x_up[i], v[parent[i]-1]), vj))
+            x0.append(jnp.matmul(x_up[i], x0[parent[i]-1]))
 
-    XT_point = x_trans(point_pos)
-    X0_point = jnp.matmul(XT_point, X0[body_id-1])
-    v_point = jnp.matmul(XT_point, v[body_id-1])
+    x_final_point = x_trans(point_pos)
+    x0_point = jnp.matmul(x_final_point, x0[body_id-1])
+    v_point = jnp.matmul(x_final_point, v[body_id-1])
 
-    BJ = jnp.zeros((6, nb))
-    dBJ = jnp.zeros((6, nb))
+    bj = jnp.zeros((6, nb))
+    dbj = jnp.zeros((6, nb))
     id_p = id =  body_id - 1
-    Xe = jnp.zeros((nb, 6, 6))
+    xe = jnp.zeros((nb, 6, 6))
 
     while id_p != -1:
         if id_p == body_id - 1:
-            Xe = Xe.at[id_p,...].set(jnp.matmul(XT_point, Xup[id_p]))
-            BJ = BJ.at[:,[id_p,]].set(jnp.matmul(XT_point, S[id_p]))
-            dBJ = dBJ.at[:,[id_p,]].set(jnp.matmul(jnp.matmul(cross_motion_space(jnp.matmul(XT_point, v[id_p]) - v_point), XT_point), S[id_p]))
+            xe = xe.at[id_p,...].set(
+                jnp.matmul(x_final_point, x_up[id_p]))
+            bj = bj.at[:,[id_p,]].set(
+                jnp.matmul(x_final_point, s[id_p]))
+            dbj = dbj.at[:,[id_p,]].set(
+                jnp.matmul(jnp.matmul(
+                    cross_motion_space(jnp.matmul(x_final_point, v[id_p]) - v_point), x_final_point), s[id_p]))
         else:
-            Xe = Xe.at[id_p,...].set(jnp.matmul(Xe[id, ...], Xup[id_p]))
-            BJ = BJ.at[:,[id_p,]].set(jnp.matmul(Xe[id, ...], S[id_p]))
-            dBJ = dBJ.at[:,[id_p,]].set(jnp.matmul(jnp.matmul(cross_motion_space(jnp.matmul(Xe[id, ...], v[id_p]) - v_point), Xe[id,...]), S[id_p]) )       
+            xe = xe.at[id_p,...].set(
+                np.matmul(xe[id, ...], x_up[id_p]))
+            bj = bj.at[:,[id_p,]].set(
+                jnp.matmul(xe[id, ...], s[id_p]))
+            dbj = dbj.at[:,[id_p,]].set(
+                jnp.matmul(jnp.matmul(
+                    cross_motion_space(jnp.matmul(xe[id, ...], v[id_p]) - v_point), xe[id,...]), s[id_p]) )       
         id = id_p
         id_p = parent[id] - 1
-    X0 = inverse_motion_space(X0_point)
-    E0 = jnp.vstack([jnp.hstack([X0[0:3,0:3], jnp.zeros((3, 3))]), jnp.hstack([jnp.zeros((3, 3)), X0[0:3, 0:3]])])
-    dE0 = jnp.matmul(cross_motion_space(jnp.matmul(X0,v_point)), E0)
-    E0 = E0[0:3, 0:3]
-    dE0 = dE0[0:3,0:3]
-    JDot = jnp.matmul(jnp.matmul(dE0, jnp.hstack([jnp.zeros((3,3)), jnp.eye(3)])), BJ) \
-        + jnp.matmul(jnp.matmul(E0, jnp.hstack([jnp.zeros((3,3)), jnp.eye(3)])), dBJ)
+    x0 = inverse_motion_space(x0_point)
+    e0 = jnp.vstack(
+        [jnp.hstack([x0[0:3,0:3],jnp.zeros((3, 3))]),
+        jnp.hstack([jnp.zeros((3, 3)), x0[0:3, 0:3]])])
+    de0 = jnp.matmul(cross_motion_space(jnp.matmul(x0,v_point)), e0)
+    e0 = e0[0:3, 0:3]
+    de0 = de0[0:3,0:3]
+    jdot = jnp.matmul(jnp.matmul(de0, jnp.hstack([jnp.zeros((3,3)), jnp.eye(3)])), bj) \
+        + jnp.matmul(jnp.matmul(e0, jnp.hstack([jnp.zeros((3,3)), jnp.eye(3)])), dbj)
 
-    return JDot
+    return jdot
 
 
-
-def calc_point_jacobian_derivative(model: dict, q: np.ndarray, qdot: np.ndarray, body_id: int, point_pos: np.ndarray)->np.ndarray:
+def calc_point_jacobian_derivative(
+    model: dict, q: np.ndarray, qdot: np.ndarray,
+    body_id: int, point_pos: np.ndarray) -> np.ndarray:
     q = q.flatten()
     qdot = qdot.flatten()
     point_pos = point_pos.flatten()
@@ -69,5 +80,6 @@ def calc_point_jacobian_derivative(model: dict, q: np.ndarray, qdot: np.ndarray,
     nb = model["nb"]
     x_tree = model['x_tree']
 
-    JDot = calc_point_jacobian_derivative_core(x_tree, tuple(parent), tuple(jtype), jaxis, body_id, nb, q, qdot, point_pos)
-    return JDot
+    jdot = calc_point_jacobian_derivative_core(x_tree, tuple(parent), tuple(jtype), jaxis, body_id, nb, q, qdot, point_pos)
+    return jdot
+
