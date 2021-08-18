@@ -66,12 +66,13 @@ def solve_contact_simple_lcp_core(
     #Todo: Fast differentiable QP solver.
     lam = -jnp.linalg.solve(mm, d)
     lam = non_negative_z_projector(lam, nf)
- 
+
     fqp = lam
     flcp = jnp.matmul(jnp.transpose(jc), fqp)
 
     flcp = jnp.reshape(flcp, (-1,))
     return flcp, fqp
+
 
 def solve_contact_simple_lcp(model: dict, q: np.ndarray, qdot: np.ndarray, tau: np.ndarray, flag_contact: np.ndarray):
     nc = int(model["nc"])
@@ -93,4 +94,4 @@ def solve_contact_simple_lcp(model: dict, q: np.ndarray, qdot: np.ndarray, tau: 
 
     fpd = np.zeros((3*nc, 1))
     fc, fcqp, fcpd = get_contact_force(model, fqp, fpd, flag_contact)
-    return flcp, fqp, fc, fcqp, fcpd  
+    return flcp, fqp, fc, fcqp, fcpd
