@@ -244,6 +244,3 @@ def solve_contact_lcp(model: dict, q: np.ndarray, qdot: np.ndarray, tau: np.ndar
 
     return flcp, fqp, fc, fcqp, fcpd
 
-
-
-
