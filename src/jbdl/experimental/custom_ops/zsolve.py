@@ -1,5 +1,4 @@
 from jax import core
-import jax.numpy as jnp
 import numpy as np
 
 
