@@ -5,7 +5,6 @@ import jax.numpy as jnp
 from functools import partial
 from jax.interpreters import xla, ad, batching
 from jax.abstract_arrays import ShapedArray
-from jbdl.experimental.custom_ops.trace import trace, expectNotImplementedError
 from jax.lib import xla_client
 #from jbdl.experimental import cpu_ops
 from jax.api import jit, vmap
@@ -47,9 +46,7 @@ def lcp_gpu(H, f, L, k, lb, ub):
 # *  SUPPORT FOR JIT COMPILATION  *
 # *********************************
 
-# For JIT compilation we need a function to evaluate the shape and dtype of the
-# outputs of our op for some given inputs
-# @trace("lcp_abstract_eval")
+
 def lcp_gpu_abstract_eval(P, q, A, l, u):
     n = q.shape[0]
     m = l.shape[0]

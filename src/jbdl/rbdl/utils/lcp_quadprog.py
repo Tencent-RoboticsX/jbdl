@@ -24,78 +24,11 @@ def lcp_kkt(x, z,  H, f, L, k, lb, ub):
     kkt = jnp.vstack([lagrange, inequality])
     return kkt
 
-_indentation = 0
-def _trace(msg=None):
-    """Print a message at current indentation."""
-    if msg is not None:
-        print("  " * _indentation + msg)
-
-def _trace_indent(msg=None):
-    """Print a message and then indent the rest."""
-    global _indentation
-    _trace(msg)
-    _indentation = 1 + _indentation
-
-def _trace_unindent(msg=None):
-    """Unindent then print a message."""
-    global _indentation
-    _indentation = _indentation - 1
-    _trace(msg)
-
-def trace(name):
-    """A decorator for functions to trace arguments and results."""
-
-    def trace_func(func):  # pylint: disable=missing-docstring
-        def pp(v):
-            """Print certain values more succinctly"""
-            vtype = str(type(v))
-            if "jax.lib.xla_bridge._JaxComputationBuilder" in vtype:
-                return "<JaxComputationBuilder>"
-            elif "jaxlib.xla_extension.XlaOp" in vtype:
-                return "<XlaOp at 0x{:x}>".format(id(v))
-            elif ("partial_eval.JaxprTracer" in vtype or
-                "batching.BatchTracer" in vtype or
-                "ad.JVPTracer" in vtype):
-                return "Traced<{}>".format(v.aval)
-            elif isinstance(v, tuple):
-                return "({})".format(pp_values(v))
-            else:
-                return str(v)
-        def pp_values(args):
-            return ", ".join([pp(arg) for arg in args])
-    
-        @functools.wraps(func)
-        def func_wrapper(*args):
-            _trace_indent("call {}({})".format(name, pp_values(args)))
-            res = func(*args)
-            _trace_unindent("|<- {} = {}".format(name, pp(res)))
-            return res
-
-        return func_wrapper
-
-    return trace_func
-
-class expectNotImplementedError(object):
-    """Context manager to check for NotImplementedError."""
-    def __enter__(self): pass
-    def __exit__(self, type, value, tb):
-        global _indentation
-        _indentation = 0
-        if type is NotImplementedError:
-            print("\nFound expected exception:")
-            traceback.print_exc(limit=3)
-            return True
-        elif type is None:  # No exception
-            assert False, "Expected NotImplementedError"
-        else:
-            return False
-
 
 lcp_quadprog_p = core.Primitive("lcp_quadprog")
 lcp_p = core.Primitive("lcp")
 
 
-# @trace("lcp_quadprog_prim")
 def lcp_quadprog_prim(H, f, L, k, lb, ub):
     """The JAX-traceable way to use the JAX primitive.
     
@@ -104,7 +37,7 @@ def lcp_quadprog_prim(H, f, L, k, lb, ub):
     """
     return lcp_quadprog_p.bind(H, f, L, k, lb, ub)
 
-# @trace("lcp_prim")
+
 def lcp_prim(H, f, L, k, lb, ub):
     """The JAX-traceable way to use the JAX primitive.
     
@@ -113,7 +46,7 @@ def lcp_prim(H, f, L, k, lb, ub):
     """
     return lcp_p.bind(H, f, L, k, lb, ub)
 
-# @trace("lcp_quadprog_impl")
+
 def lcp_quadprog_impl(H, f, L, k, lb, ub):
     """Concrete implementation of the primitive.
 
@@ -137,7 +70,7 @@ def lcp_quadprog_impl(H, f, L, k, lb, ub):
         print('QP solve failed: status = %', status)
     return x, z
 
-# @trace("lcp_impl")
+
 def lcp_impl(H, f, L, k, lb, ub):
     """Concrete implementation of the primitive.
 
@@ -154,7 +87,7 @@ def lcp_impl(H, f, L, k, lb, ub):
 lcp_quadprog_p.def_impl(lcp_quadprog_impl)
 lcp_p.def_impl(lcp_impl)
 
-# @trace("lcp_quadprog_abstract_eval")
+
 def lcp_quadprog_abstract_eval(Hs, fs, Ls, ks, lbs, ubs):
     """Abstract evaluation of the primitive.
 
@@ -168,7 +101,7 @@ def lcp_quadprog_abstract_eval(Hs, fs, Ls, ks, lbs, ubs):
     zs_shape = (ks.shape[0] + lbs.shape[0] + ubs.shape[0], 1)
     return (abstract_arrays.ShapedArray(fs.shape, fs.dtype), abstract_arrays.ShapedArray(zs_shape, ks.dtype))
 
-# @trace("lcp_abstract_eval")
+
 def lcp_abstract_eval(Hs, fs, Ls, ks, lbs, ubs):
     """Abstract evaluation of the primitive.
 
@@ -186,7 +119,7 @@ def lcp_abstract_eval(Hs, fs, Ls, ks, lbs, ubs):
 lcp_quadprog_p.def_abstract_eval(lcp_quadprog_abstract_eval)
 lcp_p.def_abstract_eval(lcp_abstract_eval)
 
-# @trace("lcp_value_and_jvp")
+
 def lcp_value_and_jvp(arg_values, arg_tangents):
     """Evaluates the primal output and the tangents (Jacobian-vector product).
 
@@ -206,12 +139,11 @@ def lcp_value_and_jvp(arg_values, arg_tangents):
     """
     H, f, L, k, lb, ub = arg_values
     H_dot, f_dot, L_dot, k_dot, lb_dot, ub_dot = arg_tangents
-    _trace("Primal evaluation:")
+ 
     # Now we have a JAX-traceable computation of the output. 
     # Normally, we can use the ma primtive itself to compute the primal output. 
     x_star, z_star = lcp_quadprog_prim(H, f, L, k, lb, ub)
-  
-    _trace("Tangent evaluation:")
+
     n_var = H.shape[1]
     # We must use a JAX-traceable way to compute the tangent. It turns out that 
     # the output tangent can be computed as (xt * y + x * yt + zt),
