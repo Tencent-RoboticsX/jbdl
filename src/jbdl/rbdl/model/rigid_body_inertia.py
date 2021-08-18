@@ -1,6 +1,7 @@
 from jax.api import jit
 import jax.numpy as jnp
 
+
 @jit
 def init_ic_by_cholesky(l):
     """

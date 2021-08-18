@@ -3,7 +3,7 @@ from jax.api import jit
 
 
 @jit
-def inverse_motion_space(x): 
+def inverse_motion_space(x):
     e = x[0:3, 0:3]
     r = x[3:6, 0:3]
     x_inv = jnp.vstack(

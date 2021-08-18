@@ -70,5 +70,7 @@ def impulsive_dynamics(
     h = model["h"]
     rank_jc = int(np.sum( [1 for item in flag_contact if item != 0]) * model["nf"])
 
-    qdot_impulse = impulsive_dynamics_core(x_tree, q, qdot, contactpoint, h, idcontact, flag_contact, parent, jtype, jaxis, nb, nc, nf, rank_jc)
+    qdot_impulse = impulsive_dynamics_core(
+        x_tree, q, qdot, contactpoint, h, idcontact, flag_contact,
+        parent, jtype, jaxis, nb, nc, nf, rank_jc)
     return qdot_impulse
