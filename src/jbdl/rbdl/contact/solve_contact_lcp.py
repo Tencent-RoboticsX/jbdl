@@ -18,14 +18,14 @@ else:
 
 def get_aa(mu, nf):
     aa = jnp.empty([])
-    if nf == 2:  
+    if nf == 2:
         tx = jnp.array([1, 0])
         tz = jnp.array([0, 1])
         aa = jnp.vstack([-mu * tz + tx,
                         -mu * tz - tx,
                         -tz,
                         tz])
-                    
+
     if nf == 3:
         tx = jnp.array([1, 0, 0])
         ty = jnp.array([0, 1, 0])
@@ -41,6 +41,7 @@ def get_aa(mu, nf):
         ])
     return aa
 
+
 def get_b(fzlb, fzub, nf):
     b = jnp.empty([])
     if nf == 2:
@@ -49,16 +50,17 @@ def get_b(fzlb, fzub, nf):
         b = jnp.array([0.0, 0.0, 0.0, 0.0, -fzlb, fzub])
     return b
 
+
 def get_zero_aa(nf):
     aa = jnp.empty([])
-    if nf == 2:  
+    if nf == 2:
         tx = jnp.array([1.0, 0.0])
         tz = jnp.array([0.0, 1.0])
         aa = jnp.vstack([-tx,
                          tx,
                         -tz,
                         tz])
-                    
+
     if nf == 3:
         tx = jnp.array([1.0, 0.0, 0.0])
         ty = jnp.array([0.0, 1.0, 0.0])
@@ -74,6 +76,7 @@ def get_zero_aa(nf):
         ])
     return aa
 
+
 def get_zero_b(nf):
     b = jnp.empty([])
     if nf == 2:
@@ -81,6 +84,7 @@ def get_zero_b(nf):
     if nf == 3:
         b = jnp.zeros((6,))
     return b
+
 
 def get_block_diag_aa(flag_contact, mu, nf):
     def f(carry, x):
@@ -96,6 +100,7 @@ def get_block_diag_aa(flag_contact, mu, nf):
     block_diag_aa = jax.scipy.linalg.block_diag(*seq_aa)
 
     return block_diag_aa
+
 
 def get_stack_b(flag_contact, fzlb, fzub, nf):
     def f(carry, x):
@@ -113,11 +118,17 @@ def get_stack_b(flag_contact, fzlb, fzub, nf):
     return stack_b
 
 
-def solve_contact_lcp_extend_core(x_tree, q, qdot, contactpoint, hh, tau, cc, contact_force_lb, contact_force_ub,\
-    idcontact, flag_contact, parent, jtype, jaxis, nb, nc, nf, ncp, mu):
+def solve_contact_lcp_extend_core(
+    x_tree, q, qdot, contactpoint, hh, tau, cc,
+    contact_force_lb, contact_force_ub, idcontact, flag_contact,
+    parent, jtype, jaxis, nb, nc, nf, ncp, mu):
 
-    jc = calc_contact_jacobian_extend_core(x_tree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, nb, nc, nf)
-    jcdot_qdot = calc_contact_jdot_qdot_extend_core(x_tree, q, qdot, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, nb, nc, nf)
+    jc = calc_contact_jacobian_extend_core(
+        x_tree, q, contactpoint, idcontact, flag_contact,
+        parent, jtype, jaxis, nb, nc, nf)
+    jcdot_qdot = calc_contact_jdot_qdot_extend_core(
+        x_tree, q, qdot, contactpoint, idcontact, flag_contact,
+        parent, jtype, jaxis, nb, nc, nf)
     contact_force_lb = jnp.reshape(contact_force_lb, (-1,))
     contact_force_ub = jnp.reshape(contact_force_ub, (-1,))
     if nf == 2:
@@ -129,7 +140,7 @@ def solve_contact_lcp_extend_core(x_tree, q, qdot, contactpoint, hh, tau, cc, co
     d0 = jnp.matmul(jc, jnp.linalg.solve(hh, tau - cc))
     d = jnp.add(d0, jcdot_qdot)
 
-    ncd = 2 + 2 * (nf -1)
+    ncd = 2 + 2 * (nf - 1)
 
     aa = jnp.zeros((ncd * nc, nf * nc))
     b = jnp.zeros((ncd * nc, 1))
@@ -152,11 +163,17 @@ def solve_contact_lcp_extend_core(x_tree, q, qdot, contactpoint, hh, tau, cc, co
 
 
 
-def solve_contact_lcp_core(x_tree, q, qdot, contactpoint, hh, tau, cc, contact_force_lb, contact_force_ub,\
-    idcontact, flag_contact, parent, jtype, jaxis, nb, nc, nf, ncp, mu):
+def solve_contact_lcp_core(
+    x_tree, q, qdot, contactpoint, hh, tau, cc,
+    contact_force_lb, contact_force_ub, idcontact, flag_contact,
+    parent, jtype, jaxis, nb, nc, nf, ncp, mu):
 
-    jc = calc_contact_jacobian_core(x_tree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, nb, nc, nf)
-    jcdot_qdot = calc_contact_jdot_qdot_core(x_tree, q, qdot, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, nb, nc, nf)
+    jc = calc_contact_jacobian_core(
+        x_tree, q, contactpoint, idcontact, flag_contact,
+        parent, jtype, jaxis, nb, nc, nf)
+    jcdot_qdot = calc_contact_jdot_qdot_core(
+        x_tree, q, qdot, contactpoint, idcontact, flag_contact,
+        parent, jtype, jaxis, nb, nc, nf)
     contact_force_lb = jnp.reshape(contact_force_lb, (-1,))
     contact_force_ub = jnp.reshape(contact_force_ub, (-1,))
     if nf == 2:
@@ -168,7 +185,7 @@ def solve_contact_lcp_core(x_tree, q, qdot, contactpoint, hh, tau, cc, contact_f
     d0 = jnp.matmul(jc, jnp.linalg.solve(hh, tau - cc))
     d = jnp.add(d0, jcdot_qdot)
 
-    ncd = 2 + 2 * (nf -1)
+    ncd = 2 + 2 * (nf - 1)
 
     aa = jnp.zeros((ncd * ncp, nf * ncp))
     b = jnp.zeros((ncd * ncp, 1))
@@ -190,16 +207,13 @@ def solve_contact_lcp_core(x_tree, q, qdot, contactpoint, hh, tau, cc, contact_f
     return flcp, fqp
 
 
-        
-
-
 def solve_contact_lcp(model: dict, q: np.ndarray, qdot: np.ndarray, tau: np.ndarray, \
     flag_contact: np.ndarray, mu: float):
     nc = int(model["nc"])
     nb = int(model["nb"])
     nf = int(model["nf"])
     x_tree = model["x_tree"]
-    contactpoint = model["contactpoint"],
+    contactpoint = model["contactpoint"]
     idcontact = tuple(model["idcontact"])
     parent = tuple(model["parent"])
     jtype = tuple(model["jtype"])
@@ -218,7 +232,7 @@ def solve_contact_lcp(model: dict, q: np.ndarray, qdot: np.ndarray, tau: np.ndar
 
     ncp = 0
     for i in range(nc):
-        if flag_contact[i]!=0:
+        if flag_contact[i] != 0:
             ncp = ncp + 1
 
 
@@ -227,29 +241,8 @@ def solve_contact_lcp(model: dict, q: np.ndarray, qdot: np.ndarray, tau: np.ndar
 
     fpd = np.zeros((3*nc, 1))
     fc, fcqp, fcpd = get_contact_force(model, fqp, fpd, flag_contact)
-    
+
     return flcp, fqp, fc, fcqp, fcpd
-
-if __name__ == '__main__':
-    mu = 0.9
-    nf = 3
-    fzlb = 0.0
-    fzub = 1000
-    flag_contact = jnp.array([1, 0, 0, 0])
-
-    from jax import jacfwd, jacrev
-    print(get_aa(mu, nf))
-    print(get_b(fzlb, fzub, nf))
-    print(get_zero_aa(nf))
-    print(get_zero_b(nf))
-
-    print(get_block_diag_aa(flag_contact, mu, nf))
-    print(get_stack_b(flag_contact, fzlb, fzub, nf))
-    # print(jacfwd(get_aa, argnums=0)(mu, nf))
-    # print(jacrev(get_b, argnums=0)(fzlb, fzub, nf))
-    x = jnp.array([0.1, -0.2, 0.3])
-    print(jnp.tile(x, 3))
-
 
 
 
