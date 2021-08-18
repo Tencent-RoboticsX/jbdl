@@ -52,7 +52,7 @@ def impulsive_dynamics_extend_core(
 
 
 def impulsive_dynamics(
-    model: dict, q: np.ndarray, qdot: np.ndarray, flag_contact:np.ndarray) -> np.ndarray:
+    model: dict, q: np.ndarray, qdot: np.ndarray, flag_contact: np.ndarray) -> np.ndarray:
 
     q = q.flatten()
     qdot = qdot.flatten()

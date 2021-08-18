@@ -1,8 +1,9 @@
 import jax.numpy as jnp
 from jax.api import jit
 
+
 @jit
-def x_rotz(theta):  
+def x_rotz(theta):
     c = jnp.cos(theta)
     s = jnp.sin(theta)
     x = jnp.array([[c, s, 0.0, 0.0, 0.0, 0.0],
