@@ -26,7 +26,7 @@ def dynamics_fun_core(
     lam = jnp.zeros((nb, ))
     fqp = jnp.zeros((rank_jc, 1))
 
-    if np.sum(flag_contact) != 0: 
+    if np.sum(flag_contact) != 0:
         lam, fqp = solve_contact_lcp_core(
             x_tree, q, qdot, contactpoint, hh, tau, cc,
             contact_force_lb, contact_force_ub, idcontact, flag_contact,
