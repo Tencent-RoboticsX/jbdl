@@ -155,7 +155,7 @@ def lcp_jvp(arg_values, arg_tangents):
     nv = hh.shape[1]
 
     dkkt2dx = jacfwd(lcp_kkt, argnums=0)(x_star, z_star,  hh, f, ll, k, lb, ub)
-    dkkt2dz = jacfwd(lcp_kkt, argnums=1)(x_star, z_star,  hh, f, ll, k, lb, ub)  
+    dkkt2dz = jacfwd(lcp_kkt, argnums=1)(x_star, z_star,  hh, f, ll, k, lb, ub)
     dkkt2dhh = jacfwd(lcp_kkt, argnums=2)(x_star, z_star,  hh, f, ll, k, lb, ub)
     dkkt2df = jacfwd(lcp_kkt, argnums=3)(x_star, z_star,  hh, f, ll, k, lb, ub)
     dkkt2dll = jacfwd(lcp_kkt, argnums=4)(x_star, z_star,  hh, f, ll, k, lb, ub)
@@ -202,7 +202,7 @@ def lcp_jvp(arg_values, arg_tangents):
         diff_k = device_put(0.0)
     else:
         diff_k = jnp.sum(dxz2dk * k_dot, axis=(-2, -1))
-    
+
     if type(lb_dot) is ad.Zero:
         diff_lb = device_put(0.0)
     else:
@@ -212,10 +212,10 @@ def lcp_jvp(arg_values, arg_tangents):
         diff_ub = device_put(0.0)
     else:
         diff_ub = jnp.sum(dxz2dub * ub_dot, axis=(-2, -1))
-    
+
     diff = diff_hh + diff_f + diff_ll + diff_k + diff_lb + diff_ub
 
-    return (x_star, z_star), (diff[0:nv, ...], diff[nv:,...])
+    return (x_star, z_star), (diff[0:nv, ...], diff[nv:, ...])
 
 ad.primitive_jvps[lcp_prim] = lcp_jvp
 
@@ -257,14 +257,14 @@ if __name__ == "__main__":
     fwd = jacfwd(lcp, argnums=2)(hh, f, ll, k, lb, ub)
     print(fwd)
 
-    batch_size = 10
+    BATCH_SIZE = 10
 
-    batch_hh = jnp.repeat(jnp.expand_dims(hh, axis=0), batch_size, axis=0)
-    batch_f = jnp.repeat(jnp.expand_dims(f, axis=0), batch_size, axis=0)
-    batch_ll = jnp.repeat(jnp.expand_dims(ll, axis=0), batch_size, axis=0)
-    batch_k = jnp.repeat(jnp.expand_dims(k, axis=0), batch_size, axis=0)
-    batch_lb = jnp.repeat(jnp.expand_dims(lb, axis=0), batch_size, axis=0)
-    batch_ub = jnp.repeat(jnp.expand_dims(ub, axis=0), batch_size, axis=0)
+    batch_hh = jnp.repeat(jnp.expand_dims(hh, axis=0), BATCH_SIZE, axis=0)
+    batch_f = jnp.repeat(jnp.expand_dims(f, axis=0), BATCH_SIZE, axis=0)
+    batch_ll = jnp.repeat(jnp.expand_dims(ll, axis=0), BATCH_SIZE, axis=0)
+    batch_k = jnp.repeat(jnp.expand_dims(k, axis=0), BATCH_SIZE, axis=0)
+    batch_lb = jnp.repeat(jnp.expand_dims(lb, axis=0), BATCH_SIZE, axis=0)
+    batch_ub = jnp.repeat(jnp.expand_dims(ub, axis=0), BATCH_SIZE, axis=0)
     print(batch_hh.shape)
     print(batch_f.shape)
     print(batch_ll.shape)
