@@ -2,7 +2,7 @@ import json
 import numpy as np
 
 
-def jsonize(py_dict: dict)->dict:
+def jsonize(py_dict: dict) -> dict:
     json_model = dict()
     for key, value in py_dict.items():
         if isinstance(value, np.ndarray):
@@ -51,7 +51,7 @@ class ModelWrapper(object):
     def a_grav(self):
         a_grav = self._model['a_grav']
         if not isinstance(a_grav, np.ndarray):
-            a_grav = np.asfarray(a_grav) 
+            a_grav = np.asfarray(a_grav)
         a_grav = a_grav.flatten().reshape(6, 1)
         return a_grav
 
@@ -93,7 +93,7 @@ class ModelWrapper(object):
         if isinstance(idcontact, np.ndarray):
             idcontact = idcontact.flatten().astype(int).tolist()
         return idcontact
-    
+
     @idcontact.setter
     def idcontact(self, idcontact):
         self._model["idcontact"] = idcontact
@@ -109,8 +109,6 @@ class ModelWrapper(object):
     @contactpoint.setter
     def contactpoint(self, contactpoint):
         self._model["contactpoint"] = contactpoint
-
-        
 
     @property
     def parent(self):
@@ -141,7 +139,7 @@ class ModelWrapper(object):
     def contact_force_lb(self):
         contact_force_lb = np.array(self._model["contact_cond"]["contact_force_lb"]).reshape(*(-1, 1))
         return contact_force_lb
-    
+
     @contact_force_lb.setter
     def contact_force_lb(self, contact_force_lb: np.ndarray):
         if self._model.get("contact_cond") is None:
@@ -152,7 +150,7 @@ class ModelWrapper(object):
     def contact_force_ub(self):
         contact_force_ub = np.array(self._model["contact_cond"]["contact_force_ub"]).reshape(*(-1, 1))
         return contact_force_ub
-    
+
     @contact_force_ub.setter
     def contact_force_ub(self, contact_force_ub: np.ndarray):
         if self._model.get("contact_cond") is None:
@@ -225,10 +223,6 @@ class ModelWrapper(object):
             self._model["contact_cond"] = dict()
         self._model["contact_cond"]["contact_vel_ub"] = contact_vel_ub.reshape(*(-1, 1))
 
-
-      
-
-
     @property
     def contact_cond(self):
         contact_cond = self._model.get("contact_cond", None)
@@ -248,11 +242,6 @@ class ModelWrapper(object):
             self.contact_force_kp = contact_force_kp
         if contact_force_kd is not None:
             self.contact_force_kd = contact_force_kd
-
-
-
-
-
 
     @property
     def nc(self):
@@ -294,7 +283,7 @@ class ModelWrapper(object):
             ic = ic[0]
         ic = [ic[i].copy() for i in range(len(ic))]
         return ic
-    
+
     @ic.setter
     def ic(self, ic):
         self._model["ic"] = ic
@@ -348,7 +337,7 @@ class ModelWrapper(object):
     @property
     def json(self):
         json_model = jsonize(self.model)
-        return json_model    
+        return json_model
 
     def save(self, file_path: str):
         with open(file_path, 'w') as outfile:
@@ -358,7 +347,7 @@ class ModelWrapper(object):
         with open(file_path, 'r') as infile:
             json_model = json.load(infile)
 
-        model = dict() 
+        model = dict()
         for key, value in json_model.items():
             model[key] = value
             if key in ["x_tree", "inertia", "com", "linkplot", "contactpoint", "ic"]:
@@ -373,6 +362,3 @@ class ModelWrapper(object):
             else:
                 model[key] = value
         self._model = model
-
-
-
