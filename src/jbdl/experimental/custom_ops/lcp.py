@@ -41,7 +41,7 @@ def lcp(hh, f, ll, k, lb, ub):
 # @trace("lcp_abstract_eval")
 def lcp_abstract_eval(hh, f, ll, k, lb, ub):
     nv = f.shape[0]
-    nC = k.shape[0]
+    nc = k.shape[0]
     dtype = dtypes.canonicalize_dtype(hh.dtype)
     assert dtypes.canonicalize_dtype(f.dtype) == dtype
     assert dtypes.canonicalize_dtype(ll.dtype) == dtype
@@ -50,12 +50,12 @@ def lcp_abstract_eval(hh, f, ll, k, lb, ub):
     assert dtypes.canonicalize_dtype(ub.dtype) == dtype
     assert hh.shape == (nv, nv)
     assert f.shape == (nv, 1)
-    assert ll.shape == (nC, nv)
-    assert k.shape == (nC, 1)
+    assert ll.shape == (nc, nv)
+    assert k.shape == (nc, 1)
     assert lb.shape == (nv, 1)
     assert ub.shape == (nv, 1)
     primal_shape = (nv, 1)
-    dual_shape = (nC + 2 * nv, 1)
+    dual_shape = (nc + 2 * nv, 1)
     return (ShapedArray(primal_shape, dtype), ShapedArray(dual_shape, dtype))
 
 
@@ -75,7 +75,7 @@ def cpu_lcp_translation(c, hh, f, ll, k, lb, ub):
     # Extract the dtype and shape
     dtype = hh_shape.element_type()
     nv, _ = f_shape.dimensions()
-    nC, _ = k_shape.dimensions()
+    nc, _ = k_shape.dimensions()
     assert f_shape.element_type() == dtype
     assert ll_shape.element_type() == dtype
     assert k_shape.element_type() == dtype
@@ -83,8 +83,8 @@ def cpu_lcp_translation(c, hh, f, ll, k, lb, ub):
     assert ub_shape.element_type() == dtype
     assert hh_shape.dimensions() == (nv, nv)
     assert f_shape.dimensions() == (nv, 1)
-    assert ll_shape.dimensions() == (nC, nv)
-    assert k_shape.dimensions() == (nC, 1)
+    assert ll_shape.dimensions() == (nc, nv)
+    assert k_shape.dimensions() == (nc, 1)
     assert lb_shape.dimensions() == (nv, 1)
     assert ub_shape.dimensions() == (nv, 1)
 
@@ -94,16 +94,16 @@ def cpu_lcp_translation(c, hh, f, ll, k, lb, ub):
     # The input specification
     nv_array_shape = xla_client.Shape.array_shape(
         np.dtype(np.int64), (), ())
-    nC_array_shape = xla_client.Shape.array_shape(
+    nc_array_shape = xla_client.Shape.array_shape(
         np.dtype(np.int64), (), ())
     hh_array_shape = xla_client.Shape.array_shape(
         np.dtype(dtype), (nv, nv), (1, 0))
     f_array_shape = xla_client.Shape.array_shape(
         np.dtype(dtype), (nv, 1), (1, 0))
     ll_array_shape = xla_client.Shape.array_shape(
-        np.dtype(dtype), (nC, nv), (1, 0))
+        np.dtype(dtype), (nc, nv), (1, 0))
     k_array_shape = xla_client.Shape.array_shape(
-        np.dtype(dtype), (nC, 1), (1, 0))
+        np.dtype(dtype), (nc, 1), (1, 0))
     lb_array_shape = xla_client.Shape.array_shape(
         np.dtype(dtype), (nv, 1), (1, 0))
     ub_array_shape = xla_client.Shape.array_shape(
@@ -113,7 +113,7 @@ def cpu_lcp_translation(c, hh, f, ll, k, lb, ub):
     primal_array_shape = xla_client.Shape.array_shape(
         np.dtype(dtype), (nv, 1), (1, 0))
     dual_array_shape = xla_client.Shape.array_shape(
-        np.dtype(dtype), (nC + 2 * nv, 1), (1, 0))
+        np.dtype(dtype), (nc + 2 * nv, 1), (1, 0))
 
     
 
@@ -131,11 +131,11 @@ def cpu_lcp_translation(c, hh, f, ll, k, lb, ub):
         c,
         op_name,
         # The inputs:
-        operands=(xla_client.ops.ConstantLiteral(c, nv), xla_client.ops.ConstantLiteral(c, nC), hh, f, ll, k, lb, ub),
+        operands=(xla_client.ops.ConstantLiteral(c, nv), xla_client.ops.ConstantLiteral(c, nc), hh, f, ll, k, lb, ub),
         # The input shapes:
         operand_shapes_with_layout=(
             nv_array_shape,
-            nC_array_shape,
+            nc_array_shape,
             hh_array_shape,
             f_array_shape,
             ll_array_shape,
