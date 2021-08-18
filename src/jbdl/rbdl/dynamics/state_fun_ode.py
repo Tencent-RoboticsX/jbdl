@@ -26,9 +26,11 @@ def dynamics_fun_core(
     lam = jnp.zeros((nb, ))
     fqp = jnp.zeros((rank_jc, 1))
 
-    if np.sum(flag_contact) !=0: 
-        lam, fqp = solve_contact_lcp_core(x_tree, q, qdot, contactpoint, hh, tau, cc, contact_force_lb, contact_force_ub,\
-            idcontact, flag_contact, parent, jtype, jaxis, nb, nc, nf, ncp, mu)
+    if np.sum(flag_contact) != 0: 
+        lam, fqp = solve_contact_lcp_core(
+            x_tree, q, qdot, contactpoint, hh, tau, cc,
+            contact_force_lb, contact_force_ub, idcontact, flag_contact,
+            parent, jtype, jaxis, nb, nc, nf, ncp, mu)
 
     ttau = tau + lam
     qddot = forward_dynamics_core(x_tree, inertia, parent, jtype, jaxis, nb, q, qdot, ttau, a_grav)
@@ -51,30 +53,31 @@ def dynamics_fun_extend_core(
         lambda _: solve_contact_lcp_extend_core(
             x_tree, q, qdot, contactpoint, hh, tau, cc,
             contact_force_lb, contact_force_ub, idcontact, flag_contact,
-            parent, jtype, jaxis, nb, nc, nf, ncp, mu), 
+            parent, jtype, jaxis, nb, nc, nf, ncp, mu),
         lambda _: (jnp.zeros((nb,)), jnp.zeros((nc * nf, 1))),
         operand=None
     )
- 
+
     ttau = tau + lam
     qddot = forward_dynamics_core(
         x_tree, inertia, parent, jtype, jaxis, nb, q, qdot, ttau, a_grav)
     xdot = jnp.hstack([qdot, qddot])
     return xdot, fqp, hh
 
-def dynamics_fun(t: float, X: np.ndarray, model: dict, contact_force: dict)->np.ndarray:
+
+def dynamics_fun(t: float, x: np.ndarray, model: dict, contact_force: dict) -> np.ndarray:
 
     nc = int(model["nc"])
     nb = int(model["nb"])
     nf = int(model["nf"])
 
-    q = X[0:nb]
-    qdot = X[nb: 2 * nb]
+    q = x[0:nb]
+    qdot = x[nb: 2 * nb]
     tau = model["tau"]
 
     contact_cond = model["contact_cond"]
     x_tree = model["x_tree"]
-    contactpoint = model["contactpoint"],
+    contactpoint = model["contactpoint"]
     idcontact = tuple(model["idcontact"])
     parent = tuple(model["parent"])
     jtype = tuple(model["jtype"])
@@ -90,7 +93,7 @@ def dynamics_fun(t: float, X: np.ndarray, model: dict, contact_force: dict)->np.
     rank_jc = int(np.sum( [1 for item in flag_contact if item != 0]) * model["nf"])
     ncp = 0
     for i in range(nc):
-        if flag_contact[i]!=0:
+        if flag_contact[i] != 0:
             ncp = ncp + 1
 
     xdot, fqp, hh = dynamics_fun_core(
@@ -101,10 +104,10 @@ def dynamics_fun(t: float, X: np.ndarray, model: dict, contact_force: dict)->np.
 
     # Calculate contact force fot plotting.
     fc = np.zeros((3*nc, 1))
-    fcqp = np.zeros((3*nc, 1))  
+    fcqp = np.zeros((3*nc, 1))
     fcpd = np.zeros((3*nc, 1))
 
-    if np.sum(flag_contact) !=0: 
+    if np.sum(flag_contact) != 0:
         fpd = np.zeros((3*nc, 1))
         fc, fcqp, fcpd = get_contact_force(model, fqp, fpd, flag_contact)
 
@@ -122,8 +125,8 @@ def events_fun_core(
 
     value = jnp.ones((nc,))
     for i in range(nc):
-        if flag_contact[i]==2:  # Impact
-            # Calculate foot height 
+        if flag_contact[i] == 2:  # Impact
+            # Calculate foot height
             endpos = calc_body_to_base_coordinates_core(x_tree, parent, jtype, jaxis, idcontact[i], q, contactpoint[i])
             value = value.at[i].set(endpos[2, 0])
     return value
@@ -136,7 +139,8 @@ def calc_contact_point_to_base_cooridnates_core(
 
     value = jnp.zeros((nc,))
     for i in range(nc):
-        endpos = calc_body_to_base_coordinates_core(x_tree, parent, jtype, jaxis, idcontact[i], q, contactpoint[i])
+        endpos = calc_body_to_base_coordinates_core(
+            x_tree, parent, jtype, jaxis, idcontact[i], q, contactpoint[i])
         value = value.at[i].set(endpos[2, 0])
 
     return value
@@ -149,7 +153,9 @@ def events_fun_extend_core(
 
     event_value = lax.cond(
         jnp.any(jnp.logical_not(flag_contact-2.0)),
-        lambda _: jnp.min(calc_contact_point_to_base_cooridnates_core(x_tree, q, contactpoint, idcontact, parent, jtype, jaxis, nc)),
+        lambda _: jnp.min(
+            calc_contact_point_to_base_cooridnates_core(
+                x_tree, q, contactpoint, idcontact, parent, jtype, jaxis, nc)),
         lambda _: 1.0,
         operand = None,
     )
@@ -157,10 +163,10 @@ def events_fun_extend_core(
     return event_value
 
 
-def events_fun(t: float, x: np.ndarray, model: dict, contact_force: dict=dict()):
+def events_fun(t: float, x: np.ndarray, model: dict):
     nb = int(model["nb"])
     nc = int(model["nc"])
-   
+
     # Get q qdot tau
     q = x[0: nb]
     qdot = x[nb: 2*nb]
@@ -177,21 +183,21 @@ def events_fun(t: float, x: np.ndarray, model: dict, contact_force: dict=dict())
 
     return value
 
-def state_fun_ode(model: dict, xk: np.ndarray, uk: np.ndarray, T: float):
+
+def state_fun_ode(model: dict, xk: np.ndarray, uk: np.ndarray, final_time: float):
 
     nb = int(model["nb"])
-    nc = int(model["nc"])
-    ST = model["ST"]
+    st = model["ST"]
 
     # Get q qdot tau
     q = xk[0: nb]
     qdot = xk[nb: 2*nb]
-    tau = np.matmul(ST, uk)
+    tau = np.matmul(st, uk)
     model["tau"] = tau
 
     # Calculate state vector by ODE
     t0 = 0
-    tf = T
+    tf = final_time
     tspan = (t0, tf)
 
     x0 = np.asfarray(np.hstack([q, qdot]))
@@ -227,14 +233,14 @@ def state_fun_ode(model: dict, xk: np.ndarray, uk: np.ndarray, T: float):
 
             # Get q qdot
             q = xe[0:nb]
-            qdot = xe[nb:2* nb]
+            qdot = xe[nb: 2*nb]
 
             # Detect contact
             flag_contact = detect_contact(model, q, qdot)
             # print(flag_contact)
 
             # Impact dynamics
-            qdot_impulse = impulsive_dynamics(model, q, qdot, flag_contact);  
+            qdot_impulse = impulsive_dynamics(model, q, qdot, flag_contact)
             qdot_impulse = qdot_impulse.flatten()
 
             # Update initial state
