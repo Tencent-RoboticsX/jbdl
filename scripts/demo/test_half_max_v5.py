@@ -11,8 +11,6 @@ from jbdl.rbdl.contact import detect_contact_core
 from jbdl.rbdl.dynamics.state_fun_ode import dynamics_fun_extend_core, events_fun_extend_core
 from jbdl.rbdl.dynamics import composite_rigid_body_algorithm_core
 from jbdl.rbdl.contact.impulsive_dynamics import impulsive_dynamics_extend_core
-from jbdl.rbdl.ode.solve_ivp import integrate_dynamics
-from jax.custom_derivatives import closure_convert
 import math
 from jax.api import jit
 from functools import partial
