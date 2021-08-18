@@ -47,7 +47,7 @@ def inverse_dynamics(model, q, qdot, qddot):
     a_grav = model["a_grav"]
     qdot = qdot.flatten()
     qddot = qddot.flatten()
-    nb = model["nb"] 
+    nb = model["nb"]
     jtype = tuple(model["jtype"])
     jaxis = xyz2int(model["jaxis"])
     parent = tuple(model["parent"])

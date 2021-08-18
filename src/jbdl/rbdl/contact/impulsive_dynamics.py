@@ -27,6 +27,7 @@ def impulsive_dynamics_core(
     qdot_impulse = jnp.reshape(qdot_inertia[0:nb], (-1, 1))
     return qdot_impulse
 
+
 def impulsive_dynamics_extend_core(
     x_tree, q, qdot, contactpoint, h, idcontact, flag_contact,
     parent, jtype, jaxis, nb, nc, nf):
@@ -48,9 +49,6 @@ def impulsive_dynamics_extend_core(
     qdot_inertia, _, _, _  = jnp.linalg.lstsq(a, b)
     qdot_impulse = jnp.reshape(qdot_inertia[0:nb], (-1, 1))
     return qdot_impulse
-
-
-
 
 
 def impulsive_dynamics(
