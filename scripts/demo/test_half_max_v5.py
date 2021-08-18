@@ -35,14 +35,14 @@ nb = int(model["nb"])
 nf = int(model["nf"])
 contact_cond = model["contact_cond"]
 x_tree = device_put(model["x_tree"])
-ST = model["ST"]
+st = model["st"]
 contactpoint = model["contactpoint"]
 idcontact = tuple(model["idcontact"])
 parent = tuple(model["parent"])
 jtype = tuple(model["jtype"])
 jaxis = xyz2int(model["jaxis"])
 contactpoint = model["contactpoint"]
-I = device_put(model["I"])
+inertia = device_put(model["inertia"])
 a_grav = device_put(model["a_grav"])
 mu = device_put(0.9)
 contact_force_lb = device_put(contact_cond["contact_force_lb"])
@@ -66,20 +66,20 @@ t_eval = jnp.linspace(0, 2e-3, 4)
 # flag_contact = (0, 0)
 ncp = 0
 
-def dynamics_fun(x, t, x_tree, I, contactpoint, u, a_grav, \
+def dynamics_fun(x, t, x_tree, inertia, contactpoint, u, a_grav, \
     contact_force_lb, contact_force_ub,  contact_pos_lb, contact_vel_lb, contact_vel_ub, mu,\
-    ST, idcontact,   parent, jtype, jaxis, nb, nc, nf, ncp):
+    st, idcontact,   parent, jtype, jaxis, nb, nc, nf, ncp):
     q = x[0:nb]
     qdot = x[nb:]
-    tau = jnp.matmul(ST, u)
+    tau = jnp.matmul(st, u)
     flag_contact = detect_contact_core(x_tree, q, qdot, contactpoint, contact_pos_lb, contact_vel_lb, contact_vel_ub,\
         idcontact, parent, jtype, jaxis, nc)
-    xdot,fqp, H = dynamics_fun_extend_core(x_tree, I, q, qdot, contactpoint, tau, a_grav, contact_force_lb, contact_force_ub,\
+    xdot,fqp, H = dynamics_fun_extend_core(x_tree, inertia, q, qdot, contactpoint, tau, a_grav, contact_force_lb, contact_force_ub,\
     idcontact, flag_contact, parent, jtype, jaxis, nb, nc, nf, ncp, mu)
     return xdot
 
-def events_fun(y, t, x_tree, I, contactpoint, u, a_grav, contact_force_lb, contact_force_ub, \
-    contact_pos_lb, contact_vel_lb, contact_vel_ub, mu, ST, idcontact,  parent, jtype, jaxis, nb, nc, nf, ncp):
+def events_fun(y, t, x_tree, inertia, contactpoint, u, a_grav, contact_force_lb, contact_force_ub, \
+    contact_pos_lb, contact_vel_lb, contact_vel_ub, mu, st, idcontact,  parent, jtype, jaxis, nb, nc, nf, ncp):
     q = y[0:nb]
     qdot = y[nb:]
     flag_contact = detect_contact_core(x_tree, q, qdot, contactpoint, contact_pos_lb, contact_vel_lb, contact_vel_ub,\
@@ -88,11 +88,11 @@ def events_fun(y, t, x_tree, I, contactpoint, u, a_grav, contact_force_lb, conta
     value = events_fun_extend_core(x_tree, q, contactpoint, idcontact, flag_contact, parent, jtype, jaxis, nc)
     return value
 
-def impulsive_dynamics_fun(y, t, x_tree, I, contactpoint, u, a_grav, contact_force_lb, contact_force_ub, \
-    contact_pos_lb, contact_vel_lb, contact_vel_ub, mu, ST, idcontact,  parent, jtype, jaxis, nb, nc, nf, ncp):
+def impulsive_dynamics_fun(y, t, x_tree, inertia, contactpoint, u, a_grav, contact_force_lb, contact_force_ub, \
+    contact_pos_lb, contact_vel_lb, contact_vel_ub, mu, st, idcontact,  parent, jtype, jaxis, nb, nc, nf, ncp):
     q = y[0:nb]
     qdot = y[nb:]
-    H =  composite_rigid_body_algorithm_core(x_tree, I, parent, jtype, jaxis, nb, q)
+    H =  composite_rigid_body_algorithm_core(x_tree, inertia, parent, jtype, jaxis, nb, q)
     flag_contact = detect_contact_core(x_tree, q, qdot, contactpoint, contact_pos_lb, contact_vel_lb, contact_vel_ub,\
         idcontact, parent, jtype, jaxis, nc)
     qdot_impulse = impulsive_dynamics_extend_core(x_tree, q, qdot, contactpoint, H, idcontact, flag_contact, parent, jtype, jaxis, nb, nc, nf)
@@ -100,28 +100,28 @@ def impulsive_dynamics_fun(y, t, x_tree, I, contactpoint, u, a_grav, contact_for
     y_new = jnp.hstack([q, qdot_impulse])
     return y_new
 
-def fqp_fun(x, t, x_tree, I, contactpoint, u, a_grav, \
+def fqp_fun(x, t, x_tree, inertia, contactpoint, u, a_grav, \
     contact_force_lb, contact_force_ub,  contact_pos_lb, contact_vel_lb, contact_vel_ub, mu,\
-    ST, idcontact,   parent, jtype, jaxis, nb, nc, nf, ncp):
+    st, idcontact,   parent, jtype, jaxis, nb, nc, nf, ncp):
     q = x[0:nb]
     qdot = x[nb:]
-    tau = jnp.matmul(ST, u)
+    tau = jnp.matmul(st, u)
     flag_contact = detect_contact_core(x_tree, q, qdot, contactpoint, contact_pos_lb, contact_vel_lb, contact_vel_ub,\
         idcontact, parent, jtype, jaxis, nc)
-    xdot, fqp, H = dynamics_fun_extend_core(x_tree, I, q, qdot, contactpoint, tau, a_grav, contact_force_lb, contact_force_ub,\
+    xdot, fqp, H = dynamics_fun_extend_core(x_tree, inertia, q, qdot, contactpoint, tau, a_grav, contact_force_lb, contact_force_ub,\
     idcontact, flag_contact, parent, jtype, jaxis, nb, nc, nf, ncp, mu)
     return fqp, flag_contact
 
-pure_dynamics_fun = partial(dynamics_fun, ST=ST, idcontact=idcontact, \
+pure_dynamics_fun = partial(dynamics_fun, st=st, idcontact=idcontact, \
         parent=parent, jtype=jtype, jaxis=jaxis, nb=nb, nc=nc, nf=nf, ncp=ncp)
 
-pure_events_fun = partial(events_fun, ST=ST, idcontact=idcontact, \
+pure_events_fun = partial(events_fun, st=st, idcontact=idcontact, \
         parent=parent, jtype=jtype, jaxis=jaxis, nb=nb, nc=nc, nf=nf, ncp=ncp)
 
-pure_impulsive_fun =  partial(impulsive_dynamics_fun, ST=ST, idcontact=idcontact, \
+pure_impulsive_fun =  partial(impulsive_dynamics_fun, st=st, idcontact=idcontact, \
     parent=parent, jtype=jtype, jaxis=jaxis, nb=nb, nc=nc, nf=nf, ncp=ncp)
 
-pure_fqp_fun = partial(fqp_fun, ST=ST, idcontact=idcontact, \
+pure_fqp_fun = partial(fqp_fun, st=st, idcontact=idcontact, \
     parent=parent, jtype=jtype, jaxis=jaxis, nb=nb, nc=nc, nf=nf, ncp=ncp)
 
 
@@ -132,7 +132,7 @@ pure_fqp_fun = partial(fqp_fun, ST=ST, idcontact=idcontact, \
 
 
 u = jnp.zeros((4,))
-pure_args = (x_tree, I, contactpoint, u, a_grav, contact_force_lb, contact_force_ub,  contact_pos_lb, contact_vel_lb, contact_vel_ub, mu)
+pure_args = (x_tree, inertia, contactpoint, u, a_grav, contact_force_lb, contact_force_ub,  contact_pos_lb, contact_vel_lb, contact_vel_ub, mu)
 
 print(solve_ivp(pure_dynamics_fun, x0, jnp.linspace(0, 2e-3, 4), pure_events_fun, pure_impulsive_fun, *pure_args))
 
@@ -149,7 +149,7 @@ xkp1 = solve_ivp(pure_dynamics_fun, xk, t_eval, pure_events_fun, pure_impulsive_
 print(xkp1[-1, :])
 # print(pure_impulsive_fun(xk, 0.1, *pure_args))
 # q = xk[nb:]
-# H =  composite_rigid_body_algorithm_core(x_tree, I, parent, jtype, jaxis, nb, q)
+# H =  composite_rigid_body_algorithm_core(x_tree, inertia, parent, jtype, jaxis, nb, q)
 # print(H)
 
 
@@ -182,7 +182,7 @@ ax = Axes3D(fig)
 for i in range(500):
     print(i)
     u = kp * (q_star[3:7] - xk[3:7]) + kd * (qdot_star[3:7] - xk[10:14])
-    pure_args = (x_tree, I, contactpoint, u, a_grav, contact_force_lb, contact_force_ub, contact_pos_lb, contact_vel_lb, contact_vel_ub,mu)
+    pure_args = (x_tree, inertia, contactpoint, u, a_grav, contact_force_lb, contact_force_ub, contact_pos_lb, contact_vel_lb, contact_vel_ub,mu)
     # print("xk:", xk)
     # print("u", u)
 

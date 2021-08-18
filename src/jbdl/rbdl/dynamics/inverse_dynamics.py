@@ -52,7 +52,7 @@ def inverse_dynamics(model, q, qdot, qddot):
     jaxis = xyz2int(model["jaxis"])
     parent = tuple(model["parent"])
     x_tree = model["x_tree"]
-    inertia = model["I"]
+    inertia = model["inertia"]
 
     tau = inverse_dynamics_core(x_tree, inertia, tuple(parent), tuple(jtype), jaxis, nb, q, qdot, qddot, a_grav)
     return tau

@@ -15,8 +15,8 @@ def calc_whole_body_com(model: dict, q: np.ndarray) -> np.ndarray:
 
     q = q.flatten()
     idcomplot = model["idcomplot"]
-    com = model["CoM"]
-    mass = model["Mass"]
+    com = model["com"]
+    mass = model["mass"]
 
     num = len(idcomplot)
     com_list = []

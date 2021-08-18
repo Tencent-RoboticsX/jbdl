@@ -1,26 +1,16 @@
 # %%
 import os
-import re
-from jax.interpreters.xla import jaxpr_replicas
-from numpy.core.shape_base import block
 import numpy as np
-import math
-from jbdl.rbdl.kinematics import calc_pos_vel_point_to_base
-from jbdl.rbdl.kinematics import calc_whole_body_com
-from jbdl.rbdl.tools import plot_model, plot_contact_force, plot_com_inertia
+from jbdl.rbdl.tools import plot_model, plot_contact_force
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.axes3d import Axes3D
 from jbdl.rbdl.dynamics.state_fun_ode import events_fun_extend_core, dynamics_fun_extend_core
 from jbdl.rbdl.contact.impulsive_dynamics import impulsive_dynamics_extend_core
-from jbdl.rbdl.ode.solve_ivp import integrate_dynamics
-import matplotlib
 from jbdl.rbdl.utils import ModelWrapper
-from jbdl.rbdl.contact import detect_contact, detect_contact_core, get_contact_fcqp
-from jbdl.rbdl.contact import impulsive_dynamics, impulsive_dynamics_core
-from jbdl.rbdl.dynamics import composite_rigid_body_algorithm_core, forward_dynamics_core, inverse_dynamics_core
+from jbdl.rbdl.contact import detect_contact_core, get_contact_fcqp
+from jbdl.rbdl.dynamics import composite_rigid_body_algorithm_core
 from jbdl.rbdl.kinematics import *
 from jbdl.rbdl.kinematics import calc_body_to_base_coordinates_core
-import time
 from jbdl.rbdl.utils import xyz2int
 from jax.api import device_put
 import jax.numpy as jnp
@@ -42,14 +32,14 @@ nb = int(model["nb"])
 nf = int(model["nf"])
 contact_cond = model["contact_cond"]
 x_tree = device_put(model["x_tree"])
-ST = model["ST"]
+st = model["st"]
 contactpoint = model["contactpoint"],
 idcontact = tuple(model["idcontact"])
 parent = tuple(model["parent"])
 jtype = tuple(model["jtype"])
 jaxis = xyz2int(model["jaxis"])
 contactpoint = model["contactpoint"]
-I = device_put(model["I"])
+inertia = device_put(model["inertia"])
 a_grav = device_put(model["a_grav"])
 mu = device_put(0.9)
 contact_force_lb = device_put(contact_cond["contact_force_lb"])
@@ -126,29 +116,29 @@ def fqp_fun(x, t, x_tree, I, contactpoint, u, a_grav, \
     idcontact, flag_contact, parent, jtype, jaxis, nb, nc, nf, ncp, mu)
     return fqp, flag_contact
 
-pure_dynamics_fun = partial(dynamics_fun, ST=ST, idcontact=idcontact, \
+pure_dynamics_fun = partial(dynamics_fun, ST=st, idcontact=idcontact, \
         parent=parent, jtype=jtype, jaxis=jaxis, nb=nb, nc=nc, nf=nf, ncp=ncp)
 
-pure_events_fun = partial(events_fun, ST=ST, idcontact=idcontact, \
+pure_events_fun = partial(events_fun, ST=st, idcontact=idcontact, \
         parent=parent, jtype=jtype, jaxis=jaxis, nb=nb, nc=nc, nf=nf, ncp=ncp)
 
-pure_impulsive_fun =  partial(impulsive_dynamics_fun, ST=ST, idcontact=idcontact, \
+pure_impulsive_fun =  partial(impulsive_dynamics_fun, ST=st, idcontact=idcontact, \
     parent=parent, jtype=jtype, jaxis=jaxis, nb=nb, nc=nc, nf=nf, ncp=ncp)
 
-pure_fqp_fun = partial(fqp_fun, ST=ST, idcontact=idcontact, \
+pure_fqp_fun = partial(fqp_fun, ST=st, idcontact=idcontact, \
     parent=parent, jtype=jtype, jaxis=jaxis, nb=nb, nc=nc, nf=nf, ncp=ncp)
 
 
 
 u = jnp.zeros((12,))
-pure_args = (x_tree, I, contactpoint, u, a_grav, contact_force_lb, contact_force_ub,  contact_pos_lb, contact_vel_lb, contact_vel_ub, mu)
+pure_args = (x_tree, inertia, contactpoint, u, a_grav, contact_force_lb, contact_force_ub,  contact_pos_lb, contact_vel_lb, contact_vel_ub, mu)
 
 print(solve_ivp(pure_dynamics_fun, x0, t_eval, pure_events_fun, pure_impulsive_fun, *pure_args))
 
 
 
 # %%
-%matplotlib 
+# %matplotlib 
 
 q0 = jnp.array([0, 0, 0.5, 0.0, 0, 0,
         0, 0.5, -0.8,  # fr
@@ -185,7 +175,7 @@ for i in range(500):
     print(i)
     # u = kp * (q_star[3:7] - xk[3:7]) + kd * (qdot_star[3:7] - xk[10:14])
     u = kp * (q_star[6:18] - xk[6:18]) + kd * (qdot_star[6:18] - xk[24:36])
-    pure_args = (x_tree, I, contactpoint, u, a_grav, contact_force_lb, contact_force_ub, contact_pos_lb, contact_vel_lb, contact_vel_ub,mu)
+    pure_args = (x_tree, inertia, contactpoint, u, a_grav, contact_force_lb, contact_force_ub, contact_pos_lb, contact_vel_lb, contact_vel_ub,mu)
     # print("xk:", xk)
     # print("u", u)
     xk = solve_ivp(pure_dynamics_fun, xk, t_eval, pure_events_fun, pure_impulsive_fun, *pure_args)[-1,:]

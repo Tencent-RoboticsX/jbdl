@@ -220,8 +220,8 @@ def solve_contact_lcp(model: dict, q: np.ndarray, qdot: np.ndarray, tau: np.ndar
     jaxis = xyz2int(model["jaxis"])
     contactpoint = model["contactpoint"]
     flag_contact = flag_contact
-    hh = model["H"]
-    cc = model["C"]
+    hh = model["hh"]
+    cc = model["cc"]
     contact_cond = model["contact_cond"]
     contact_force_lb = contact_cond["contact_force_lb"].flatten()
     contact_force_ub = contact_cond["contact_force_ub"].flatten()

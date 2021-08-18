@@ -40,12 +40,12 @@ class ModelWrapper(object):
 
 
     @property
-    def I(self):
-        I = self._model["I"]
-        while type(I[0]) is not np.ndarray:
-            I = I[0]
-        I = [I[i].copy() for i in range(len(I))]
-        return I
+    def inertia(self):
+        inertia = self._model["inertia"]
+        while type(inertia[0]) is not np.ndarray:
+            inertia = inertia[0]
+        inertia = [inertia[i].copy() for i in range(len(inertia))]
+        return inertia
 
     @property
     def a_grav(self):
@@ -276,50 +276,50 @@ class ModelWrapper(object):
         return jaxis
 
     @property
-    def CoM(self):
-        CoM = self._model["CoM"]
-        while type(CoM[0]) is not np.ndarray:
-            CoM = CoM[0]
-        CoM = [CoM[i].copy() for i in range(len(CoM))]
-        return CoM
+    def com(self):
+        com = self._model["com"]
+        while type(com[0]) is not np.ndarray:
+            com = com[0]
+        com = [com[i].copy() for i in range(len(com))]
+        return com
 
-    @CoM.setter
-    def CoM(self, CoM):
-        self._model["CoM"] = CoM
+    @com.setter
+    def com(self, com):
+        self._model["com"] = com
 
     @property
-    def Inertia(self):
-        Inertia = self._model["Inertia"]
-        while type(Inertia[0]) is not np.ndarray:
-            Inertia = Inertia[0]
-        Inertia = [Inertia[i].copy() for i in range(len(Inertia))]
-        return Inertia
+    def ic(self):
+        ic = self._model["ic"]
+        while type(ic[0]) is not np.ndarray:
+            ic = ic[0]
+        ic = [ic[i].copy() for i in range(len(ic))]
+        return ic
     
-    @Inertia.setter
-    def Inertia(self, Inertia):
-        self._model["Inertia"] = Inertia
+    @ic.setter
+    def ic(self, ic):
+        self._model["ic"] = ic
 
     @property
-    def ST(self):
-        ST = self._model["ST"]
-        while type(ST[0]) is not np.ndarray:
-            ST = ST[0]
-        return ST
+    def st(self):
+        st = self._model["st"]
+        while type(st[0]) is not np.ndarray:
+            st = st[0]
+        return st
 
-    @ST.setter
-    def ST(self, ST):
-        self._model["ST"] = ST
+    @st.setter
+    def st(self, st):
+        self._model["st"] = st
 
     @property
-    def Mass(self):
-        Mass = self._model['Mass']
-        if isinstance(Mass, np.ndarray):
-            Mass = Mass.flatten().tolist()
-        return Mass
+    def mass(self):
+        mass = self._model['mass']
+        if isinstance(mass, np.ndarray):
+            mass = mass.flatten().tolist()
+        return mass
 
-    @Mass.setter
-    def Mass(self, Mass):
-        self._model["Mass"] = Mass
+    @mass.setter
+    def mass(self, mass):
+        self._model["mass"] = mass
 
     @property
     def model(self):
@@ -331,17 +331,17 @@ class ModelWrapper(object):
         model["jtype"] = self.jtype
         model["jaxis"] = self.jaxis
         model["x_tree"] = self.x_tree
-        model["I"] = self.I
+        model["inertia"] = self.inertia
         model["parent"] = self.parent
         model["idcomplot"] = self.idcomplot
         model["idlinkplot"] = self.idlinkplot
         model["idcontact"] = self.idcontact
         model["contactpoint"] = self.contactpoint
-        model["CoM"] = self.CoM
+        model["com"] = self.com
         model["linkplot"] = self.linkplot
-        model["Inertia"] = self.Inertia
-        model["Mass"] = self.Mass
-        model["ST"] = self.ST
+        model["ic"] = self.ic
+        model["mass"] = self.mass
+        model["st"] = self.st
         model["contact_cond"] = self.contact_cond
         return model
 
@@ -361,9 +361,9 @@ class ModelWrapper(object):
         model = dict() 
         for key, value in json_model.items():
             model[key] = value
-            if key in ["x_tree", "I", "CoM", "linkplot", "contactpoint", "Inertia"]:
+            if key in ["x_tree", "inertia", "com", "linkplot", "contactpoint", "ic"]:
                 model[key] = [np.asarray(elem) for elem in value]
-            elif key in ["a_grav", "Mass", "ST"]:
+            elif key in ["a_grav", "mass", "st"]:
                 model[key] = np.asfarray(value)
             elif key in ["contact_cond"]:
                 sub_model = dict()

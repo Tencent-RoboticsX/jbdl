@@ -86,8 +86,8 @@ def solve_contact_simple_lcp(model: dict, q: np.ndarray, qdot: np.ndarray, tau: 
     jaxis = xyz2int(model["jaxis"])
     contactpoint = model["contactpoint"]
     flag_contact = flag_contact
-    hh = model["H"]
-    cc = model["C"]
+    hh = model["hh"]
+    cc = model["cc"]
 
     flcp, fqp = solve_contact_simple_lcp_core(x_tree, q, qdot, contactpoint, hh, tau, cc, \
         idcontact, flag_contact, parent, jtype, jaxis, nb, nc, nf)

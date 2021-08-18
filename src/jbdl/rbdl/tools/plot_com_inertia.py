@@ -8,8 +8,8 @@ from jbdl.rbdl.tools.plot_inertia_cuboid import plot_inertia_cuboid
 def plot_com_inertia(model: dict, q: np.ndarray, ax: Axes3D):
 
     idcomplot = model["idcomplot"]
-    com = model["CoM"]
-    inertia = model["Inertia"]
+    com = model["com"]
+    ic = model["ic"]
     mass = model["Mass"]
 
     num = len(idcomplot)
@@ -21,7 +21,7 @@ def plot_com_inertia(model: dict, q: np.ndarray, ax: Axes3D):
     ax.scatter(pos_com[0, :], pos_com[1, :], pos_com[2, :], marker="*")
 
     for i in range(num):
-        lxyz  = clac_inertia_cuboid(np.diag(inertia[i]), mass[i])
+        lxyz  = clac_inertia_cuboid(np.diag(ic[i]), mass[i])
         plot_inertia_cuboid(pos_com[:, i:i+1], lxyz, ax)
 
     return ax

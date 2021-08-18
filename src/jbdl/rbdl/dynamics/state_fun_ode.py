@@ -83,7 +83,7 @@ def dynamics_fun(t: float, x: np.ndarray, model: dict, contact_force: dict) -> n
     jtype = tuple(model["jtype"])
     jaxis = xyz2int(model["jaxis"])
     contactpoint = model["contactpoint"]
-    inertia = model["I"]
+    inertia = model["inertia"]
     a_grav = model["a_grav"]
     mu = 0.9
     contact_force_lb = contact_cond["contact_force_lb"]
@@ -100,7 +100,7 @@ def dynamics_fun(t: float, x: np.ndarray, model: dict, contact_force: dict) -> n
         x_tree, inertia, q, qdot, contactpoint, tau, a_grav,
         contact_force_lb, contact_force_ub, idcontact, flag_contact,
         parent, jtype, jaxis, nb, nc, nf, rank_jc, ncp, mu)
-    model["H"] = hh
+    model["hh"] = hh
 
     # Calculate contact force fot plotting.
     fc = np.zeros((3*nc, 1))

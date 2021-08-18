@@ -71,7 +71,7 @@ def forward_dynamics(model, q, qdot, tau):
     jaxis = xyz2int(model["jaxis"])
     parent = tuple(model["parent"])
     x_tree = model["x_tree"]
-    inertia = model["I"]
+    inertia = model["inertia"]
 
     qddot = forward_dynamics_core(x_tree, inertia, tuple(parent), tuple(jtype), jaxis, nb, q, qdot, tau, a_grav)
     return qddot

@@ -46,7 +46,7 @@ def composite_rigid_body_algorithm(model: dict, q):
     jaxis = xyz2int(model['jaxis'])
     parent = tuple(model['parent'])
     x_tree = model["x_tree"]
-    inertia = model["I"]
+    inertia = model["inertia"]
 
     q = q.flatten()
     h = composite_rigid_body_algorithm_core(
