@@ -11,7 +11,7 @@ def calc_pos_vel_point_to_base(
     idbody: int,
     idbase: int,
     tarpoint: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
-    
+
     pos_body = calc_body_to_base_coordinates(model, q, idbody, tarpoint)
     vel_body = calc_point_velocity(model, q, qdot, idbody, tarpoint)
 

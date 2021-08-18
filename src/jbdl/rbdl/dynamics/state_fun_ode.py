@@ -16,7 +16,7 @@ import jax.numpy as jnp
 from jbdl.rbdl.contact import get_contact_force
 from jax.api import jit
 from functools import partial
-from jbdl.rbdl.utils import xyz2int, calc_rankJc
+from jbdl.rbdl.utils import xyz2int, calc_rank_jc
 from jax import lax
 
 # @partial(jit, static_argnums=(7, 8, 9, 10, 11, 12, 13, 14, 15))
