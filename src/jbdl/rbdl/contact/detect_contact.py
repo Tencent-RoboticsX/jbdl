@@ -21,7 +21,7 @@ def determin_contact_type_core(pos, vel, contact_pos_lb, contact_vel_lb, contact
     contact_type = contact_type * (jnp.heaviside(contact_vel_lb_z - vel_z, 0) + 1.0)
 
     return contact_type
-    
+
 
 def determin_contact_type(
     pos: np.ndarray, vel: np.ndarray, contact_cond: dict) -> int:
@@ -38,7 +38,7 @@ def determin_contact_type(
         elif vel[2] > contact_vel_ub[2]:
             contact_type = 0  # uncontact
         else:
-            contact_type = 1  # contact 
+            contact_type = 1  # contact
     else:
         contact_type = 0  # uncontact
 
@@ -75,7 +75,7 @@ def detect_contact(model: dict, q: np.ndarray, qdot: np.ndarray) -> np.ndarray:
     contact_cond = model["contact_cond"]
     nc = int(model["nc"])
     x_tree = model["x_tree"]
-    contactpoint = model["contactpoint"],
+    contactpoint = model["contactpoint"]
     idcontact = tuple(model["idcontact"])
     parent = tuple(model["parent"])
     jtype = tuple(model["jtype"])
@@ -84,12 +84,14 @@ def detect_contact(model: dict, q: np.ndarray, qdot: np.ndarray) -> np.ndarray:
     contact_pos_lb = contact_cond["contact_pos_lb"]
     contact_vel_lb = contact_cond["contact_vel_lb"]
     contact_vel_ub = contact_cond["contact_vel_ub"]
-    flag_contact = detect_contact_core(x_tree, q, qdot, contactpoint, contact_pos_lb, contact_vel_lb, contact_vel_ub, idcontact, parent, jtype, jaxis, nc)
+    flag_contact = detect_contact_core(
+        x_tree, q, qdot, contactpoint, contact_pos_lb, contact_vel_lb, contact_vel_ub, idcontact,
+        parent, jtype, jaxis, nc)
 
     return tuple(flag_contact)
 
 
-def detect_contact_v0(model: dict, q: np.ndarray, qdot: np.ndarray)->np.ndarray:
+def detect_contact_v0(model: dict, q: np.ndarray, qdot: np.ndarray) -> np.ndarray:
     nc = int(model["nc"])
     contact_cond = model["contact_cond"]
     idcontact = model["idcontact"]
@@ -111,5 +113,3 @@ def detect_contact_v0(model: dict, q: np.ndarray, qdot: np.ndarray)->np.ndarray:
     flag_contact = np.asfarray(flag_contact_list).flatten()
 
     return tuple(flag_contact)
-
-
