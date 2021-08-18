@@ -10,7 +10,6 @@ def composite_rigid_body_algorithm_core(x_tree, inertia, parent, jtype, jaxis, n
     # print("Re-Tracing")
 
     ic = inertia.copy()
-    
     s = []
     x_up = []
 

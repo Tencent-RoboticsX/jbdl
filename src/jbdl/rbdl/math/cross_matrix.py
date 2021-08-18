@@ -1,15 +1,15 @@
 from jax.api import jit
 import jax.numpy as jnp
 
+
 @jit
 def cross_matrix(v):
     flatten_v = jnp.reshape(v, (-1,))
-    CroMat = jnp.array(
+    cross_mat = jnp.array(
         [[0.0, -flatten_v[2], flatten_v[1]],
          [flatten_v[2], 0.0, -flatten_v[0]],
          [-flatten_v[1], flatten_v[0], 0.0]])
-    return CroMat
-
+    return cross_mat
 
 
 if __name__ == "__main__":

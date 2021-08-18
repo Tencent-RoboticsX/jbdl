@@ -1,6 +1,7 @@
 from jax.api import jit
 import jax.numpy as jnp
 
+
 @jit
 def cross_motion_space(v):
     flatten_v = jnp.reshape(v, (-1,))
@@ -18,5 +19,3 @@ if __name__ == "__main__":
     v = jnp.ones((6,1))
     print(make_jaxpr(cross_motion_space)(v))
     print(cross_motion_space(v))
-
-
