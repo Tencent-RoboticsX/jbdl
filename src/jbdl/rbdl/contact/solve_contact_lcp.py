@@ -243,4 +243,3 @@ def solve_contact_lcp(model: dict, q: np.ndarray, qdot: np.ndarray, tau: np.ndar
     fc, fcqp, fcpd = get_contact_force(model, fqp, fpd, flag_contact)
 
     return flcp, fqp, fc, fcqp, fcpd
-
