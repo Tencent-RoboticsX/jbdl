@@ -194,7 +194,9 @@ def _odeint_wrapper(func, rtol, atol, mxstep, y0, ts, *args):
 
 @partial(jax.custom_vjp, nondiff_argnums=(0, 1, 2, 3))
 def _odeint(func, rtol, atol, mxstep, y0, ts, *args):
-    def func_(y, t): return func(y, t, *args)
+
+    def func_(y, t):
+        return func(y, t, *args)
 
     def scan_fun(carry, target_t):
 

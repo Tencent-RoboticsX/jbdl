@@ -16,7 +16,7 @@ def plot_com_inertia(model: dict, q: np.ndarray, ax: Axes3D):
     pos_com = []
     for i in range(num):
         pos_com.append(calc_body_to_base_coordinates(model, q, idcomplot[i], com[i]))
-        
+
     pos_com = np.asfarray(np.concatenate(pos_com, axis=1))
     ax.scatter(pos_com[0, :], pos_com[1, :], pos_com[2, :], marker="*")
 
