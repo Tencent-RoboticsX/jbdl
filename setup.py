@@ -4,15 +4,15 @@ import codecs
 import os
 import pathlib
 import subprocess
+from glob import glob
+import shutil
+from shutil import copyfile
 from setuptools import Extension, find_packages, setup
 from setuptools.command.build_ext import build_ext
 import numpy
-from glob import glob
-import shutil
-from shutil import copyfile, copy
-
 
 HERE = pathlib.Path(__file__).parent.resolve()
+
 
 def read(*parts):
     with codecs.open(pathlib.Path(HERE).joinpath(*parts), "rb", "utf-8") as f:
