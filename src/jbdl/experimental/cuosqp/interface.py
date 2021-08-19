@@ -4,9 +4,7 @@ Python interface module for OSQP solver
 from builtins import object
 from jbdl.experimental.cuosqp import _osqp
 import numpy as np
-from platform import system
 from jbdl.experimental.cuosqp import utils
-import sys
 
 
 class OSQP(object):
@@ -16,21 +14,21 @@ class OSQP(object):
     def version(self):
         return self._model.version()
 
-    def setup(self, P=None, q=None, A=None, l=None, u=None, **settings):
+    def setup(self, p_matrix=None, q=None, a_matix=None, l=None, u=None, **settings):
         """
         Setup OSQP solver problem of the form
 
-        minimize     1/2 x' * P * x + q' * x
-        subject to   l <= A * x <= u
+        minimize     1/2 x' * p_matrix * x + q' * x
+        subject to   l <= a_matix * x <= u
 
         solver settings can be specified as additional keyword arguments
         """
 
-        unpacked_data, settings = utils.prepare_data(P, q, A, l, u, **settings)
+        unpacked_data, settings = utils.prepare_data(p_matrix, q, a_matix, l, u, **settings)
         self._model.setup(*unpacked_data, **settings)
 
     def update(self, q=None, l=None, u=None,
-               Px=None, Px_idx=np.array([]), Ax=None, Ax_idx=np.array([])):
+               px=None, px_idx=np.array([]), ax=None, ax_idx=np.array([])):
         """
         Update OSQP problem arguments
         """
@@ -57,19 +55,19 @@ class OSQP(object):
                 raise ValueError("u must have length m")
             # Convert values to OSQP_INFTY
             u = np.minimum(u, _osqp.constant('OSQP_INFTY'))
-        if Ax is None:
-            if len(Ax_idx) > 0:
-                raise ValueError("Vector Ax has not been specified")
+        if ax is None:
+            if len(ax_idx) > 0:
+                raise ValueError("Vector ax has not been specified")
         else:
-            if len(Ax_idx) > 0 and len(Ax) != len(Ax_idx):
-                raise ValueError("Ax and Ax_idx must have the same lengths")
-        if Px is None:
-            if len(Px_idx) > 0:
-                raise ValueError("Vector Px has not been specified")
+            if len(ax_idx) > 0 and len(ax) != len(ax_idx):
+                raise ValueError("ax and ax_idx must have the same lengths")
+        if px is None:
+            if len(px_idx) > 0:
+                raise ValueError("Vector px has not been specified")
         else:
-            if len(Px_idx) > 0 and len(Px) != len(Px_idx):
-                raise ValueError("Px and Px_idx must have the same lengths")
-        if q is None and l is None and u is None and Px is None and Ax is None:
+            if len(px_idx) > 0 and len(px) != len(px_idx):
+                raise ValueError("px and px_idx must have the same lengths")
+        if q is None and l is None and u is None and px is None and ax is None:
             raise ValueError("No updatable data has been specified")
 
         # update linear cost
@@ -89,16 +87,16 @@ class OSQP(object):
             self._model.update_bounds(l, u)
 
         # update matrix P
-        if Px is not None and Ax is None:
-            self._model.update_P(Px, Px_idx, len(Px))
+        if px is not None and ax is None:
+            self._model.update_P(px, px_idx, len(px))
 
         # update matrix A
-        if Ax is not None and Px is None:
-            self._model.update_A(Ax, Ax_idx, len(Ax))
+        if ax is not None and px is None:
+            self._model.update_A(ax, ax_idx, len(ax))
 
         # update matrices P and A
-        if Px is not None and Ax is not None:
-            self._model.update_P_A(Px, Px_idx, len(Px), Ax, Ax_idx, len(Ax))
+        if px is not None and ax is not None:
+            self._model.update_P_A(px, px_idx, len(px), ax, ax_idx, len(ax))
 
     def update_settings(self, **kwargs):
         """
