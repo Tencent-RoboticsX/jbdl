@@ -177,7 +177,7 @@ def lcp_gpu_jvp(arg_values, arg_tangents):
 
     # We use "bind" here because we don't want to mod the mean anomaly again
     x_star, z_star = lcp_gpu(h_matrix, f, l_matrix, k, lb, ub)
-    nV = h_matrix.shape[1]
+    nv = h_matrix.shape[1]
 
     dkkt2dx = jacfwd(lcp_gpu_kkt, argnums=0)(x_star, z_star, h_matrix, f, l_matrix, k, lb, ub)
     dkkt2dz = jacfwd(lcp_gpu_kkt, argnums=1)(x_star, z_star, h_matrix, f, l_matrix, k, l_matrixb, ub)
@@ -195,33 +195,33 @@ def lcp_gpu_jvp(arg_values, arg_tangents):
     dkkt2df = jnp.transpose(dkkt2df, [2, 3, 0, 1])
     dkkt2dl_matrix = jnp.transpose(dkkt2dl_matrix, [2, 3, 0, 1])
     dkkt2dk = jnp.transpose(dkkt2dk, [2, 3, 0, 1])
-    dkkt2dl_matrixb = jnp.transpose(dkkt2dlb, [2, 3, 0, 1])
+    dkkt2dlb = jnp.transpose(dkkt2dlb, [2, 3, 0, 1])
     dkkt2dub = jnp.transpose(dkkt2dub, [2, 3, 0, 1])
 
     dxz2dh_matrix = -jnp.linalg.solve(dkkt2dxz, dkkt2dh_matrix)
     dxz2dh_matrix = jnp.transpose(dxz2dh_matrix, [2, 3, 0, 1])
-    # dx2dH = dxz2dH[0:nV, ...]
-    # dz2dH = dxz2dH[nV:, ...]
+    # dx2dH = dxz2dH[0:nv, ...]
+    # dz2dH = dxz2dH[nv:, ...]
     dxz2df = -jnp.linalg.solve(dkkt2dxz, dkkt2df)
     dxz2df = jnp.transpose(dxz2df, [2, 3, 0, 1])
-    # dx2df = dxz2df[0:nV, ...]
-    # dz2df = dxz2df[nV:, ...]
+    # dx2df = dxz2df[0:nv, ...]
+    # dz2df = dxz2df[nv:, ...]
     dxz2dl_matrix = -jnp.linalg.solve(dkkt2dxz, dkkt2dl_matrix)
     dxz2dl_matrix = jnp.transpose(dxz2dl_matrix, [2, 3, 0, 1])
-    # dx2dL = dxz2dL[0:nV, ...]
-    # dz2dL = dxz2dL[nV:, ...]
+    # dx2dL = dxz2dL[0:nv, ...]
+    # dz2dL = dxz2dL[nv:, ...]
     dxz2dk = -jnp.linalg.solve(dkkt2dxz, dkkt2dk)
     dxz2dk = jnp.transpose(dxz2dk, [2, 3, 0, 1])
-    # dx2dk = dxz2dk[0:nV, ...]
-    # dz2dk = dxz2dk[nV:, ...]
+    # dx2dk = dxz2dk[0:nv, ...]
+    # dz2dk = dxz2dk[nv:, ...]
     dxz2dlb = -jnp.linalg.solve(dkkt2dxz, dkkt2dlb)
     dxz2dlb = jnp.transpose(dxz2dlb, [2, 3, 0, 1])
-    # dx2dlb = dxz2dlb[0:nV, ...]
-    # dz2dlb = dxz2df[nV:, ...]
+    # dx2dlb = dxz2dlb[0:nv, ...]
+    # dz2dlb = dxz2df[nv:, ...]
     dxz2dub = -jnp.linalg.solve(dkkt2dxz, dkkt2dub)
     dxz2dub = jnp.transpose(dxz2dub, [2, 3, 0, 1])
-    # dx2dub = dxz2dub[0:nV, ...]
-    # dz2dub = dxz2dub[nV:, ...]
+    # dx2dub = dxz2dub[0:nv, ...]
+    # dz2dub = dxz2dub[nv:, ...]
 
     if type(h_matrix_dot) is ad.Zero:
         diff_h_matrix = device_put(0.0)
@@ -255,7 +255,7 @@ def lcp_gpu_jvp(arg_values, arg_tangents):
 
     diff = diff_h_matrix + diff_f + diff_l_matrix + diff_k + diff_lb + diff_ub
 
-    return (x_star, z_star), (diff[0:nV, ...], diff[nV:, ...])
+    return (x_star, z_star), (diff[0:nv, ...], diff[nv:, ...])
 
 
 ad.primitive_jvps[lcp_gpu_prim] = lcp_gpu_jvp
