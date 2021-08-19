@@ -168,8 +168,8 @@ if os.environ.get("WITH_JAX_CUDA", "no").lower() == "yes":
         os.path.join(osqp_extension_dir, 'include'),
         numpy.get_include()]
 
-    lib_name = 'libosqp.a'
-    extra_objects = [os.path.join(osqp_extension_dir, 'src', lib_name)]
+    LIB_NAME = 'libosqp.a'
+    extra_objects = [os.path.join(osqp_extension_dir, 'src', LIB_NAME)]
 
     sources_files = glob(os.path.join(osqp_extension_dir, 'src', '*.c'))
 
