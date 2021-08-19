@@ -1,13 +1,11 @@
+from functools import partial
 from jax import core, dtypes, lax
 import numpy as np
 import jax
 import jax.numpy as jnp
-from functools import partial
 from jax.interpreters import xla, ad, batching
 from jax.abstract_arrays import ShapedArray
 from jax.lib import xla_client
-#from jbdl.experimental import cpu_ops
-from jax.api import jit, vmap
 from jax.api import jacfwd, device_put
 
 
@@ -17,7 +15,6 @@ try:
 except ImportError:
     gpu_ops = None
 else:
-    # Register the GPU XLA custom calls
     for name, value in gpu_ops.registrations().items():     #  gpu_lcp_double
         if "lcp" in name:
             xla_client.register_custom_call_target(name, value, platform="gpu")
@@ -29,9 +26,9 @@ lcp_gpu_prim.def_impl(partial(xla.apply_primitive, lcp_gpu_prim))
 
 
 
-def lcp_gpu(H, f, L, k, lb, ub):
+def lcp_gpu(h_matrix, f, L, k, lb, ub):
 
-    H = jax.numpy.triu(H)
+    h_matrix = jax.numpy.triu(h_matrix)
     n = L.shape[0]
     m = L.shape[1]
     Im = jax.numpy.eye(m)
@@ -39,7 +36,7 @@ def lcp_gpu(H, f, L, k, lb, ub):
     lower_bound = jax.numpy.vstack([(-1) * np.inf * jax.numpy.ones([n, 1]), lb])  # (36, 1)
     upper_bound = jax.numpy.vstack([k, ub])
 
-    x, z = lcp_gpu_prim.bind(H, f, A, lower_bound, upper_bound)
+    x, z = lcp_gpu_prim.bind(h_matrix, f, A, lower_bound, upper_bound)
     return x, z
 
 # *********************************
@@ -152,15 +149,15 @@ lcp_gpu_prim.def_abstract_eval(lcp_gpu_abstract_eval)
 xla.backend_specific_translations["gpu"][lcp_gpu_prim] = partial(lcp_gpu_translation, platform="gpu")
 
 
-def lcp_gpu_kkt(x, z, H, f, L, k, lb, ub):
-    n_var = H.shape[1]
+def lcp_gpu_kkt(x, z, h_matrix, f, L, k, lb, ub):
+    n_var = h_matrix.shape[1]
 
     L = jnp.vstack([L, -np.eye(n_var)])
     k = jnp.vstack([k, -lb])
     L = jnp.vstack([L, np.eye(n_var)])
     k = jnp.vstack([k, ub])
 
-    lagrange = jnp.matmul(H, x) + f + jnp.matmul(jnp.transpose(L), z)
+    lagrange = jnp.matmul(h_matrix, x) + f + jnp.matmul(jnp.transpose(L), z)
     inequality = (jnp.matmul(L, x) - k) * z
     kkt = jnp.vstack([lagrange, inequality])
     return kkt
@@ -175,26 +172,26 @@ def lcp_gpu_kkt(x, z, H, f, L, k, lb, ub):
 # applications, so check out the "How JAX primitives work" tutorial in the JAX
 # documentation for more info as necessary.
 def lcp_gpu_jvp(arg_values, arg_tangents):
-    H, f, L, k, lb, ub = arg_values
-    H_dot, f_dot, L_dot, k_dot, lb_dot, ub_dot = arg_tangents
+    h_matrix, f, L, k, lb, ub = arg_values
+    h_matrix_dot, f_dot, L_dot, k_dot, lb_dot, ub_dot = arg_tangents
 
     # We use "bind" here because we don't want to mod the mean anomaly again
-    x_star, z_star = lcp_gpu(H, f, L, k, lb, ub)
-    nV = H.shape[1]
+    x_star, z_star = lcp_gpu(h_matrix, f, L, k, lb, ub)
+    nV = h_matrix.shape[1]
 
-    dkkt2dx = jacfwd(lcp_gpu_kkt, argnums=0)(x_star, z_star, H, f, L, k, lb, ub)
-    dkkt2dz = jacfwd(lcp_gpu_kkt, argnums=1)(x_star, z_star, H, f, L, k, lb, ub)
+    dkkt2dx = jacfwd(lcp_gpu_kkt, argnums=0)(x_star, z_star, h_matrix, f, L, k, lb, ub)
+    dkkt2dz = jacfwd(lcp_gpu_kkt, argnums=1)(x_star, z_star, h_matrix, f, L, k, lb, ub)
 
-    dkkt2dH = jacfwd(lcp_gpu_kkt, argnums=2)(x_star, z_star, H, f, L, k, lb, ub)
-    dkkt2df = jacfwd(lcp_gpu_kkt, argnums=3)(x_star, z_star, H, f, L, k, lb, ub)
-    dkkt2dL = jacfwd(lcp_gpu_kkt, argnums=4)(x_star, z_star, H, f, L, k, lb, ub)
-    dkkt2dk = jacfwd(lcp_gpu_kkt, argnums=5)(x_star, z_star, H, f, L, k, lb, ub)
-    dkkt2dlb = jacfwd(lcp_gpu_kkt, argnums=6)(x_star, z_star, H, f, L, k, lb, ub)
-    dkkt2dub = jacfwd(lcp_gpu_kkt, argnums=7)(x_star, z_star, H, f, L, k, lb, ub)
+    dkkt2dH = jacfwd(lcp_gpu_kkt, argnums=2)(x_star, z_star, h_matrix, f, L, k, lb, ub)
+    dkkt2df = jacfwd(lcp_gpu_kkt, argnums=3)(x_star, z_star, h_matrix, f, L, k, lb, ub)
+    dkkt2dL = jacfwd(lcp_gpu_kkt, argnums=4)(x_star, z_star, h_matrix, f, L, k, lb, ub)
+    dkkt2dk = jacfwd(lcp_gpu_kkt, argnums=5)(x_star, z_star, h_matrix, f, L, k, lb, ub)
+    dkkt2dlb = jacfwd(lcp_gpu_kkt, argnums=6)(x_star, z_star, h_matrix, f, L, k, lb, ub)
+    dkkt2dub = jacfwd(lcp_gpu_kkt, argnums=7)(x_star, z_star, h_matrix, f, L, k, lb, ub)
 
     dkkt2dxz = jnp.concatenate([dkkt2dx, dkkt2dz], axis=2)
     dkkt2dxz = jnp.transpose(dkkt2dxz, [3, 1, 0, 2])
-    dkkt2dH = jnp.transpose(dkkt2dH, [2, 3, 0, 1])
+    dkkt2dH = jnp.transpose(dkkt2dh_matrix, [2, 3, 0, 1])
     dkkt2df = jnp.transpose(dkkt2df, [2, 3, 0, 1])
     dkkt2dL = jnp.transpose(dkkt2dL, [2, 3, 0, 1])
     dkkt2dk = jnp.transpose(dkkt2dk, [2, 3, 0, 1])
@@ -226,10 +223,10 @@ def lcp_gpu_jvp(arg_values, arg_tangents):
     # dx2dub = dxz2dub[0:nV, ...]
     # dz2dub = dxz2dub[nV:, ...]
 
-    if type(H_dot) is ad.Zero:
-        diff_H = device_put(0.0)
+    if type(h_matrix_dot) is ad.Zero:
+        diff_h_matrix = device_put(0.0)
     else:
-        diff_H = jnp.sum(dxz2dH * H_dot, axis=(-2, -1))
+        diff_h_matrix = jnp.sum(dxz2dH * h_matrix_dot, axis=(-2, -1))
 
     if type(f_dot) is ad.Zero:
         diff_f = device_put(0.0)
@@ -256,7 +253,7 @@ def lcp_gpu_jvp(arg_values, arg_tangents):
     else:
         diff_ub = jnp.sum(dxz2dub * ub_dot, axis=(-2, -1))
 
-    diff = diff_H + diff_f + diff_L + diff_k + diff_lb + diff_ub
+    diff = diff_h_matrix + diff_f + diff_L + diff_k + diff_lb + diff_ub
 
     return (x_star, z_star), (diff[0:nV, ...], diff[nV:, ...])
 
@@ -269,18 +266,18 @@ ad.primitive_jvps[lcp_gpu_prim] = lcp_gpu_jvp
 # # ************************************
 #
 def lcp_gpu_batch(batched_args, batch_dims):
-    Hs, fs, Ls, lbs, ubs = batched_args
-    Hs_bd, fs_bd, Ls_bd, lbs_bd, ubs_bd = batch_dims
+    h_matrixs, fs, Ls, lbs, ubs = batched_args
+    h_matrixs_bd, fs_bd, Ls_bd, lbs_bd, ubs_bd = batch_dims
 
     size = next(t.shape[i] for t, i in zip(batched_args, batch_dims) if i is not None)
 
-    Hs = batching.bdim_at_front(Hs, Hs_bd, size)
+    h_matrixs = batching.bdim_at_front(h_matrixs, h_matrixs_bd, size)
     fs = batching.bdim_at_front(fs, fs_bd, size)
     Ls = batching.bdim_at_front(Ls, Ls_bd, size)
     lbs = batching.bdim_at_front(lbs, lbs_bd, size)
     ubs = batching.bdim_at_front(ubs, ubs_bd, size)
 
-    samples = lax.map(lambda args: lcp_gpu_prim.bind(*args), (Hs, fs, Ls, lbs, ubs))
+    samples = lax.map(lambda args: lcp_gpu_prim.bind(*args), (h_matrixs, fs, Ls, lbs, ubs))
 
     return samples, (0, 0)
 
