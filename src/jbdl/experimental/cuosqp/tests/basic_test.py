@@ -7,7 +7,7 @@ import numpy as np
 from scipy import sparse
 import numpy.testing as nptest
 
-class basic_tests(unittest.TestCase):
+class BasicTests(unittest.TestCase):
 
     def setUp(self):
 
