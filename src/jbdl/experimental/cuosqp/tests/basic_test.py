@@ -1,11 +1,10 @@
 # Test cuosqp python module
+# Unit Test
+import unittest
 import jbdl.experimental.cuosqp as osqp
 from jbdl.experimental.cuosqp._osqp import constant
 import numpy as np
 from scipy import sparse
-
-# Unit Test
-import unittest
 import numpy.testing as nptest
 
 class basic_tests(unittest.TestCase):
