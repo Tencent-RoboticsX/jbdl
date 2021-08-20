@@ -1,0 +1,40 @@
+Name: Python interface for CUDA implementation of OSQP
+URL: https://github.com/osqp/cuosqp
+Version: 4446145e38cf175d77f2828abee428a4388238c1
+License: Apache License 2.0
+License file: src/jbdl/experimental/cuosqp/LICENSE
+Files used: src/jbdl/experimental/cuosqp/*
+
+Name: The Operator Splitting QP Solver
+URL: https://github.com/osqp/osqp
+Version: 837c7a32baea1cc023566d2c82ab6dbb5f049af8
+License: Apache License 2.0
+License file: src/jbdl/experimental/cuosqp/osqp_sources/LICENSE
+Files used: src/jbdl/experimental/cuosqp/osqp_sources/*
+
+Name: QDLDL A free LDL factorisation routine for quasi-definite linear systems: Ax=b
+URL: https://github.com/osqp/qdldl
+Version: a00d500906621fbf014b39e42a3304d1143eb65f
+License: Apache License 2.0
+License file: src/jbdl/experimental/cuosqp/osqp_sources/lin_sys/direct/qdldl/qdldl_sources/LICENSE
+Files used: src/jbdl/experimental/cuosqp/osqp_sources/lin_sys/direct/qdldl/qdldl_sources/*
+
+Name: SuiteSparse: A Suite of Sparse matrix packages
+URL: https://github.com/DrTimothyAldenDavis/SuiteSparse
+Version: Unknown
+License: BSD 3-clause
+License file: src/jbdl/experimental/cuosqp/osqp_sources/lin_sys/direct/qdldl/amd/LICENSE
+Files used: src/jbdl/experimental/cuosqp/osqp_sources/lin_sys/direct/qdldl/amd/*
+
+Name: qpOASES -- An Implementation of the Online Active Set Strategy.
+URL: https://github.com/coin-or/qpOASES
+Version: d4f4759550c486bdb4aa94b8b52d847d1b0e4986
+License: GNU Lesser General Public License v2.1
+License file: src/jbdl/experimental/qpoases/LICENSE
+Files used: src/jbdl/experimental/qpoases/*
+
+Name: JAX: Autograd and XLA
+URL: https://github.com/google/jax
+Version: Unknown
+License: Apache License 2.0
+Files used: src/jbdl/experimental/ode/runge_kutta.py
