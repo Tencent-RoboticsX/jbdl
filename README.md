@@ -6,8 +6,9 @@ A JAX-Based Body Dynamics Algorithm Library forRobotics.
 URL: https://github.com/Tencent-RoboticsX/jbdl
 
 The technical report of this project:
-
 Cheng Zhou, Lei Han, Yuzhu Mao. JBDL: A JAX-Based Body Dynamics Algorithm Library forRobotics. arXiv preprint arXiv:XXXX.XXXX, 2021. (correspondence to the first two authors)
+
+Technical reports will be released soon.
 
 # Install
 Go to home directory, and run the command:
