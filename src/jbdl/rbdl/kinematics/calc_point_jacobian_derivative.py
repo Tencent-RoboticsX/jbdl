@@ -40,26 +40,26 @@ def calc_point_jacobian_derivative_core(x_tree, parent, jtype, jaxis, body_id, n
         if id_p == body_id - 1:
             xe = xe.at[id_p, ...].set(
                 jnp.matmul(x_final_point, x_up[id_p]))
-            bj = bj.at[:,[id_p, ]].set(
+            bj = bj.at[:, [id_p, ]].set(
                 jnp.matmul(x_final_point, s[id_p]))
-            dbj = dbj.at[:,[id_p, ]].set(
+            dbj = dbj.at[:, [id_p, ]].set(
                 jnp.matmul(jnp.matmul(
                     cross_motion_space(jnp.matmul(x_final_point, v[id_p]) - v_point), x_final_point), s[id_p]))
         else:
             xe = xe.at[id_p, ...].set(
                 np.matmul(xe[id, ...], x_up[id_p]))
-            bj = bj.at[:,[id_p, ]].set(
+            bj = bj.at[:, [id_p, ]].set(
                 jnp.matmul(xe[id, ...], s[id_p]))
-            dbj = dbj.at[:,[id_p, ]].set(
+            dbj = dbj.at[:, [id_p, ]].set(
                 jnp.matmul(jnp.matmul(
-                    cross_motion_space(jnp.matmul(xe[id, ...], v[id_p]) - v_point), xe[id,...]), s[id_p]))
+                    cross_motion_space(jnp.matmul(xe[id, ...], v[id_p]) - v_point), xe[id, ...]), s[id_p]))
         id = id_p
         id_p = parent[id] - 1
     x0 = inverse_motion_space(x0_point)
     e0 = jnp.vstack(
         [jnp.hstack([x0[0:3, 0:3], jnp.zeros((3, 3))]),
         jnp.hstack([jnp.zeros((3, 3)), x0[0:3, 0:3]])])
-    de0 = jnp.matmul(cross_motion_space(jnp.matmul(x0,v_point)), e0)
+    de0 = jnp.matmul(cross_motion_space(jnp.matmul(x0, v_point)), e0)
     e0 = e0[0:3, 0:3]
     de0 = de0[0:3, 0:3]
     jdot = jnp.matmul(jnp.matmul(de0, jnp.hstack([jnp.zeros((3, 3)), jnp.eye(3)])), bj) \

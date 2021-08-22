@@ -7,8 +7,10 @@ from jbdl.rbdl.math import x_trans
 from jbdl.rbdl.kinematics import transform_to_position
 from jbdl.rbdl.utils import xyz2int
 
+
 @partial(jit, static_argnums=(1, 2, 3, 4))
 def calc_body_to_base_coordinates_core(x_tree, parent, jtype, jaxis, body_id, q, point_pos):
+
     x0 = []
     for i in range(body_id):
         xj, _ = joint_model(jtype[i], jaxis[i], q[i])
@@ -24,7 +26,9 @@ def calc_body_to_base_coordinates_core(x_tree, parent, jtype, jaxis, body_id, q,
     return pos
 
 
-def calc_body_to_base_coordinates(model: dict, q: np.ndarray, body_id: int, point_pos: np.ndarray)->np.ndarray:
+def calc_body_to_base_coordinates(
+    model: dict, q: np.ndarray, body_id: int, point_pos: np.ndarray) -> np.ndarray:
+
     q = q.flatten()
     point_pos = point_pos.flatten()
     jtype = model['jtype']

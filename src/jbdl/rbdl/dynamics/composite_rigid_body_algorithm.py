@@ -33,8 +33,8 @@ def composite_rigid_body_algorithm_core(x_tree, inertia, parent, jtype, jaxis, n
         while parent[j] > 0:
             fh = jnp.matmul(x_up[j].transpose(), fh)
             j = parent[j] - 1
-            h = h.at[i,j].set(jnp.squeeze(jnp.matmul(s[j].transpose(), fh)))
-            h = h.at[j,i].set(h[i,j])
+            h = h.at[i, j].set(jnp.squeeze(jnp.matmul(s[j].transpose(), fh)))
+            h = h.at[j, i].set(h[i,j])
 
     return h
 

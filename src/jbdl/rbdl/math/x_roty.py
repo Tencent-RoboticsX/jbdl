@@ -1,6 +1,7 @@
 import jax.numpy as jnp
 from jax.api import jit
 
+
 @jit
 def x_roty(theta):
     c = jnp.cos(theta)

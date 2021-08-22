@@ -16,6 +16,6 @@ def cross_motion_space(v):
 
 if __name__ == "__main__":
     from jax import make_jaxpr
-    v = jnp.ones((6,1))
+    v = jnp.ones((6, 1))
     print(make_jaxpr(cross_motion_space)(v))
     print(cross_motion_space(v))

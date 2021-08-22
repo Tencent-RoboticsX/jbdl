@@ -1,6 +1,7 @@
 from jax.api import jit
 import jax.numpy as jnp
 
+
 @jit
 def x_trans(r):
     flatten_r = jnp.reshape(r, (-1,))

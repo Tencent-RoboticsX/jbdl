@@ -29,6 +29,7 @@ def ravel_first_arg_(unravel, y_flat, *args):
 def solve_ivp(func, y0, t, event_func, event_handle, *args,  rtol=1.4e-8, atol=1.4e-8, mxstep=jnp.inf):
     return _solve_ivp_wrapper(func, event_func, event_handle, rtol, atol, mxstep, y0, t, *args)
 
+
 @partial(jax.jit, static_argnums=(0, 1, 2, 3, 4, 5))
 def _solve_ivp_wrapper(func, event_func, event_handle, rtol, atol, mxstep, y0, ts, *args):
     y0, unravel = ravel_pytree(y0)
