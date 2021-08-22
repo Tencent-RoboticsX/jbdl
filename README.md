@@ -1,6 +1,16 @@
-# jbdl Version 0.0.89
-## Installation.
-Go to home directory, and run
+# JBDL
+A JAX-Based Body Dynamics Algorithm Library forRobotics.
+
+# URL & Citation
+
+URL: https://github.com/Tencent-RoboticsX/jbdl
+
+The technical report of this project:
+
+Cheng Zhou, Lei Han. JBDL: A JAX-Based Body Dynamics Algorithm Library forRobotics. arXiv preprint arXiv:XXXX.XXXX, 2021. (correspondence to the first two authors)
+
+# Install
+Go to home directory, and run the command:
 ```
 pip install -e .
 ```
@@ -38,14 +48,22 @@ Then, set the environment variable ```WITH_JAX_CUDA=yes``` to enable CUDA suppor
 export WITH_JAX_CUDA=yes
 ```
 
-## Examples.
+# Quick Examples
 Go to demo directory under the scripts folder, and run
 ```
 python test_experimental_math.py
 ```
 or 
 ```
-python test_half_max_v5.py
+python test_half_max.py
 ```
 to test the functionality of jbdl.
+
+# License
+
+Use MIT license (see LICENSE.md) except for codes from qpOASES(https://github.com/coin-or/qpOASES), cuOSQP(https://github.com/osqp/cuosqp). They are all open-source softwares and have their own licese types.
  
+ # Disclaimer
+ This is not an officially supported Tencent product. The code and data in this repository are for research purpose only. No representation or warranty whatsoever, expressed or implied, is made as to its accuracy, reliability or completeness. We assume no liability and are not responsible for any misuse or damage caused by the code and data. Your use of the code and data are subject to applicable laws and your use of them is at your own risk.
+
+
