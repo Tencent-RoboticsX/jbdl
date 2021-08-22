@@ -259,12 +259,8 @@ def lcp_gpu_jvp(arg_values, arg_tangents):
 
 
 ad.primitive_jvps[lcp_gpu_prim] = lcp_gpu_jvp
-#
-#
-# # ************************************
-# # *  SUPPORT FOR BATCHING WITH VMAP  *
-# # ************************************
-#
+
+
 def lcp_gpu_batch(batched_args, batch_dims):
     h_matrixs, fs, l_matrixs, lbs, ubs = batched_args
     h_matrixs_bd, fs_bd, l_matrixs_bd, lbs_bd, ubs_bd = batch_dims
