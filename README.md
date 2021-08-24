@@ -60,7 +60,7 @@ to test the functionality of jbdl.
 
 # License
 
-Use MIT license (see LICENSE.md) except for codes from qpOASES(https://github.com/coin-or/qpOASES), cuOSQP(https://github.com/osqp/cuosqp). They are all open-source softwares and have their own licese types.
+Use MIT license (see LICENSE.md) except for third-party softwares. They are all open-source softwares and have their own licese types.
  
 # Disclaimer
  
