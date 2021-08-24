@@ -1,11 +1,11 @@
+import math
+from functools import partial
+import numpy as np
 from jbdl.envs.base_env import BaseEnv
 from gym.envs.classic_control import mountain_car, rendering
-import numpy as np
-import math
 import jax.numpy as jnp
 import jax
 from jax.ops import index_update, index
-from functools import partial
 from jax.config import config
 
 config.update("jax_enable_x64", True)
@@ -17,15 +17,19 @@ DEFAULT_PURE_MOUNTAIN_CAR_PARAMS = (M_CAR, F_UNIT)
 
 
 class MountainCar(BaseEnv):
-    def __init__(self, pure_mountain_car_params=DEFAULT_PURE_MOUNTAIN_CAR_PARAMS, reward_fun=None, seed=123, sim_dt=math.sqrt(0.0025/9.81), batch_size=0, render=False, screen_width=600, screen_height=400, render_idx=None):
+    def __init__(self, pure_mountain_car_params=DEFAULT_PURE_MOUNTAIN_CAR_PARAMS,
+                 reward_fun=None, seed=123, sim_dt=math.sqrt(0.0025/9.81), batch_size=0,
+                 render=False, screen_width=600, screen_height=400, render_idx=None):
         self.min_position = -1.2
         self.max_position = 0.6
         self.max_delta_position = 0.07
         self.goal_position = 0.5
         self.a_gravity = -9.81
 
-        super().__init__(pure_mountain_car_params, seed=seed, sim_dt=sim_dt, batch_size=batch_size,
-                         render=render, render_engine=rendering.Viewer(screen_width, screen_height), render_idx=render_idx)
+        super().__init__(pure_mountain_car_params, seed=seed, sim_dt=sim_dt,
+                         batch_size=batch_size, render=render,
+                         render_engine=rendering.Viewer(screen_width, screen_height),
+                         render_idx=render_idx)
 
         def _dynamics_fun_core(pos_vel, action,  m_car, f_unit, a_gravity):
             position = pos_vel[0:1]
@@ -57,8 +61,8 @@ class MountainCar(BaseEnv):
                 lambda _: velocity,
                 operand=None)
 
-            yT = jnp.hstack([position, velocity*sim_dt])
-            return yT
+            y_final = jnp.hstack([position, velocity*sim_dt])
+            return y_final
 
         self._dynamics_step = partial(_dynamics_step_core,
                                       min_position=self.min_position,

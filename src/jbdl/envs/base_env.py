@@ -6,7 +6,10 @@ import jax.numpy as jnp
 
 
 class BaseEnv(ABC):
-    def __init__(self, pure_env_params, seed=0, sim_dt=0.1, rtol=1.4e-8, atol=1.4e-8, mxstep=jnp.inf, batch_size=0, render=False, render_engine=pybullet, render_idx=None):
+    def __init__(self, pure_env_params, seed=0,
+                 sim_dt=0.1, rtol=1.4e-8, atol=1.4e-8, mxstep=jnp.inf, batch_size=0,
+                 render=False, render_engine=pybullet, render_idx=None):
+
         self.sim_dt = sim_dt
         self.rtol = rtol
         self.atol = atol
@@ -81,14 +84,14 @@ class BaseEnv(ABC):
             next_entry = self._batch_step_fun(action)
         return next_entry
 
-    def draw_line(self, from_pos, to_pos, line_color_rgb=[0, 1, 0], line_width=2):
-        pass
+    # def draw_line(self, from_pos, to_pos, line_color_rgb=[0, 1, 0], line_width=2):
+    #     pass
 
     @staticmethod
-    def init_I(m, c, l):
-        Ic = init_ic_by_cholesky(l)
-        I = rigid_body_inertia(m, c, Ic)
-        return I
+    def init_inertia(m, c, l):
+        ic = init_ic_by_cholesky(l)
+        inertia = rigid_body_inertia(m, c, ic)
+        return inertia
 
     # @staticmethod
     # @abstractmethod
