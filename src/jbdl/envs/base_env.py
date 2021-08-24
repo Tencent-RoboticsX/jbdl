@@ -1,6 +1,6 @@
-from abc import ABC, abstractmethod 
-from jbdl.rbdl.model.rigid_body_inertia import rigid_body_inertia
-import pybullet 
+from abc import ABC, abstractmethod
+from jbdl.rbdl.model.rigid_body_inertia import rigid_body_inertia, init_ic_by_cholesky
+import pybullet
 import jax
 import jax.numpy as jnp
 
@@ -17,22 +17,13 @@ class BaseEnv(ABC):
             self.render_idx = 0
         else:
             self.render_idx = render_idx
-        
-
-
 
         if self.render:
             self.viewer_client = render_engine
             self.render_robot = self._load_render_robot(self.viewer_client)
 
-            
         self.key = jax.random.PRNGKey(seed)
         self.reset(*pure_env_params, idx_list=None)
-
-
-
-
-
 
     @abstractmethod
     def _init_pure_params(self, *pure_env_params):
@@ -54,7 +45,6 @@ class BaseEnv(ABC):
     def render_state(self):
         return self._get_render_state()
 
-
     def reset_render_state(self):
         if self.render:
             self._reset_render_state(*self.render_state)
@@ -75,8 +65,6 @@ class BaseEnv(ABC):
     def _batch_step_fun(self, action):
         '''Implement in subclass'''
 
-
-
     def reset(self, *pure_env_params, **kwargs):
         self._init_pure_params(*pure_env_params)
         idx_list = kwargs.get("idx_list", None)
@@ -93,32 +81,14 @@ class BaseEnv(ABC):
             next_entry = self._batch_step_fun(action)
         return next_entry
 
-
-
-
-
-
     def draw_line(self, from_pos, to_pos, line_color_rgb=[0, 1, 0], line_width=2):
         pass
-    
-    
-
-
-
-
-
-
-
-
 
     @staticmethod
     def init_I(m, c, l):
-        Ic =  init_Ic_by_cholesky(l)
+        Ic = init_ic_by_cholesky(l)
         I = rigid_body_inertia(m, c, Ic)
         return I
-
-
-    
 
     # @staticmethod
     # @abstractmethod
@@ -144,5 +114,3 @@ class BaseEnv(ABC):
     # @abstractmethod
     # def _default_rwd_fun(state, action, next_state, *pargs, **kwargs):
     #     '''Implement in subclass'''
-        
-
