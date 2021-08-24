@@ -103,7 +103,7 @@ class MountainCar(BaseEnv):
 
     def _load_render_robot(self, viewer_client):
         screen_width = viewer_client.width
-        screen_height = viewer_client.height
+        # screen_height = viewer_client.height
         world_width = self.max_position - self.min_position
         self.scale = screen_width / world_width
         carwidth = 40
