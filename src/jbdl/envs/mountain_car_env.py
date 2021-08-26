@@ -171,7 +171,7 @@ class MountainCar(BaseEnv):
 
     def _state_random_initializer(self):
         self.key, subkey = jax.random.split(self.key)
-        state = np.array(
+        state = jnp.array(
             [jax.random.uniform(subkey, minval=-0.6, maxval=-0.4), 0.0])
         return state
 
