@@ -15,6 +15,12 @@ class BaseEnv(ABC):
         self.atol = atol
         self.mxstep = mxstep
         self.batch_size = batch_size
+
+
+        self.key = jax.random.PRNGKey(seed)
+        self.reset(*pure_env_params, idx_list=None)
+
+
         self.render = render
         if render_idx is None:
             self.render_idx = 0
@@ -24,9 +30,6 @@ class BaseEnv(ABC):
         if self.render:
             self.viewer_client = render_engine
             self.render_robot = self._load_render_robot(self.viewer_client)
-
-        self.key = jax.random.PRNGKey(seed)
-        self.reset(*pure_env_params, idx_list=None)
 
     @abstractmethod
     def _init_pure_params(self, *pure_env_params):

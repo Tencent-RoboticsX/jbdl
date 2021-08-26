@@ -2,13 +2,10 @@ import math
 from functools import partial
 import numpy as np
 from jbdl.envs.base_env import BaseEnv
-from gym.envs.classic_control import mountain_car, rendering
+from gym.envs.classic_control import rendering
 import jax.numpy as jnp
 import jax
 from jax.ops import index_update, index
-from jax.config import config
-
-config.update("jax_enable_x64", True)
 
 
 M_CAR = 0.0025 / 9.81
