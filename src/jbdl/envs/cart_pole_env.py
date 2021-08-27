@@ -78,7 +78,9 @@ class CartPole(BaseEnv):
         self._dynamics_step = partial(
             _dynamics_step_core, nb=self.nb, sim_dt=self.sim_dt, rtol=self.rtol, atol=self.atol, mxstep=self.mxstep)
 
-        def _dynamics_step_with_params_core(dynamics_fun, state, action, *pure_cart_pole_params, x_tree=self.x_tree, a_grav=self.a_grav, sim_dt=self.sim_dt, rtol=1.4e-8, atol=1.4e-8, mxstep=jnp.inf):
+        def _dynamics_step_with_params_core(
+            dynamics_fun, state, action, *pure_cart_pole_params, x_tree, a_grav):
+
             m_cart, m_pole, half_pole_length, pole_ic_params = pure_cart_pole_params
             inertia_cart = self.init_inertia(
                 m_cart, jnp.zeros((3,)), jnp.zeros((6,)))
