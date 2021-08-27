@@ -185,7 +185,6 @@ class SimplifiedCartPole(BaseEnv):
             self.key, subkey = jax.random.split(self.key)
             state = jax.random.uniform(subkey, shape=(
                 self.batch_size, 4), minval=-0.05, maxval=0.05)
-            return state
         else:
             idx_num = len(idx_list)
             self.key, subkey = jax.random.split(self.key)
@@ -196,7 +195,7 @@ class SimplifiedCartPole(BaseEnv):
                 index[idx_list, :],
                 update_state
             )
-            return state
+        return state
 
     def _step_fun(self, action):
         action = jnp.array(action)

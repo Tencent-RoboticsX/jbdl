@@ -1,4 +1,4 @@
-from jbdl.envs.simplified_cart_pole_env import SimplifiedCartPole
+from jbdl.envs.simplified_cart_pole_env import SimplifiedCartPole, DEFAULT_PURE_SIMPLIFIED_CART_POLE_PARAMS
 import jax.numpy as jnp
 import numpy  as np
 
@@ -10,5 +10,8 @@ for i in range(100):
     env.reset_render_state()
     print(next_state, reward, done)
     print(env.state)
+
+    if done:
+        env.reset(DEFAULT_PURE_SIMPLIFIED_CART_POLE_PARAMS)
 
 

@@ -151,7 +151,8 @@ class MountainCar(BaseEnv):
         )
         flag.set_color(0.8, 0.8, 0)
         viewer_client.add_geom(flag)
-        return cartrans
+        render_robot=cartrans
+        return render_robot
 
     def _reset_render_state(self, *render_robot_state):
         car_trans_x, car_trans_y, car_trans_rot = render_robot_state
@@ -180,7 +181,6 @@ class MountainCar(BaseEnv):
             self.key, subkey = jax.random.split(self.key)
             state = jnp.concatenate([jax.random.uniform(subkey, shape=(
                 self.batch_size, 1), minval=-0.6, maxval=-0.4), jnp.zeros((self.batch_size, 1))], axis=1)
-            return state
         else:
             idx_num = len(idx_list)
             self.key, subkey = jax.random.split(self.key)
@@ -191,7 +191,7 @@ class MountainCar(BaseEnv):
                 index[idx_list, :],
                 update_state
             )
-            return state
+        return state
 
     def _step_fun(self, action):
         action = jnp.array(action)
