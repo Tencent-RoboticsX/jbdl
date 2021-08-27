@@ -151,7 +151,7 @@ class MountainCar(BaseEnv):
         )
         flag.set_color(0.8, 0.8, 0)
         viewer_client.add_geom(flag)
-        render_robot=cartrans
+        render_robot = cartrans
         return render_robot
 
     def _reset_render_state(self, *render_robot_state):
