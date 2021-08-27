@@ -24,13 +24,13 @@ class CartPole(BaseEnv):
                  seed=123, sim_dt=0.1, rtol=1.4e-8, atol=1.4e-8, mxstep=jnp.inf, batch_size=0,
                  render=False, render_engine_name="pybullet", render_idx=None):
 
-        self.NB = 2
+        self.nb = 2
         self.nf = 3
         self.a_grav = jnp.array([[0.], [0.], [0.], [0.], [0.], [-9.81]])
         self.jtype = (1, 0)
         self.jaxis = xyz2int('xy')
         self.parent = (0, 1)
-        self.Xtree = list([jnp.eye(6) for i in range(self.NB)])
+        self.x_tree = list([jnp.eye(6) for i in range(self.nb)])
         self.sim_dt = sim_dt
         self.batch_size = batch_size
 
@@ -56,19 +56,19 @@ class CartPole(BaseEnv):
                          batch_size=batch_size, render=render,
                          render_engine=render_engine, render_idx=render_idx)
 
-        def _dynamics_fun_core(y, t, Xtree, I, u, a_grav, parent, jtype, jaxis, NB):
-            q = y[0:NB]
-            qdot = y[NB:2*NB]
-            input = (Xtree, I, parent, jtype, jaxis, NB, q, qdot, u, a_grav)
+        def _dynamics_fun_core(y, t, x_tree, inertia, u, a_grav, parent, jtype, jaxis, nb):
+            q = y[0:nb]
+            qdot = y[nb:2*nb]
+            input = (x_tree, inertia, parent, jtype, jaxis, nb, q, qdot, u, a_grav)
             qddot = forward_dynamics_core(*input)
             ydot = jnp.hstack([qdot, qddot])
             return ydot
 
         self._dynamics_fun = partial(
-            _dynamics_fun_core, parent=self.parent, jtype=self.jtype, jaxis=self.jaxis, NB=self.NB)
+            _dynamics_fun_core, parent=self.parent, jtype=self.jtype, jaxis=self.jaxis, nb=self.nb)
 
-        def _dynamics_step_core(dynamics_fun, y0, *args, NB, sim_dt, rtol, atol, mxstep):
-            y_init = y0[0:2*NB]
+        def _dynamics_step_core(dynamics_fun, y0, *args, nb, sim_dt, rtol, atol, mxstep):
+            y_init = y0[0:2*nb]
             t_eval = jnp.linspace(0, sim_dt, 2)
             y_all = odeint(dynamics_fun, y_init, t_eval, *args,
                            rtol=rtol, atol=atol, mxstep=mxstep)
@@ -76,9 +76,9 @@ class CartPole(BaseEnv):
             return y_final
 
         self._dynamics_step = partial(
-            _dynamics_step_core, NB=self.NB, sim_dt=self.sim_dt, rtol=self.rtol, atol=self.atol, mxstep=self.mxstep)
+            _dynamics_step_core, nb=self.nb, sim_dt=self.sim_dt, rtol=self.rtol, atol=self.atol, mxstep=self.mxstep)
 
-        def _dynamics_step_with_params_core(dynamics_fun, state, action, *pure_cart_pole_params, Xtree=self.Xtree, a_grav=self.a_grav, sim_dt=self.sim_dt, rtol=1.4e-8, atol=1.4e-8, mxstep=jnp.inf):
+        def _dynamics_step_with_params_core(dynamics_fun, state, action, *pure_cart_pole_params, x_tree=self.x_tree, a_grav=self.a_grav, sim_dt=self.sim_dt, rtol=1.4e-8, atol=1.4e-8, mxstep=jnp.inf):
             m_cart, m_pole, half_pole_length, pole_ic_params = pure_cart_pole_params
             inertia_cart = self.init_inertia(
                 m_cart, jnp.zeros((3,)), jnp.zeros((6,)))
@@ -86,13 +86,13 @@ class CartPole(BaseEnv):
                 [0.0, 0.0, half_pole_length]), pole_ic_params)
             inertia = [inertia_cart, inertia_pole]
             u = jnp.array([action[0], 0.0])
-            dynamics_fun_param = (Xtree, inertia, u, a_grav)
+            dynamics_fun_param = (x_tree, inertia, u, a_grav)
             next_state = self._dynamics_step(
                 dynamics_fun, state, *dynamics_fun_param)
             return next_state
 
         self._dynamics_step_with_params = partial(
-            _dynamics_step_with_params_core, Xtree=self.Xtree, a_grav=self.a_grav)
+            _dynamics_step_with_params_core, x_tree=self.x_tree, a_grav=self.a_grav)
 
         self.dynamics_fun = jax.jit(self._dynamics_fun)
         self.dynamics_step = jax.jit(self._dynamics_step, static_argnums=0)
@@ -191,7 +191,7 @@ class CartPole(BaseEnv):
 
     def _step_fun(self, action):
         u = jnp.array(action)
-        dynamics_params = (self.Xtree, self.inertia, u, self.a_grav)
+        dynamics_params = (self.x_tree, self.inertia, u, self.a_grav)
         next_state = self.dynamics_step(
             self.dynamics_fun, self.state, *dynamics_params)
         done = self.done_fun(next_state)
@@ -202,7 +202,7 @@ class CartPole(BaseEnv):
 
     def _batch_step_fun(self, action):
         u = jnp.reshape(jnp.array(action), newshape=(self.batch_size, -1))
-        dynamics_params = (self.Xtree, self.inertia, u, self.a_grav)
+        dynamics_params = (self.x_tree, self.inertia, u, self.a_grav)
         next_state = jax.vmap(self.dynamics_step, (None, 0, None, None, 0, None), 0)(
             self.dynamics_fun, self.state, *dynamics_params)
         done = jax.vmap(self.done_fun)(next_state)
