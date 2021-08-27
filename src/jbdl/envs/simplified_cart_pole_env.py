@@ -6,9 +6,6 @@ from gym.envs.classic_control import rendering
 import jax
 import jax.numpy as jnp
 from jax.ops import index_update, index
-
-from jbdl.envs.mountain_car_env import F_UNIT
-
 from jax.config import config
 config.update("jax_enable_x64", True)
 
@@ -55,7 +52,8 @@ class SimplifiedCartPole(BaseEnv):
             # For the interested reader:
             # https://coneural.org/florian/papers/05_cart_pole.pdf
 
-            temp = (force + polemass_length * theta_dot ** 2 * sintheta) / total_mass
+            temp = (force + polemass_length * theta_dot **
+                    2 * sintheta) / total_mass
             thetaacc = (-a_gravity * sintheta - costheta * temp) / (
                 half_pole_length * (4.0 / 3.0 - m_pole * costheta ** 2 / total_mass))
             xacc = temp - polemass_length * thetaacc * costheta / total_mass
@@ -94,7 +92,8 @@ class SimplifiedCartPole(BaseEnv):
 
         self.dynamics_step = jax.jit(self._dynamics_step)
         self.dynamics_fun = jax.jit(self._dynamics_fun)
-        self.dynamics_step_with_params = jax.jit(self._dynamics_step_with_params)
+        self.dynamics_step_with_params = jax.jit(
+            self._dynamics_step_with_params)
 
         # self.dynamics_step = self._dynamics_step
         # self.dynamics_fun = self._dynamics_fun
@@ -231,7 +230,6 @@ if __name__ == "__main__":
         print(next_state, reward, done)
         print(env.state)
 
-
     #  Test the consistency with gym env.
     from gym.envs.classic_control import CartPoleEnv
     import numpy as np
@@ -244,7 +242,7 @@ if __name__ == "__main__":
     state_errors = []
     for i in range(10000):
         action = np.random.randint(0, 2)
-        jaction = jnp.array([action,])
+        jaction = jnp.array([action, ])
         next_obs, reward, done, _ = env.step(action)
         jnext_obs, jreward, jdone, _ = jenv.step(jaction)
         state_errors.append(next_obs[[0, 2, 1, 3]]-jnext_obs)
