@@ -9,6 +9,7 @@ from jbdl.rbdl.kinematics import calc_body_to_base_coordinates_core
 from jbdl.envs.utils.parser import MJCFBasedRobot
 from jbdl.envs.base_env import BaseEnv
 from jbdl.experimental.ode.runge_kutta import odeint
+import pybullet
 
 
 M_BODY0 = 1.0
@@ -23,7 +24,7 @@ DEFAULT_PURE_REACHER_PARAMS = (
 class Reacher(BaseEnv):
     def __init__(self, pure_reacher_params=DEFAULT_PURE_REACHER_PARAMS, reward_fun=None,
                  seed=3, sim_dt=0.1, rtol=1.4e-8, atol=1.4e-8, mxstep=jnp.inf, batch_size=0,
-                 render=False, render_idx=None):
+                 render=False, render_engine_name="pybullet", render_idx=None):
 
         self.nb = 2
         self.nf = 3
@@ -44,8 +45,8 @@ class Reacher(BaseEnv):
             return jnp.reshape(pos_fingertip, (-1,))
 
         self._calc_pos_fingertip = partial(_calc_pos_fingertip_core,
-                point_pos=self.pos_fingertip, x_tree=self.x_tree,
-                parent=self.parent, jtype=self.jtype, jaxis=self.jaxis, body_id=self.bid_fingertip)
+                                           point_pos=self.pos_fingertip, x_tree=self.x_tree,
+                                           parent=self.parent, jtype=self.jtype, jaxis=self.jaxis, body_id=self.bid_fingertip)
 
         self.calc_pos_fingertip = jax.jit(self._calc_pos_fingertip)
 
@@ -62,9 +63,19 @@ class Reacher(BaseEnv):
 
         self.calc_potential = _calc_potential
 
+        self.render = render
+        self.render_engine_name = render_engine_name
+
+        if render_engine_name == "pybullet":
+            render_engine = pybullet
+        elif render_engine_name == "xmirror":
+            raise NotImplementedError()
+        else:
+            raise NotImplementedError()
+
         super().__init__(pure_reacher_params, seed=seed,
                          sim_dt=sim_dt, rtol=rtol, atol=atol, mxstep=mxstep,
-                         batch_size=batch_size, render=render, render_idx=render_idx)
+                         batch_size=batch_size, render=render, render_engine=render_engine, render_idx=render_idx)
 
         def _dynamics_fun_core(y, t, x_tree, inertia, u, a_grav, parent, jtype, jaxis, nb):
             q = y[0:nb]
@@ -155,22 +166,33 @@ class Reacher(BaseEnv):
         self.inertia = [self.inertia_body0, self.inertia_body1]
 
     def _load_render_robot(self, viewer_client):
-        viewer_client.connect(viewer_client.GUI)
-        viewer_client.resetDebugVisualizerCamera(
-            cameraDistance=2.0,  cameraYaw=-90, cameraPitch=-60, cameraTargetPosition=[0, 0, 0])
-        render_robot = MJCFBasedRobot(
-            "reacher.xml", "body0", action_dim=2, obs_dim=8)
-        render_robot.load(viewer_client)
+        render_robot = None
+        if self.render_engine_name == "pybullet":
+            viewer_client.connect(viewer_client.GUI)
+            viewer_client.resetDebugVisualizerCamera(
+                cameraDistance=2.0,  cameraYaw=-90, cameraPitch=-60, cameraTargetPosition=[0, 0, 0])
+            render_robot = MJCFBasedRobot(
+                "reacher.xml", "body0", action_dim=2, obs_dim=8)
+            render_robot.load(viewer_client)
+        elif self.render_engine_name == "xmirror":
+            raise NotImplementedError()
+        else:
+            raise NotImplementedError()
         return render_robot
 
     def _reset_render_state(self, *render_state):
         central_joint, elbow_joint, target_x, target_y, = render_state
-        self.render_robot.jdict["target_x"].reset_current_position(target_x, 0)
-        self.render_robot.jdict["target_y"].reset_current_position(target_y, 0)
-        self.render_robot.jdict["joint0"].reset_current_position(
-            central_joint, 0)
-        self.render_robot.jdict["joint1"].reset_current_position(
-            elbow_joint, 0)
+        if self.render_engine_name == "pybullet":
+            self.render_robot.jdict["target_x"].reset_current_position(target_x, 0)
+            self.render_robot.jdict["target_y"].reset_current_position(target_y, 0)
+            self.render_robot.jdict["joint0"].reset_current_position(
+                central_joint, 0)
+            self.render_robot.jdict["joint1"].reset_current_position(
+                elbow_joint, 0)
+        elif self.render_engine_name == "xmirror":
+            raise NotImplementedError()
+        else:
+            raise NotImplementedError()
 
     def _get_render_state(self):
         if self.batch_size == 0:
