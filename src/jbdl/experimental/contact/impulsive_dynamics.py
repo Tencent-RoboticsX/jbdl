@@ -1,6 +1,6 @@
 import numpy as np
-from jbdl.rbdl.contact import calc_contact_jacobian_core
-from jbdl.rbdl.contact.calc_contact_jacobian import calc_contact_jacobian_extend_core
+from jbdl.experimental.contact import calc_contact_jacobian_core
+from jbdl.experimental.contact.calc_contact_jacobian import calc_contact_jacobian_extend_core
 import jax.numpy as jnp
 from jbdl.rbdl.utils import xyz2int
 
