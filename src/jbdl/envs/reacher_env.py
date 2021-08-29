@@ -46,7 +46,8 @@ class Reacher(BaseEnv):
 
         self._calc_pos_fingertip = partial(_calc_pos_fingertip_core,
                                            point_pos=self.pos_fingertip, x_tree=self.x_tree,
-                                           parent=self.parent, jtype=self.jtype, jaxis=self.jaxis, body_id=self.bid_fingertip)
+                                           parent=self.parent, jtype=self.jtype, jaxis=self.jaxis,
+                                           body_id=self.bid_fingertip)
 
         self.calc_pos_fingertip = jax.jit(self._calc_pos_fingertip)
 
