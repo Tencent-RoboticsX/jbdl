@@ -1,15 +1,14 @@
-from jbdl.envs.base_env import BaseEnv
+from functools import partial
+import jax
 import jax.numpy as jnp
+from jax.ops import index_update, index
+from jbdl.rbdl.dynamics.forward_dynamics import forward_dynamics_core
 from jbdl.rbdl.utils import xyz2int
 from jbdl.rbdl.math import x_trans
-from jbdl.envs.utils.parser import MJCFBasedRobot
-from jbdl.rbdl.dynamics.forward_dynamics import forward_dynamics_core
-from jbdl.experimental.ode.runge_kutta import odeint
-import jax
-from jax.ops import index_update, index
 from jbdl.rbdl.kinematics import calc_body_to_base_coordinates_core
-from functools import partial
-import jax.numpy as jnp
+from jbdl.envs.utils.parser import MJCFBasedRobot
+from jbdl.envs.base_env import BaseEnv
+from jbdl.experimental.ode.runge_kutta import odeint
 
 
 M_BODY0 = 1.0
@@ -22,9 +21,11 @@ DEFAULT_PURE_REACHER_PARAMS = (
 
 
 class Reacher(BaseEnv):
-    def __init__(self, pure_reacher_params=DEFAULT_PURE_REACHER_PARAMS, reward_fun=None, seed=3, sim_dt=0.1, rtol=1.4e-8, atol=1.4e-8, mxstep=jnp.inf, batch_size=0, render=False, render_idx=None):
+    def __init__(self, pure_reacher_params=DEFAULT_PURE_REACHER_PARAMS, reward_fun=None,
+                 seed=3, sim_dt=0.1, rtol=1.4e-8, atol=1.4e-8, mxstep=jnp.inf, batch_size=0,
+                 render=False, render_idx=None):
 
-        self.NB = 2
+        self.nb = 2
         self.nf = 3
         self.a_grav = jnp.array([[0.], [0.], [0.], [0.], [0.], [-9.81]])
         self.jtype = (0, 0)
@@ -36,7 +37,9 @@ class Reacher(BaseEnv):
         self.pos_fingertip = jnp.array([0.1, 0.0, 0.0])
         self.orig_target = jnp.array([0.1, -0.1, 0.0])
 
-        def _calc_pos_fingertip(q, point_pos=self.pos_fingertip, x_tree=self.x_tree, parent=self.parent, jtype=self.jtype, jaxis=self.jaxis, body_id=self.bid_fingertip):
+        def _calc_pos_fingertip(
+                q, point_pos=self.pos_fingertip, x_tree=self.x_tree,
+                parent=self.parent, jtype=self.jtype, jaxis=self.jaxis, body_id=self.bid_fingertip):
             pos_fingertip = calc_body_to_base_coordinates_core(
                 x_tree, parent, jtype, jaxis, body_id, q, point_pos)
             return jnp.reshape(pos_fingertip, (-1,))
@@ -58,41 +61,43 @@ class Reacher(BaseEnv):
                          sim_dt=sim_dt, rtol=rtol, atol=atol, mxstep=mxstep,
                          batch_size=batch_size, render=render, render_idx=render_idx)
 
-        def _dynamics_fun_core(y, t, x_tree, I, u, a_grav, parent, jtype, jaxis, NB):
-            q = y[0:NB]
-            qdot = y[NB:2*NB]
-            input = (x_tree, I, parent, jtype, jaxis, NB, q, qdot, u, a_grav)
+        def _dynamics_fun_core(y, t, x_tree, inertia, u, a_grav, parent, jtype, jaxis, nb):
+            q = y[0:nb]
+            qdot = y[nb:2*nb]
+            input = (x_tree, inertia, parent, jtype, jaxis, nb, q, qdot, u, a_grav)
             qddot = forward_dynamics_core(*input)
             ydot = jnp.hstack([qdot, qddot])
             return ydot
+
         self._dynamics_fun = partial(
-            _dynamics_fun_core, parent=self.parent, jtype=self.jtype, jaxis=self.jaxis, NB=self.NB)
+            _dynamics_fun_core, parent=self.parent, jtype=self.jtype, jaxis=self.jaxis, nb=self.nb)
 
-        def _dynamics_step_core(dynamics_fun, y0, *args, NB, sim_dt, rtol, atol, mxstep):
-            y_init = y0[0:2*NB]
-            target = y0[2*NB:2*NB+2]
-
+        def _dynamics_step_core(dynamics_fun, y0, *args, nb, sim_dt, rtol, atol, mxstep):
+            y_init = y0[0:2*nb]
+            target = y0[2*nb:2*nb+2]
             t_eval = jnp.linspace(0, sim_dt, 2)
+
             y_all = odeint(dynamics_fun, y_init, t_eval, *args,
                            rtol=rtol, atol=atol, mxstep=mxstep)
-            y_final = y_all[-1, :]
+            y_terminal = y_all[-1, :]
 
             to_target_vec = self.calc_pos_target(
-                target) - self.calc_pos_fingertip(y_final[0:NB])
-            yT = jnp.concatenate([y_final, target, to_target_vec[0:2]])
-            return yT
+                target) - self.calc_pos_fingertip(y_terminal[0:nb])
+            y_final = jnp.concatenate([y_terminal, target, to_target_vec[0:2]])
+            return y_final
+
         self._dynamics_step = partial(
-            _dynamics_step_core, NB=self.NB, sim_dt=self.sim_dt, rtol=self.rtol, atol=self.atol, mxstep=self.mxstep)
+            _dynamics_step_core, NB=self.nb, sim_dt=self.sim_dt, rtol=self.rtol, atol=self.atol, mxstep=self.mxstep)
 
         def _dynamics_step_with_params_core(dynamics_fun, state, action, *pure_reacher_params, x_tree, a_grav):
-            m_body0, m_body1, Ic_params_body0, Ic_params_body1 = pure_reacher_params
-            I_body0 = self.init_inertia(m_body0, jnp.array(
-                [0.05, 0.0, 0.0]), Ic_params_body0)
-            I_body1 = self.init_inertia(m_body1, jnp.array(
-                [0.05, 0.0, 0.0]), Ic_params_body1)
-            I = [I_body0, I_body1]
+            m_body0, m_body1, ic_params_body0, ic_params_body1 = pure_reacher_params
+            inertia_body0 = self.init_inertia(m_body0, jnp.array(
+                [0.05, 0.0, 0.0]), ic_params_body0)
+            inertia_body1 = self.init_inertia(m_body1, jnp.array(
+                [0.05, 0.0, 0.0]), ic_params_body1)
+            inertia = [inertia_body0, inertia_body1]
             u = jnp.reshape(jnp.array(action), (-1,))
-            dynamics_fun_param = (x_tree, I, u, a_grav)
+            dynamics_fun_param = (x_tree, inertia, u, a_grav)
             next_state = self._dynamics_step(
                 dynamics_fun, state, *dynamics_fun_param)
             return next_state
@@ -107,7 +112,7 @@ class Reacher(BaseEnv):
 
         def _done_fun(next_state):
             return False
-        
+
         self.done_fun = jax.jit(_done_fun)
 
         def _default_reward_fun(state, action, next_state):
@@ -136,12 +141,12 @@ class Reacher(BaseEnv):
             self.reward_fun = jax.jit(reward_fun)
 
     def _init_pure_params(self, *pure_params):
-        self.m_body0, self.m_body1, self.Ic_params_body0, self.Ic_params_body1 = pure_params
-        self.I_body0 = self.init_inertia(self.m_body0, jnp.array(
-            [0.05, 0.0, 0.0]), self.Ic_params_body0)
-        self.I_body1 = self.init_inertia(self.m_body1, jnp.array(
-            [0.05, 0.0, 0.0]), self.Ic_params_body1)
-        self.I = [self.I_body0, self.I_body1]
+        self.m_body0, self.m_body1, self.ic_params_body0, self.ic_params_body1 = pure_params
+        self.inertia_body0 = self.init_inertia(self.m_body0, jnp.array(
+            [0.05, 0.0, 0.0]), self.ic_params_body0)
+        self.inertia_body1 = self.init_inertia(self.m_body1, jnp.array(
+            [0.05, 0.0, 0.0]), self.ic_params_body1)
+        self.inertia = [self.inertia_body0, self.inertia_body1]
 
     def _load_render_robot(self, pybullet_client):
         pybullet_client.connect(pybullet_client.GUI)
@@ -219,7 +224,7 @@ class Reacher(BaseEnv):
 
     def _step_fun(self, action):
         u = jnp.array(action)
-        dynamics_params = (self.x_tree, self.I, u, self.a_grav)
+        dynamics_params = (self.x_tree, self.inertia, u, self.a_grav)
         next_state = self.dynamics_step(
             self.dynamics_fun, self.state, *dynamics_params)
         done = self.done_fun(next_state)
@@ -230,7 +235,7 @@ class Reacher(BaseEnv):
 
     def _batch_step_fun(self, action):
         u = jnp.reshape(jnp.array(action), newshape=(self.batch_size, -1))
-        dynamics_params = (self.x_tree, self.I, u, self.a_grav)
+        dynamics_params = (self.x_tree, self.inertia, u, self.a_grav)
         next_state = jax.vmap(self.dynamics_step, (None, 0, None, None, 0, None), 0)(
             self.dynamics_fun, self.state, *dynamics_params)
         done = jax.vmap(self.done_fun)(next_state)
