@@ -192,7 +192,7 @@ class CartPole(BaseEnv):
         return state
 
     def _step_fun(self, action):
-        u = jnp.array(action)
+        u = jnp.array([action[0], 0.0])
         dynamics_params = (self.x_tree, self.inertia, u, self.a_grav)
         next_state = self.dynamics_step(
             self.dynamics_fun, self.state, *dynamics_params)
@@ -203,7 +203,8 @@ class CartPole(BaseEnv):
         return next_entry
 
     def _batch_step_fun(self, action):
-        u = jnp.reshape(jnp.array(action), newshape=(self.batch_size, -1))
+        action = jnp.reshape(jnp.array(action), newshape=(self.batch_size, -1))
+        u = jnp.hstack([action, jnp.zeros((self.batch_size, 1))])
         dynamics_params = (self.x_tree, self.inertia, u, self.a_grav)
         next_state = jax.vmap(self.dynamics_step, (None, 0, None, None, 0, None), 0)(
             self.dynamics_fun, self.state, *dynamics_params)
