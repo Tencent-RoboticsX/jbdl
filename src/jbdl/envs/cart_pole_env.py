@@ -5,12 +5,13 @@ from jbdl.envs.base_env import BaseEnv
 import jax.numpy as jnp
 import pybullet
 import meshcat
+import time
 from jbdl.envs.utils.parser import URDFBasedRobot
 from jax.ops import index_update, index
 from jbdl.rbdl.dynamics.forward_dynamics import forward_dynamics_core
 from jbdl.experimental.ode.runge_kutta import odeint
 from jbdl.rbdl.utils import xyz2int
-from jbdl.experimental.render import xmirror
+from jbdl.experimental.render.xmirror import robot
 
 
 M_CART = 1.0
@@ -49,7 +50,7 @@ class CartPole(BaseEnv):
         if render_engine_name == "pybullet":
             render_engine = pybullet
         elif render_engine_name == "xmirror":
-            render_engine = meshcat #TODO wrap it to xmirror
+            render_engine = meshcat.Visualizer() #TODO wrap it to xmirror
         else:
             raise NotImplementedError()
 
@@ -147,11 +148,10 @@ class CartPole(BaseEnv):
             render_robot.load(viewer_client)
 
         elif self.render_engine_name == "xmirror":
-            vis = viewer_client.Visualizer()
-            vis.open()
+            viewer_client.open()
             # no camera set yet
             urdf_path = "data/urdf/cartpole.urdf" #TODO join with get urdf path
-            render_robot = xmirror.robot.RobotModel(vis=vis, name="cart_pole", id=1, xml_path=urdf_path)
+            render_robot = robot.RobotModel(vis=viewer_client, name="cart_pole", id=1, xml_path=urdf_path)
             render_robot.render()
         else:
             raise NotImplementedError()

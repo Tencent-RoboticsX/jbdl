@@ -74,7 +74,7 @@ class RobotModel:
 
         self.joints[joint_id].set_state(self.link_name_tree, state)
 
-    def render(self, sleep_time=0.1):
+    def render(self, sleep_time=0.5):
         self.vis[self.name].set_transform(
             self.pos.matrix
         )
