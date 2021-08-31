@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 import xml.etree.ElementTree as ET
-from xmirror.link_name_tree import LinkNameTree
+from link_name_tree import LinkNameTree
 import time
 import numpy as np
 import robot

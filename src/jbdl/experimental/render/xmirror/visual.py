@@ -1,10 +1,10 @@
-import meshcat
+import os
 import meshcat.geometry as g
 import meshcat.transformations as tf
 import re
 from abc import ABC, abstractmethod
-import os
-import numpy as np
+
+
 
 
 class Pos:
@@ -43,7 +43,8 @@ class Mesh(Visual):
     support stl,dae,obj
     vis is meshcat visualizer
     name is mesh name
-    mesh_path is "package://"+"path from current root" this means you should put description package in the same dir with your scipts
+    mesh_path is "package://"+"path from current root"
+    you should put description package in the same dir with your scipts
     pos is mesh position
     mesh_type can be stl,dae,obj and can be identify by mesh_path
     """
@@ -185,7 +186,7 @@ class Cylinder(Visual):
     def __init__(self,
                  vis,
                  name="",
-                 size = [0.1,0.1],
+                 size=[0.1, 0.1],
                  material=None,  # TODO
                  pos=Pos(),
                  ):
