@@ -5,7 +5,6 @@ from jbdl.envs.base_env import BaseEnv
 import jax.numpy as jnp
 import pybullet
 import meshcat
-import time
 from jbdl.envs.utils.parser import URDFBasedRobot
 from jax.ops import index_update, index
 from jbdl.rbdl.dynamics.forward_dynamics import forward_dynamics_core
