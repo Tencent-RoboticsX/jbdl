@@ -1,5 +1,4 @@
 #!/usr/bin/python3
-import numpy as np
 import os
 import time
 import meshcat
@@ -30,6 +29,9 @@ class RobotModel:
         self.pos = pos
         self.xml_path = xml_path
         self.mesh_dir = mesh_dir
+        self.link_name_tree = LinkNameTree()
+        self.joints = []
+        self.links = []
         self.robot_init()
 
     def robot_init(self):
@@ -37,10 +39,11 @@ class RobotModel:
             self.urdf_robot_init()
         elif re.search(".xml", self.xml_path) is not None:
             self.xml_robot_init()
+        else:
+            print("construct robot by link")
 
     def urdf_robot_init(self):
         urdf_path = self.xml_path
-        self.link_name_tree = LinkNameTree()
         self.pos_tree = {"base": Pos()}
         self.urdf = Urdf_parser(vis=self.vis, link_name_tree=self.link_name_tree, pos_tree=self.pos_tree,
                                 urdf_path=urdf_path, robot_name=self.name)

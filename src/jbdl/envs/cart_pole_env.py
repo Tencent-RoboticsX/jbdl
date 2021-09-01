@@ -13,7 +13,7 @@ from jbdl.experimental.ode.runge_kutta import odeint
 from jbdl.rbdl.utils import xyz2int
 from jbdl.envs import get_urdf_path
 from jbdl.experimental.render.xmirror import robot
-
+from jbdl.experimental.render.xmirror.visual import Pos
 
 M_CART = 1.0
 M_POLE = 0.1
@@ -51,7 +51,7 @@ class CartPole(BaseEnv):
         if render_engine_name == "pybullet":
             render_engine = pybullet
         elif render_engine_name == "xmirror":
-            render_engine = meshcat.Visualizer() #TODO wrap it to xmirror
+            render_engine = meshcat.Visualizer()  # TODO wrap it to xmirror
         else:
             raise NotImplementedError()
 
@@ -62,7 +62,7 @@ class CartPole(BaseEnv):
 
         def _dynamics_fun_core(y, t, x_tree, inertia, u, a_grav, parent, jtype, jaxis, nb):
             q = y[0:nb]
-            qdot = y[nb:2*nb]
+            qdot = y[nb:2 * nb]
             input = (x_tree, inertia, parent, jtype, jaxis, nb, q, qdot, u, a_grav)
             qddot = forward_dynamics_core(*input)
             ydot = jnp.hstack([qdot, qddot])
@@ -72,7 +72,7 @@ class CartPole(BaseEnv):
             _dynamics_fun_core, parent=self.parent, jtype=self.jtype, jaxis=self.jaxis, nb=self.nb)
 
         def _dynamics_step_core(dynamics_fun, y0, *args, nb, sim_dt, rtol, atol, mxstep):
-            y_init = y0[0:2*nb]
+            y_init = y0[0:2 * nb]
             t_eval = jnp.linspace(0, sim_dt, 2)
             y_all = odeint(dynamics_fun, y_init, t_eval, *args,
                            rtol=rtol, atol=atol, mxstep=mxstep)
@@ -83,7 +83,7 @@ class CartPole(BaseEnv):
             _dynamics_step_core, nb=self.nb, sim_dt=self.sim_dt, rtol=self.rtol, atol=self.atol, mxstep=self.mxstep)
 
         def _dynamics_step_with_params_core(
-            dynamics_fun, state, action, *pure_cart_pole_params, x_tree, a_grav):
+                dynamics_fun, state, action, *pure_cart_pole_params, x_tree, a_grav):
 
             m_cart, m_pole, half_pole_length, pole_ic_params = pure_cart_pole_params
             inertia_cart = self.init_inertia(
@@ -119,8 +119,8 @@ class CartPole(BaseEnv):
         self.done_fun = jax.jit(_done_fun)
 
         def _default_reward_fun(state, action, next_state):
-            reward = -(next_state[0]**2 + 10 * next_state[1]
-                       ** 2 + next_state[2]**2 + next_state[3]**2)
+            reward = -(next_state[0] ** 2 + 10 * next_state[1]
+                       ** 2 + next_state[2] ** 2 + next_state[3] ** 2)
             return reward
 
         if reward_fun is None:
@@ -151,8 +151,44 @@ class CartPole(BaseEnv):
         elif self.render_engine_name == "xmirror":
             viewer_client.open()
             # no camera set yet
-            urdf_path = os.path.join(get_urdf_path(), "cartpole.urdf")
-            render_robot = robot.RobotModel(vis=viewer_client, name="cart_pole", id=1, xml_path=urdf_path)
+            # urdf_path = os.path.join(get_urdf_path(), "cartpole.urdf")
+            # render_robot = robot.RobotModel(vis=viewer_client, name="cart_pole", id=1, xml_path=urdf_path)
+            render_robot = robot.RobotModel(vis=viewer_client, name="cart_pole", id=1)
+            render_robot.link_name_tree.name_tree = {"cart_pole": {"slideBar": {"cart": {"pole": {}}}}}
+            link1 = robot.Link(viewer_client,
+                               "cart_pole/slideBar",
+                               id=0, pos=Pos(),
+                               geom=[{"box": [30, 0.05, 0.05]}],
+                               visual_pos={"sliderBar1": Pos()})
+            render_robot.links.append(link1)
+            link2 = robot.Link(viewer_client,
+                               "cart_pole/slideBar/cart",
+                               id=1, pos=Pos(),
+                               geom=[{"box": [0.5, 0.5, 0.2]}],
+                               visual_pos={"cart1": Pos()})
+            render_robot.links.append(link2)
+            link3 = robot.Link(viewer_client,
+                               "cart_pole/slideBar/cart/pole",
+                               id=2, pos=Pos(),
+                               geom=[{"box": [0.05, 0.05, 1.0]}],
+                               visual_pos={"pole1": Pos(xyz=[0, 0, 0.5])})
+            render_robot.links.append(link3)
+            joint1 = robot.Joint(viewer_client,
+                                 name="slider_to_cart",
+                                 id=0, pos=Pos(),
+                                 type="prismatic",
+                                 parent_link="sildeBar",
+                                 child_link="cart",
+                                 axis=[1, 0, 0])
+            render_robot.joints.append(joint1)
+            joint2 = robot.Joint(viewer_client,
+                                 name="cart_to_pole",
+                                 id=0, pos=Pos(),
+                                 type="continuous",
+                                 parent_link="cart",
+                                 child_link="pole",
+                                 axis=[0, 1, 0])
+            render_robot.joints.append(joint2)
             render_robot.render()
         else:
             raise NotImplementedError()
@@ -224,8 +260,8 @@ class CartPole(BaseEnv):
 
 
 if __name__ == "__main__":
-    env = CartPole(render=True,render_engine_name="xmirror")
+    env = CartPole(render=True, render_engine_name="xmirror")
 
     for i in range(1000):
-        env.state = jnp.array([jnp.sin(i/100.0), jnp.cos(i/100.0), 0., 0.])
+        env.state = jnp.array([jnp.sin(i / 100.0), jnp.cos(i / 100.0), 0., 0.])
         env.reset_render_state()
