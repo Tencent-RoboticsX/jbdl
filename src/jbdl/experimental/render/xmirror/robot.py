@@ -1,8 +1,8 @@
 #!/usr/bin/python3
 import os
 import time
-import meshcat.transformations as tf
 import re
+import meshcat.transformations as tf
 from urdf_parser_py.urdf import URDF
 from jbdl.experimental.render.xmirror.visual import Pos, Mesh, Box, Cylinder, Sphere
 from jbdl.experimental.render.xmirror.link_name_tree import LinkNameTree
@@ -311,7 +311,7 @@ class Link:
                  id=0,
                  pos=Pos(),
                  geom=None,
-                 visual_pos={},
+                 visual_pos=None,
                  collision_visible=True,
                  material=None,
                  frame_visible=False):
@@ -332,6 +332,8 @@ class Link:
         self.name = name
         self.id = id
         self.pos = pos
+        if visual_pos is None:
+            visual_pos = {}
         self.visual_pos = visual_pos
         self.geom = geom
         self.collision_visible = collision_visible
