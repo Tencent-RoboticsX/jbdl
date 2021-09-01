@@ -1,4 +1,5 @@
 from functools import partial
+import os
 import math
 import jax
 from jbdl.envs.base_env import BaseEnv
@@ -10,6 +11,7 @@ from jax.ops import index_update, index
 from jbdl.rbdl.dynamics.forward_dynamics import forward_dynamics_core
 from jbdl.experimental.ode.runge_kutta import odeint
 from jbdl.rbdl.utils import xyz2int
+from jbdl.envs import get_urdf_path
 from jbdl.experimental.render.xmirror import robot
 
 
@@ -149,7 +151,7 @@ class CartPole(BaseEnv):
         elif self.render_engine_name == "xmirror":
             viewer_client.open()
             # no camera set yet
-            urdf_path = "data/urdf/cartpole.urdf" #TODO join with get urdf path
+            urdf_path = os.path.join(get_urdf_path(), "cartpole.urdf")
             render_robot = robot.RobotModel(vis=viewer_client, name="cart_pole", id=1, xml_path=urdf_path)
             render_robot.render()
         else:
