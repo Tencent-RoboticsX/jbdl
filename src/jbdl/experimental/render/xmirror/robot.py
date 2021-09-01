@@ -6,10 +6,9 @@ import meshcat
 import meshcat.transformations as tf
 import re
 from urdf_parser_py.urdf import URDF
-import visual
-from visual import Pos
-from link_name_tree import LinkNameTree
-from world import XML_parser
+from jbdl.experimental.render.xmirror.visual import Pos, Mesh, Box, Cylinder, Sphere
+from jbdl.experimental.render.xmirror.link_name_tree import LinkNameTree
+from jbdl.experimental.render.xmirror.world import XML_parser
 
 
 class RobotModel:
@@ -345,25 +344,25 @@ class Link:
                 name = list(self.visual_pos.keys())[visual_id]
                 pos = self.visual_pos[name]
                 name = self.name + "/" + name
-                self.visualizer.append(visual.Mesh(self.vis, name, mesh_path, pos))
+                self.visualizer.append(Mesh(self.vis, name, mesh_path, pos))
             elif geom_type == "box":
                 size = geom_item[geom_type]
                 name = list(self.visual_pos.keys())[visual_id]
                 pos = self.visual_pos[name]
                 name = self.name + "/" + name
-                self.visualizer.append(visual.Box(self.vis, name, size=size, material=self.material, pos=pos))
+                self.visualizer.append(Box(self.vis, name, size=size, material=self.material, pos=pos))
             elif geom_type == "sphere":
                 size = geom_item[geom_type]
                 name = list(self.visual_pos.keys())[visual_id]
                 pos = self.visual_pos[name]
                 name = self.name + "/" + name
-                self.visualizer.append(visual.Sphere(self.vis, name, size, self.material, pos))
+                self.visualizer.append(Sphere(self.vis, name, size, self.material, pos))
             elif geom_type == "cylinder":
                 size = geom_item[geom_type]
                 name = list(self.visual_pos.keys())[visual_id]
                 pos = self.visual_pos[name]
                 name = self.name + "/" + name
-                self.visualizer.append(visual.Cylinder(self.vis, name, size, self.material, pos))
+                self.visualizer.append(Cylinder(self.vis, name, size, self.material, pos))
             visual_id += 1
 
     def set_name(self, new_name="new_name"):
