@@ -11,6 +11,7 @@ from visual import Pos
 from link_name_tree import LinkNameTree
 from world import XML_parser
 
+
 class RobotModel:
     def __init__(self,
                  vis,
@@ -18,7 +19,7 @@ class RobotModel:
                  id=0,
                  pos=Pos(),
                  xml_path="",
-                 mesh_dir = "None"
+                 mesh_dir="None"
                  ):
         # TODO add annotation for this class here
         """
@@ -29,7 +30,7 @@ class RobotModel:
         self.ID = id
         self.pos = pos
         self.xml_path = xml_path
-        self.mesh_dir =mesh_dir
+        self.mesh_dir = mesh_dir
         self.robot_init()
 
     def robot_init(self):
@@ -50,7 +51,7 @@ class RobotModel:
 
     def xml_robot_init(self):
         pass
-        #only if you have just one robot in your xml
+        # only if you have just one robot in your xml
         # xml_path = self.xml_path
         # self.link_name_tree = LinkNameTree()
         # self.xml = XML_parser(vis=self.vis,
@@ -60,7 +61,6 @@ class RobotModel:
         #                          link_name_tree=LinkNameTree())
         # self.links = self.xml.links
         # self.joints = self.xml.joints
-
 
     def set_joint_state(self, joint_name=None, joint_id=None, state=0.0):
         if joint_id is None and joint_name is None:
@@ -74,7 +74,7 @@ class RobotModel:
 
         self.joints[joint_id].set_state(self.link_name_tree, state)
 
-    def render(self, sleep_time=0.1):
+    def render(self, sleep_time=0.5):
         self.vis[self.name].set_transform(
             self.pos.matrix
         )
@@ -332,7 +332,6 @@ class Link:
         self.frame_visible = frame_visible
         self.material = material
         self.visualizer = []
-
 
     def init_visualizer(self):
         visual_id = 0

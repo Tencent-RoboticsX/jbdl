@@ -4,11 +4,13 @@ import jax
 from jbdl.envs.base_env import BaseEnv
 import jax.numpy as jnp
 import pybullet
+import meshcat
 from jbdl.envs.utils.parser import URDFBasedRobot
 from jax.ops import index_update, index
 from jbdl.rbdl.dynamics.forward_dynamics import forward_dynamics_core
 from jbdl.experimental.ode.runge_kutta import odeint
 from jbdl.rbdl.utils import xyz2int
+from jbdl.experimental.render.xmirror import robot
 
 
 M_CART = 1.0
@@ -47,7 +49,7 @@ class CartPole(BaseEnv):
         if render_engine_name == "pybullet":
             render_engine = pybullet
         elif render_engine_name == "xmirror":
-            raise NotImplementedError()
+            render_engine = meshcat.Visualizer() #TODO wrap it to xmirror
         else:
             raise NotImplementedError()
 
@@ -145,7 +147,11 @@ class CartPole(BaseEnv):
             render_robot.load(viewer_client)
 
         elif self.render_engine_name == "xmirror":
-            raise NotImplementedError()
+            viewer_client.open()
+            # no camera set yet
+            urdf_path = "data/urdf/cartpole.urdf" #TODO join with get urdf path
+            render_robot = robot.RobotModel(vis=viewer_client, name="cart_pole", id=1, xml_path=urdf_path)
+            render_robot.render()
         else:
             raise NotImplementedError()
         return render_robot
@@ -164,7 +170,8 @@ class CartPole(BaseEnv):
             self.render_robot.jdict["cart_to_pole"].reset_current_position(
                 theta, 0)
         elif self.render_engine_name == "xmirror":
-            raise NotImplementedError()
+            self.render_robot.set_joint_state(joint_name="slider_to_cart", state=x)
+            self.render_robot.set_joint_state(joint_name="cart_to_pole", state=theta)
         else:
             raise NotImplementedError()
 
@@ -216,7 +223,7 @@ class CartPole(BaseEnv):
 
 
 if __name__ == "__main__":
-    env = CartPole(render=True)
+    env = CartPole(render=True,render_engine_name="xmirror")
 
     for i in range(1000):
         env.state = jnp.array([jnp.sin(i/100.0), jnp.cos(i/100.0), 0., 0.])

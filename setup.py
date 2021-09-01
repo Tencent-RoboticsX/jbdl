@@ -213,7 +213,7 @@ setup(
     packages=find_packages("src"),
     package_dir={"": "src"},
     include_package_data=True,
-    install_requires=["numpy", "wheel", "jax", "jaxlib", "matplotlib", "chex", "cvxopt", "gym", "pybullet"],
+    install_requires=["numpy", "wheel", "jax", "jaxlib", "matplotlib", "chex", "cvxopt", "gym", "pybullet", "meshcat"],
     extras_require={"test": "pytest"},
     ext_modules=extensions,
     cmdclass={"build_ext": CMakeBuildExt},
