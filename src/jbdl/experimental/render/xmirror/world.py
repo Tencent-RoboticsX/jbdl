@@ -1,12 +1,12 @@
 #!/usr/bin/python3
 
 import xml.etree.ElementTree as ET
-from link_name_tree import LinkNameTree
 import time
 import numpy as np
-import robot
-from visual import Pos
-from link_name_tree import LinkNameTree
+from jbdl.experimental.render.xmirror.link_name_tree import LinkNameTree
+import jbdl.experimental.render.xmirror.robot
+from jbdl.experimental.render.xmirror.visual import Pos
+
 
 
 class World:
