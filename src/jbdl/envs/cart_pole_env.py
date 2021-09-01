@@ -1,5 +1,5 @@
 from functools import partial
-import os
+#import os
 import math
 import jax
 from jbdl.envs.base_env import BaseEnv
@@ -11,7 +11,7 @@ from jax.ops import index_update, index
 from jbdl.rbdl.dynamics.forward_dynamics import forward_dynamics_core
 from jbdl.experimental.ode.runge_kutta import odeint
 from jbdl.rbdl.utils import xyz2int
-from jbdl.envs import get_urdf_path
+#from jbdl.envs import get_urdf_path
 from jbdl.experimental.render.xmirror import robot
 from jbdl.experimental.render.xmirror.visual import Pos
 

@@ -1,13 +1,12 @@
 #!/usr/bin/python3
 import os
 import time
-import meshcat
 import meshcat.transformations as tf
 import re
 from urdf_parser_py.urdf import URDF
 from jbdl.experimental.render.xmirror.visual import Pos, Mesh, Box, Cylinder, Sphere
 from jbdl.experimental.render.xmirror.link_name_tree import LinkNameTree
-from jbdl.experimental.render.xmirror.world import XML_parser
+#from jbdl.experimental.render.xmirror.world import XML_parser
 
 
 class RobotModel:
@@ -25,7 +24,7 @@ class RobotModel:
         """
         self.vis = vis
         self.name = name
-        self.ID = id
+        self.id = id
         self.pos = pos
         self.xml_path = xml_path
         self.mesh_dir = mesh_dir
@@ -45,8 +44,8 @@ class RobotModel:
     def urdf_robot_init(self):
         urdf_path = self.xml_path
         self.pos_tree = {"base": Pos()}
-        self.urdf = Urdf_parser(vis=self.vis, link_name_tree=self.link_name_tree, pos_tree=self.pos_tree,
-                                urdf_path=urdf_path, robot_name=self.name)
+        self.urdf = UrdfParser(vis=self.vis, link_name_tree=self.link_name_tree, pos_tree=self.pos_tree,
+                               urdf_path=urdf_path, robot_name=self.name)
         self.joints = self.urdf.generate_joints()
         self.urdf.generate_link_name_tree()
         self.links = self.urdf.generate_links()
@@ -85,7 +84,7 @@ class RobotModel:
             time.sleep(sleep_time)
 
 
-class Urdf_parser():
+class UrdfParser():
 
     def __init__(self,
                  vis,
@@ -235,7 +234,7 @@ class Joint:
                  type="fixed",
                  parent_link="parent_name",
                  child_link="child_name",
-                 axis=[0, 0, 0],
+                 axis=None,
                  init_state=0.0,
                  upper=0.0,
                  lower=0.0
@@ -246,11 +245,13 @@ class Joint:
         """
         self.vis = vis
         self.name = name
-        self.ID = id
+        self.id = id
         self.type = type
         self.pos = pos
         self.parent_link = parent_link
         self.child_link = child_link
+        if axis is None:
+            axis = [0, 0, 0]
         self.axis = axis
         self.state = init_state
         self.upper = upper
@@ -260,7 +261,7 @@ class Joint:
         self.name = new_name
 
     def set_id(self, new_id=0):
-        self.ID = new_id
+        self.id = new_id
 
     def set_parent(self, new_parent="new_parent"):
         self.parent_link = new_parent
@@ -309,7 +310,7 @@ class Link:
                  name="base_link",
                  id=0,
                  pos=Pos(),
-                 geom=[{"mesh": "meshpath"}, {"box": [0, 0, 0]}],
+                 geom=None,
                  visual_pos={},
                  collision_visible=True,
                  material=None,
@@ -322,11 +323,14 @@ class Link:
         id is link id
         pos is link pos
         geom is link's geometry can be mesh,box,sphere,cylinder
+            if geom is mesh,link it with meshpath
+            if geom is other geometry,link it with size
+            for example:geom=[{"mesh": "meshpath"}, {"box": [0, 0, 0]}]
         """
 
         self.vis = vis
         self.name = name
-        self.ID = id
+        self.id = id
         self.pos = pos
         self.visual_pos = visual_pos
         self.geom = geom
@@ -372,7 +376,7 @@ class Link:
         self.name = new_name
 
     def set_id(self, new_id=0):
-        self.ID = new_id
+        self.id = new_id
 
     def view_collision(self, view=True):
         self.collision_visible = view
