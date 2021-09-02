@@ -9,36 +9,54 @@ from jax.ops import index_update, index
 from jbdl.rbdl.dynamics.forward_dynamics import forward_dynamics_core
 from jbdl.experimental.ode.runge_kutta import odeint
 from jbdl.rbdl.utils import xyz2int
-from jbdl.rbdl.model.rigid_body_inertia import rigid_body_inertia
-# from simulator.UrdfWrapper import UrdfWrapper
-from jbdl.envs.utils.urdf_wrapper import UrdfWrapper
-from jbdl.envs.utils.urdf_reader import URDF
-from jbdl.envs.utils.urdf_utils import transform_origin
-import os
-from jbdl.envs import get_urdf_path
 
-M_CART = 1.0
-M_POLE = 0.1
-HALF_POLE_LENGTH = 0.5
-POLE_IC_PARAMS = jnp.zeros((6,))
+LINK_MASS = [
+    0.1,
+    100.2,
+    0.190421352,
+    0.29302326,
+    0.21931466,
+    0.15813986,
+    1e-12]
 
-LINK_MASS = []
-LINK_INERTIA = []
-LINK_COM = []
-file_name = "arm.urdf"
-file_path = os.path.join(get_urdf_path(), file_name)
+IC_PARAMS_LINK_0 = jnp.array([0.1, 0., 0., 0.1, 0., 0.1])
+IC_PARAMS_LINK_1 = jnp.array(
+    [0.000267245666667, 0., 0., 0.000267245666667, 0., 0.000435483])
+IC_PARAMS_LINK_2 = jnp.array(
+    [0.000279744834534, 0., 0., 0.000265717763008, 0., 6.53151584738e-05])
+IC_PARAMS_LINK_3 = jnp.array(
+    [0.00251484771035, 0., 0., 0.00248474836108, 0., 9.19936757328e-05])
+IC_PARAMS_LINK_4 = jnp.array(
+    [0.000791433503053, 0., 0, 0.000768905501178, 0., 6.88531064581e-05])
+IC_PARAMS_LINK_5 = jnp.array(
+    [0.00037242266488, 0., 0., 0.000356178538461, 0., 4.96474819141e-05])
+IC_PARAMS_LINK_6 = jnp.array([1e-12, 0., 0., 1e-12, 0., 1e-12])
 
-robot = URDF.load(file_path)
-for i in range(len(robot.links)):
-    link_mass = robot.links[i].inertial.mass
-    link_intertia = robot.links[i].inertial.inertia
-    link_com = transform_origin(robot.links[i].inertial.origin)[0]
-    LINK_MASS.append(link_mass)
-    LINK_INERTIA.append(link_intertia)
-    LINK_COM.append(link_com)
+LINK_INERTIA = [
+    IC_PARAMS_LINK_0,
+    IC_PARAMS_LINK_1,
+    IC_PARAMS_LINK_2,
+    IC_PARAMS_LINK_3,
+    IC_PARAMS_LINK_4,
+    IC_PARAMS_LINK_5,
+    IC_PARAMS_LINK_6]
 
-# DEFAULT_PURE_CART_POLE_PARAMS = (
-#     M_CART, M_POLE, HALF_POLE_LENGTH, POLE_IC_PARAMS)
+LINK_0_HALF_LENGTH = jnp.array([0., 0., 0])
+LINK_1_HALF_LENGTH = jnp.array([0., 0., 0.02725])
+LINK_2_HALF_LENGTH = jnp.array([0., 0., 0.0615])
+LINK_3_HALF_LENGTH = jnp.array([0., 0., 0.1585])
+LINK_4_HALF_LENGTH = jnp.array([0., 0., 0.101])
+LINK_5_HALF_LENGTH = jnp.array([0., 0., 0.08025])
+LINK_6_HALF_LENGTH = jnp.array([0., 0., 0])
+
+LINK_COM = [
+    LINK_0_HALF_LENGTH,
+    LINK_1_HALF_LENGTH,
+    LINK_2_HALF_LENGTH,
+    LINK_3_HALF_LENGTH,
+    LINK_4_HALF_LENGTH,
+    LINK_5_HALF_LENGTH,
+    LINK_6_HALF_LENGTH]
 
 DEFAULT_PURE_ARM_PARAMS = (
     LINK_MASS, LINK_INERTIA, LINK_COM
@@ -52,15 +70,68 @@ class Arm(BaseEnv):
                  mxstep=jnp.inf, batch_size=0,
                  render=False, render_engine_name="pybullet", render_idx=None):
 
-        self.model = UrdfWrapper(file_path).model
-        # print(self.model)
-        self.nb = self.model["nb"]
+        self.nb = 7
         self.nf = 3
-        self.a_grav = self.model["a_grav"]
-        self.jtype = tuple(self.model["jtype"])
-        self.jaxis = xyz2int(self.model["jaxis"])
-        self.parent = tuple(self.model["parent"])
-        self.x_tree = self.model["x_tree"]
+        self.a_grav = jnp.array([[0.], [0.], [0.], [0.], [0.], [-9.81]])
+        self.jtype = (1, 1, 0, 0, 0, 0, 1)
+        self.jaxis = xyz2int('zxyyyyx')
+        self.parent = tuple([0, 1, 2, 3, 4, 5, 6])
+        x_tree_0 = jnp.array([[1., 0., 0., 0., 0., 0.],
+                              [0., 1., 0., 0., 0., 0.],
+                              [0., 0., 1., 0., 0., 0.],
+                              [0., 0., 0., 1., 0., 0.],
+                              [0., 0., 0., 0., 1., 0.],
+                              [0., 0., 0., 0., 0., 1.]])
+        x_tree_1 = jnp.array([[1., 0., 0., 0., 0., 0.],
+                              [0., 1., 0., 0., 0., 0.],
+                              [-0., 0., 1., 0., 0., 0.],
+                              [0., 0.8, 0., 1., 0., 0.],
+                              [-0.8, 0., 0., 0., 1., 0.],
+                              [0., 0., 0., -0., 0., 1.]])
+
+        x_tree_2 = jnp.array([[1., 0., 0., 0., 0., 0.],
+                              [0., 1., 0., 0., 0., 0.],
+                              [-0., 0., 1., 0., 0., 0.],
+                              [0., 0.0545, 0., 1., 0., 0.],
+                              [-0.0545, 0., 0., 0., 1., 0.],
+                              [0., 0., 0., -0., 0., 1.]])
+
+        x_tree_3 = jnp.array([[1., 0., 0., 0., 0., 0.],
+                              [0., 1., 0., 0., 0., 0.],
+                              [-0., 0., 1., 0., 0., 0.],
+                              [0., 0.123, 0., 1., 0., 0.],
+                              [-0.123, 0., 0., 0., 1., 0.],
+                              [0., 0., 0., -0., 0., 1.]])
+
+        x_tree_4 = jnp.array([[1., 0., 0., 0., 0., 0.],
+                              [0., 1., 0., 0., 0., 0.],
+                              [-0., 0., 1., 0., 0., 0.],
+                              [0., 0.317, 0., 1., 0., 0.],
+                              [-0.317, 0., 0., 0., 1., 0.],
+                              [0., 0., 0., -0., 0., 1.]])
+
+        x_tree_5 = jnp.array([[1., 0., 0., 0., 0., 0.],
+                              [0., 1., 0., 0., 0., 0.],
+                              [-0., 0., 1., 0., 0., 0.],
+                              [0., 0.202, 0., 1., 0., 0.],
+                              [-0.202, 0., 0., 0., 1., 0.],
+                              [0., 0., 0., -0., 0., 1.]])
+
+        x_tree_6 = jnp.array([[1., 0., 0., 0., 0., 0.],
+                              [0., 1., 0., 0., 0., 0.],
+                              [-0., 0., 1., 0., 0., 0.],
+                              [0., 0.1605, 0., 1., 0., 0.],
+                              [-0.1605, 0., 0., 0., 1., 0.],
+                              [0., 0., 0., -0., 0., 1.]])
+
+        self.x_tree = [
+            x_tree_0,
+            x_tree_1,
+            x_tree_2,
+            x_tree_3,
+            x_tree_4,
+            x_tree_5,
+            x_tree_6]
         self.sim_dt = sim_dt
         self.batch_size = batch_size
 
@@ -88,19 +159,51 @@ class Arm(BaseEnv):
                          batch_size=batch_size, render=render,
                          render_engine=render_engine, render_idx=render_idx)
 
-        def _dynamics_fun_core(y, t, x_tree, inertia, u, a_grav, parent, jtype, jaxis, nb):
+        def _dynamics_fun_core(
+            y,
+            t,
+            x_tree,
+            inertia,
+            u,
+            a_grav,
+            parent,
+            jtype,
+            jaxis,
+                nb):
             q = y[0:nb]
-            qdot = y[nb:2*nb]
-            input = (x_tree, inertia, parent, jtype, jaxis, nb, q, qdot, u, a_grav)
+            qdot = y[nb:2 * nb]
+            input = (
+                x_tree,
+                inertia,
+                parent,
+                jtype,
+                jaxis,
+                nb,
+                q,
+                qdot,
+                u,
+                a_grav)
             qddot = forward_dynamics_core(*input)
             ydot = jnp.hstack([qdot, qddot])
             return ydot
 
         self._dynamics_fun = partial(
-            _dynamics_fun_core, parent=self.parent, jtype=self.jtype, jaxis=self.jaxis, nb=self.nb)
+            _dynamics_fun_core,
+            parent=self.parent,
+            jtype=self.jtype,
+            jaxis=self.jaxis,
+            nb=self.nb)
 
-        def _dynamics_step_core(dynamics_fun, y0, *args, nb, sim_dt, rtol, atol, mxstep):
-            y_init = y0[0:2*nb]
+        def _dynamics_step_core(
+                dynamics_fun,
+                y0,
+                *args,
+                nb,
+                sim_dt,
+                rtol,
+                atol,
+                mxstep):
+            y_init = y0[0:2 * nb]
             t_eval = jnp.linspace(0, sim_dt, 2)
             y_all = odeint(dynamics_fun, y_init, t_eval, *args,
                            rtol=rtol, atol=atol, mxstep=mxstep)
@@ -108,18 +211,24 @@ class Arm(BaseEnv):
             return y_final
 
         self._dynamics_step = partial(
-            _dynamics_step_core, nb=self.nb, sim_dt=self.sim_dt, rtol=self.rtol, atol=self.atol, mxstep=self.mxstep)
+            _dynamics_step_core,
+            nb=self.nb,
+            sim_dt=self.sim_dt,
+            rtol=self.rtol,
+            atol=self.atol,
+            mxstep=self.mxstep)
 
         def _dynamics_step_with_params_core(
-            dynamics_fun, state, action, *pure_arm_params, x_tree, a_grav):
+                dynamics_fun, state, action, *pure_arm_params, x_tree, a_grav):
 
             inertia = []
             link_mass_list, link_inertia_list, link_com_list = pure_arm_params
-            for i in range(len(LINK_MASS)):
+            for i in range(len(link_mass_list)):
                 link_mass = link_mass_list[i]
                 link_com = link_com_list[i]
                 link_intertia = link_inertia_list[i]
-                inertia_element = rigid_body_inertia(link_mass, jnp.asarray(link_com), jnp.asarray(link_intertia))
+                inertia_element = self.init_inertia(
+                    link_mass, jnp.asarray(link_com), jnp.asarray(link_intertia))
                 inertia.append(inertia_element)
             u = jnp.array([action[0], 0.0])
             dynamics_fun_param = (x_tree, inertia, u, a_grav)
@@ -128,17 +237,20 @@ class Arm(BaseEnv):
             return next_state
 
         self._dynamics_step_with_params = partial(
-            _dynamics_step_with_params_core, x_tree=self.x_tree, a_grav=self.a_grav)
+            _dynamics_step_with_params_core,
+            x_tree=self.x_tree,
+            a_grav=self.a_grav)
 
         self.dynamics_fun = jax.jit(self._dynamics_fun)
         self.dynamics_step = jax.jit(self._dynamics_step, static_argnums=0)
         self.dynamics_step_with_params = jax.jit(
             self._dynamics_step_with_params, static_argnums=0)
 
-        def _done_fun(state, x_threshold=self.x_threshold, theta_threshold=self.theta_done):
+        def _done_fun(state, x_threshold=self.x_threshold,
+                      theta_threshold=self.theta_done):
             # x = state[0]
             # theta = state[1]
-            qdot = state[self.nb:2*self.nb]
+            qdot = state[self.nb:2 * self.nb]
             done = jax.lax.cond(
                 (len(qdot[qdot > self.qdot_threshold]) > 0),
                 lambda done: True,
@@ -150,7 +262,7 @@ class Arm(BaseEnv):
 
         def _default_reward_fun(state, action, next_state):
             q = state[0:self.nb]
-            reward = - jnp.log(jnp.sum(jnp.square(q - self.target))) 
+            reward = - jnp.log(jnp.sum(jnp.square(q - self.target)))
             return reward
 
         if reward_fun is None:
@@ -169,11 +281,12 @@ class Arm(BaseEnv):
         # self.inertia = [self.inertia_cart, self.inertia_pole]
         inertia = []
         link_mass_list, link_inertia_list, link_com_list = pure_arm_params
-        for i in range(len(LINK_MASS)):
+        for i in range(len(link_mass_list)):
             link_mass = link_mass_list[i]
             link_com = link_com_list[i]
             link_intertia = link_inertia_list[i]
-            inertia_element = rigid_body_inertia(link_mass, jnp.asarray(link_com), jnp.asarray(link_intertia))
+            inertia_element = self.init_inertia(
+                link_mass, jnp.asarray(link_com), jnp.asarray(link_intertia))
             inertia.append(inertia_element)
         self.inertia = inertia
 
@@ -182,7 +295,13 @@ class Arm(BaseEnv):
         if self.render_engine_name == "pybullet":
             viewer_client.connect(viewer_client.GUI)
             viewer_client.resetDebugVisualizerCamera(
-                cameraDistance=6.18, cameraYaw=0, cameraPitch=-30, cameraTargetPosition=[0, 0, 1.0])
+                cameraDistance=6.18,
+                cameraYaw=0,
+                cameraPitch=-30,
+                cameraTargetPosition=[
+                    0,
+                    0,
+                    1.0])
             render_robot = URDFBasedRobot(
                 "cartpole.urdf", "physics", action_dim=1, obs_dim=4)
             render_robot.load(viewer_client)
@@ -197,7 +316,8 @@ class Arm(BaseEnv):
         if self.batch_size == 0:
             return (self.state[0], self.state[1])
         else:
-            return (self.state[self.render_idx, 0], self.state[self.render_idx, 1])
+            return (self.state[self.render_idx, 0],
+                    self.state[self.render_idx, 1])
 
     def _reset_render_state(self, *render_robot_state):
         x, theta = render_robot_state
@@ -248,7 +368,8 @@ class Arm(BaseEnv):
     def _batch_step_fun(self, action):
         u = jnp.reshape(jnp.array(action), newshape=(self.batch_size, -1))
         dynamics_params = (self.x_tree, self.inertia, u, self.a_grav)
-        next_state = jax.vmap(self.dynamics_step, (None, 0, None, None, 0, None), 0)(
+        next_state = jax.vmap(
+            self.dynamics_step, (None, 0, None, None, 0, None), 0)(
             self.dynamics_fun, self.state, *dynamics_params)
         done = jax.vmap(self.done_fun)(next_state)
         reward = jax.vmap(self.reward_fun)(self.state, action, next_state)
