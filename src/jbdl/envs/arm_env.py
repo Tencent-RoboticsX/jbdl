@@ -230,7 +230,7 @@ class Arm(BaseEnv):
                 inertia_element = self.init_inertia(
                     link_mass, jnp.asarray(link_com), jnp.asarray(link_intertia))
                 inertia.append(inertia_element)
-            u = jnp.array([action[0], 0.0])
+            u = jnp.reshape(jnp.array(action), (-1,))
             dynamics_fun_param = (x_tree, inertia, u, a_grav)
             next_state = self._dynamics_step(
                 dynamics_fun, state, *dynamics_fun_param)
@@ -303,7 +303,7 @@ class Arm(BaseEnv):
                     0,
                     1.0])
             render_robot = URDFBasedRobot(
-                "cartpole.urdf", "physics", action_dim=1, obs_dim=4)
+                "arm.urdf", "physics", action_dim=1, obs_dim=4)
             render_robot.load(viewer_client)
 
         elif self.render_engine_name == "xmirror":
@@ -314,18 +314,19 @@ class Arm(BaseEnv):
 
     def _get_render_state(self):
         if self.batch_size == 0:
-            return (self.state[0], self.state[1])
+            return self.state[:self.nb]
         else:
-            return (self.state[self.render_idx, 0],
-                    self.state[self.render_idx, 1])
+            # return (self.state[self.render_idx, 0],
+            #         self.state[self.render_idx, 1])
+            return self.state[self.render_idx, :self.nb]
 
     def _reset_render_state(self, *render_robot_state):
-        x, theta = render_robot_state
+        # joint_angle_0, joint_angle_1 = render_robot_state
         if self.render_engine_name == "pybullet":
-            self.render_robot.jdict["slider_to_cart"].reset_current_position(
-                x, 0)
-            self.render_robot.jdict["cart_to_pole"].reset_current_position(
-                theta, 0)
+            for i in range(self.nb-1):
+                self.render_robot.jdict["arm_joint_"+str(i)].reset_current_position(
+                    render_robot_state[i+1], 0)
+
         elif self.render_engine_name == "xmirror":
             raise NotImplementedError()
         else:
@@ -334,14 +335,14 @@ class Arm(BaseEnv):
     def _state_random_initializer(self):
         self.key, subkey = jax.random.split(self.key)
         state = jax.random.uniform(
-            subkey, shape=(4,), minval=-0.05, maxval=0.05)
+            subkey, shape=(self.nb*2,), minval=-0.05, maxval=0.05)
         return state
 
     def _batch_state_random_initializer(self, idx_list):
         if idx_list is None:
             self.key, subkey = jax.random.split(self.key)
             state = jax.random.uniform(subkey, shape=(
-                self.batch_size, 4), minval=-0.05, maxval=0.05)
+                self.batch_size, self.nb*2), minval=-0.05, maxval=0.05)
         else:
             idx_num = len(idx_list)
             self.key, subkey = jax.random.split(self.key)
@@ -384,4 +385,5 @@ if __name__ == "__main__":
     qdot = jnp.zeros(7)
     state = jnp.array([q, qdot]).flatten()
     env.state = state
-    env.reset_render_state()
+    for i in range(1000):
+        env.reset_render_state()
