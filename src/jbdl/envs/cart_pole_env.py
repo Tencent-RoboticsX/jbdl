@@ -138,7 +138,11 @@ class CartPole(BaseEnv):
             self.reward_fun = jax.jit(reward_fun)
 
     def _init_pure_params(self, *pure_cart_pole_params):
-        self.m_cart, self.m_pole, self.half_pole_length, self.pole_ic_params, self.joint_damping_params = pure_cart_pole_params
+
+        self.m_cart, self.m_pole, \
+            self.half_pole_length, self.pole_ic_params, \
+            self.joint_damping_params = pure_cart_pole_params
+
         self.inertia_cart = self.init_inertia(
             self.m_cart, jnp.zeros((3,)), jnp.zeros((6,)))
         self.inertia_pole = self.init_inertia(self.m_pole, jnp.array(
