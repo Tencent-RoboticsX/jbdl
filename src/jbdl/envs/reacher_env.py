@@ -9,6 +9,7 @@ from jbdl.rbdl.kinematics import calc_body_to_base_coordinates_core
 from jbdl.envs.utils.parser import MJCFBasedRobot
 from jbdl.envs.base_env import BaseEnv
 from jbdl.experimental.ode.runge_kutta import odeint
+from jbdl.experimental.contact.calc_joint_damping import calc_joint_damping_core
 import pybullet
 
 
@@ -16,9 +17,10 @@ M_BODY0 = 1.0
 M_BODY1 = 1.0
 IC_PARAMS_BODY0 = jnp.zeros((6,))
 IC_PARAMS_BODY1 = jnp.zeros((6,))
+JOINT_DAMPING_PARAMS = jnp.array([0.7, 0.7])
 
 DEFAULT_PURE_REACHER_PARAMS = (
-    M_BODY0, M_BODY1, IC_PARAMS_BODY0, IC_PARAMS_BODY1)
+    M_BODY0, M_BODY1, IC_PARAMS_BODY0, IC_PARAMS_BODY1, JOINT_DAMPING_PARAMS)
 
 
 class Reacher(BaseEnv):
@@ -78,11 +80,15 @@ class Reacher(BaseEnv):
                          sim_dt=sim_dt, rtol=rtol, atol=atol, mxstep=mxstep,
                          batch_size=batch_size, render=render, render_engine=render_engine, render_idx=render_idx)
 
-        def _dynamics_fun_core(y, t, x_tree, inertia, u, a_grav, parent, jtype, jaxis, nb):
+        def _dynamics_fun_core(y, t, x_tree, inertia, joint_damping_params, u, a_grav, parent, jtype, jaxis, nb):
             q = y[0:nb]
             qdot = y[nb:2*nb]
+            u = jnp.reshape(u, (-1,))
+            joint_damping_tau = calc_joint_damping_core(
+                qdot, joint_damping_params)
+            tau = u + joint_damping_tau
             input = (x_tree, inertia, parent, jtype,
-                     jaxis, nb, q, qdot, u, a_grav)
+                     jaxis, nb, q, qdot, tau, a_grav)
             qddot = forward_dynamics_core(*input)
             ydot = jnp.hstack([qdot, qddot])
             return ydot
@@ -108,14 +114,15 @@ class Reacher(BaseEnv):
             _dynamics_step_core, nb=self.nb, sim_dt=self.sim_dt, rtol=self.rtol, atol=self.atol, mxstep=self.mxstep)
 
         def _dynamics_step_with_params_core(dynamics_fun, state, action, *pure_reacher_params, x_tree, a_grav):
-            m_body0, m_body1, ic_params_body0, ic_params_body1 = pure_reacher_params
+            m_body0, m_body1, ic_params_body0, ic_params_body1, joint_damping_params = pure_reacher_params
             inertia_body0 = self.init_inertia(m_body0, jnp.array(
                 [0.05, 0.0, 0.0]), ic_params_body0)
             inertia_body1 = self.init_inertia(m_body1, jnp.array(
                 [0.05, 0.0, 0.0]), ic_params_body1)
             inertia = [inertia_body0, inertia_body1]
             u = jnp.reshape(jnp.array(action), (-1,))
-            dynamics_fun_param = (x_tree, inertia, u, a_grav)
+            dynamics_fun_param = (
+                x_tree, inertia, joint_damping_params, u, a_grav)
             next_state = self._dynamics_step(
                 dynamics_fun, state, *dynamics_fun_param)
             return next_state
@@ -159,7 +166,7 @@ class Reacher(BaseEnv):
             self.reward_fun = jax.jit(reward_fun)
 
     def _init_pure_params(self, *pure_params):
-        self.m_body0, self.m_body1, self.ic_params_body0, self.ic_params_body1 = pure_params
+        self.m_body0, self.m_body1, self.ic_params_body0, self.ic_params_body1, self.joint_damping_params = pure_params
         self.inertia_body0 = self.init_inertia(self.m_body0, jnp.array(
             [0.05, 0.0, 0.0]), self.ic_params_body0)
         self.inertia_body1 = self.init_inertia(self.m_body1, jnp.array(
@@ -184,8 +191,10 @@ class Reacher(BaseEnv):
     def _reset_render_state(self, *render_state):
         central_joint, elbow_joint, target_x, target_y, = render_state
         if self.render_engine_name == "pybullet":
-            self.render_robot.jdict["target_x"].reset_current_position(target_x, 0)
-            self.render_robot.jdict["target_y"].reset_current_position(target_y, 0)
+            self.render_robot.jdict["target_x"].reset_current_position(
+                target_x, 0)
+            self.render_robot.jdict["target_y"].reset_current_position(
+                target_y, 0)
             self.render_robot.jdict["joint0"].reset_current_position(
                 central_joint, 0)
             self.render_robot.jdict["joint1"].reset_current_position(
@@ -253,8 +262,9 @@ class Reacher(BaseEnv):
             return state
 
     def _step_fun(self, action):
-        u = jnp.array(action)
-        dynamics_params = (self.x_tree, self.inertia, u, self.a_grav)
+        u = jnp.reshape(jnp.array(action), newshape=(-1,))
+        dynamics_params = (self.x_tree, self.inertia,
+                           self.joint_damping_params, u, self.a_grav)
         next_state = self.dynamics_step(
             self.dynamics_fun, self.state, *dynamics_params)
         done = self.done_fun(next_state)
@@ -265,8 +275,9 @@ class Reacher(BaseEnv):
 
     def _batch_step_fun(self, action):
         u = jnp.reshape(jnp.array(action), newshape=(self.batch_size, -1))
-        dynamics_params = (self.x_tree, self.inertia, u, self.a_grav)
-        next_state = jax.vmap(self.dynamics_step, (None, 0, None, None, 0, None), 0)(
+        dynamics_params = (self.x_tree, self.inertia,
+                           self.joint_damping_params, u, self.a_grav)
+        next_state = jax.vmap(self.dynamics_step, (None, 0, None, None, None, 0, None), 0)(
             self.dynamics_fun, self.state, *dynamics_params)
         done = jax.vmap(self.done_fun)(next_state)
         reward = jax.vmap(self.reward_fun)(self.state, action, next_state)
