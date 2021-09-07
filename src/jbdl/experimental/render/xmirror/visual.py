@@ -1,15 +1,17 @@
-import meshcat
-import meshcat.geometry as g
-import meshcat.transformations as tf
+import os
 import re
 from abc import ABC, abstractmethod
-import os
-import numpy as np
+import meshcat.geometry as g
+import meshcat.transformations as tf
 
 
 class Pos:
     # pos data structure
-    def __init__(self, xyz=[0, 0, 0], rpy=[0, 0, 0]):
+    def __init__(self, xyz=None, rpy=None):
+        if xyz is None:
+            xyz = [0, 0, 0]
+        if rpy is None:
+            rpy = [0, 0, 0]
         self.xyz = xyz
         self.rpy = rpy
         self.matrix = self.get_matrix()
@@ -43,7 +45,8 @@ class Mesh(Visual):
     support stl,dae,obj
     vis is meshcat visualizer
     name is mesh name
-    mesh_path is "package://"+"path from current root" this means you should put description package in the same dir with your scipts
+    mesh_path is "package://"+"path from current root"
+    you should put description package in the same dir with your scipts
     pos is mesh position
     mesh_type can be stl,dae,obj and can be identify by mesh_path
     """
@@ -127,12 +130,14 @@ class Box(Visual):
     def __init__(self,
                  vis,
                  name="",
-                 size=[0.1, 0.1, 0.1],
+                 size=None,
                  material=None,  # TODO
                  pos=Pos(),
                  ):
         super(Box, self).__init__(vis, pos, name)
         self.material = material
+        if size is None:
+            size = [0.1, 0.1, 0.1]
         self.size = size
 
     def render(self):
@@ -185,12 +190,14 @@ class Cylinder(Visual):
     def __init__(self,
                  vis,
                  name="",
-                 size = [0.1,0.1],
+                 size=None,
                  material=None,  # TODO
                  pos=Pos(),
                  ):
         super(Cylinder, self).__init__(vis, pos, name)
         self.material = material
+        if size is None:
+            size = [0.1, 0.1]
         self.height = size[0]
         self.radius = size[1]
 
@@ -202,13 +209,30 @@ class Cylinder(Visual):
         )
 
 
-class Axis(Visual):
-    # TODO
-    def __init__(self):
-        pass
-
-
-def Arrow(Visual):
-    # TODO
-    def __init__(self):
-        pass
+# class Axis(Visual):
+#     # TODO
+#     def __init__(self,
+#                  vis,
+#                  pos,
+#                  name=""
+#                  ):
+#         super(Axis, self).__init__(vis, pos, name)
+#         pass
+#
+#     def render(self):
+#         pass
+#
+#
+# def Arrow(Visual):
+#     # TODO
+#     def __init__(self,
+#                  vis,
+#                  pos,
+#                  name=""
+#                  ):
+#         super(Arrow, self).__init__(vis, pos, name)
+#         pass
+#
+#
+#     def render(self):
+#         pass

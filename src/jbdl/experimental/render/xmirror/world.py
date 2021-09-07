@@ -1,12 +1,12 @@
 #!/usr/bin/python3
 
 import xml.etree.ElementTree as ET
-from xmirror.link_name_tree import LinkNameTree
 import time
 import numpy as np
-import robot
-from visual import Pos
-from link_name_tree import LinkNameTree
+from jbdl.experimental.render.xmirror.link_name_tree import LinkNameTree
+#import jbdl.experimental.render.xmirror.robot
+from jbdl.experimental.render.xmirror.visual import Pos
+
 
 
 class World:
@@ -23,7 +23,7 @@ class World:
         self.world_name = name
 
     def load_xml(self):
-        self.xml = XML_parser(
+        self.xml = XmlParser(
             vis=self.vis,
             xml_path=self.xml_path,
             mesh_dir=self.mesh_dir,
@@ -32,7 +32,7 @@ class World:
 
 
 
-class XML_parser:
+class XmlParser:
     def __init__(self,
                  vis,
                  xml_path,
@@ -153,7 +153,7 @@ class XML_parser:
             visual_pos.update({geom_name: Pos(xyz=geom_pos)})
             if geom_type == 'mesh':
                 mesh_path = self.mesh_dir + "/" + self.meshs[geom.get('mesh')]
-                material = geom.get('material')  # TODO we don't support material for now
+                #material = geom.get('material')  # TODO we don't support material for now
                 geom_list.append({geom_type: mesh_path})
             else:
                 size = geom.get('size').split()

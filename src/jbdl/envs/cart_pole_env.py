@@ -4,19 +4,24 @@ import jax
 from jbdl.envs.base_env import BaseEnv
 import jax.numpy as jnp
 import pybullet
+import meshcat
 from jbdl.envs.utils.parser import URDFBasedRobot
 from jax.ops import index_update, index
 from jbdl.rbdl.dynamics.forward_dynamics import forward_dynamics_core
 from jbdl.experimental.ode.runge_kutta import odeint
 from jbdl.rbdl.utils import xyz2int
-
+#from jbdl.envs import get_urdf_path
+from jbdl.experimental.render.xmirror import robot
+from jbdl.experimental.render.xmirror.visual import Pos
+from jbdl.experimental.contact.calc_joint_damping import calc_joint_damping_core
 
 M_CART = 1.0
 M_POLE = 0.1
 HALF_POLE_LENGTH = 0.5
 POLE_IC_PARAMS = jnp.zeros((6,))
+JOINT_DAMPING_PARAMS = jnp.array([0.7, 0.7])
 DEFAULT_PURE_CART_POLE_PARAMS = (
-    M_CART, M_POLE, HALF_POLE_LENGTH, POLE_IC_PARAMS)
+    M_CART, M_POLE, HALF_POLE_LENGTH, POLE_IC_PARAMS, JOINT_DAMPING_PARAMS)
 
 
 class CartPole(BaseEnv):
@@ -47,7 +52,7 @@ class CartPole(BaseEnv):
         if render_engine_name == "pybullet":
             render_engine = pybullet
         elif render_engine_name == "xmirror":
-            raise NotImplementedError()
+            render_engine = meshcat.Visualizer()  # TODO wrap it to xmirror
         else:
             raise NotImplementedError()
 
@@ -56,10 +61,15 @@ class CartPole(BaseEnv):
                          batch_size=batch_size, render=render,
                          render_engine=render_engine, render_idx=render_idx)
 
-        def _dynamics_fun_core(y, t, x_tree, inertia, u, a_grav, parent, jtype, jaxis, nb):
+        def _dynamics_fun_core(y, t, x_tree, inertia, joint_damping_params, u, a_grav, parent, jtype, jaxis, nb):
             q = y[0:nb]
             qdot = y[nb:2*nb]
-            input = (x_tree, inertia, parent, jtype, jaxis, nb, q, qdot, u, a_grav)
+            u = jnp.reshape(u, (-1,))
+            joint_damping_tau = calc_joint_damping_core(
+                qdot, joint_damping_params)
+            tau = u + joint_damping_tau
+            input = (x_tree, inertia, parent, jtype,
+                     jaxis, nb, q, qdot, tau, a_grav)
             qddot = forward_dynamics_core(*input)
             ydot = jnp.hstack([qdot, qddot])
             return ydot
@@ -68,7 +78,7 @@ class CartPole(BaseEnv):
             _dynamics_fun_core, parent=self.parent, jtype=self.jtype, jaxis=self.jaxis, nb=self.nb)
 
         def _dynamics_step_core(dynamics_fun, y0, *args, nb, sim_dt, rtol, atol, mxstep):
-            y_init = y0[0:2*nb]
+            y_init = y0[0: 2*nb]
             t_eval = jnp.linspace(0, sim_dt, 2)
             y_all = odeint(dynamics_fun, y_init, t_eval, *args,
                            rtol=rtol, atol=atol, mxstep=mxstep)
@@ -79,16 +89,17 @@ class CartPole(BaseEnv):
             _dynamics_step_core, nb=self.nb, sim_dt=self.sim_dt, rtol=self.rtol, atol=self.atol, mxstep=self.mxstep)
 
         def _dynamics_step_with_params_core(
-            dynamics_fun, state, action, *pure_cart_pole_params, x_tree, a_grav):
+                dynamics_fun, state, action, *pure_cart_pole_params, x_tree, a_grav):
 
-            m_cart, m_pole, half_pole_length, pole_ic_params = pure_cart_pole_params
+            m_cart, m_pole, half_pole_length, pole_ic_params, joint_damping_params = pure_cart_pole_params
             inertia_cart = self.init_inertia(
                 m_cart, jnp.zeros((3,)), jnp.zeros((6,)))
             inertia_pole = self.init_inertia(m_pole, jnp.array(
                 [0.0, 0.0, half_pole_length]), pole_ic_params)
             inertia = [inertia_cart, inertia_pole]
             u = jnp.array([action[0], 0.0])
-            dynamics_fun_param = (x_tree, inertia, u, a_grav)
+            dynamics_fun_param = (
+                x_tree, inertia, joint_damping_params, u, a_grav)
             next_state = self._dynamics_step(
                 dynamics_fun, state, *dynamics_fun_param)
             return next_state
@@ -127,7 +138,11 @@ class CartPole(BaseEnv):
             self.reward_fun = jax.jit(reward_fun)
 
     def _init_pure_params(self, *pure_cart_pole_params):
-        self.m_cart, self.m_pole, self.half_pole_length, self.pole_ic_params = pure_cart_pole_params
+
+        self.m_cart, self.m_pole, \
+            self.half_pole_length, self.pole_ic_params, \
+            self.joint_damping_params = pure_cart_pole_params
+
         self.inertia_cart = self.init_inertia(
             self.m_cart, jnp.zeros((3,)), jnp.zeros((6,)))
         self.inertia_pole = self.init_inertia(self.m_pole, jnp.array(
@@ -145,7 +160,49 @@ class CartPole(BaseEnv):
             render_robot.load(viewer_client)
 
         elif self.render_engine_name == "xmirror":
-            raise NotImplementedError()
+            viewer_client.open()
+            # no camera set yet
+            # urdf_path = os.path.join(get_urdf_path(), "cartpole.urdf")
+            # render_robot = robot.RobotModel(vis=viewer_client, name="cart_pole", id=1, xml_path=urdf_path)
+            render_robot = robot.RobotModel(
+                vis=viewer_client, name="cart_pole", id=1)
+            render_robot.link_name_tree.name_tree = {
+                "cart_pole": {"slideBar": {"cart": {"pole": {}}}}}
+            link1 = robot.Link(viewer_client,
+                               "cart_pole/slideBar",
+                               id=0, pos=Pos(),
+                               geom=[{"box": [30, 0.05, 0.05]}],
+                               visual_pos={"sliderBar1": Pos()})
+            render_robot.links.append(link1)
+            link2 = robot.Link(viewer_client,
+                               "cart_pole/slideBar/cart",
+                               id=1, pos=Pos(),
+                               geom=[{"box": [0.5, 0.5, 0.2]}],
+                               visual_pos={"cart1": Pos()})
+            render_robot.links.append(link2)
+            link3 = robot.Link(viewer_client,
+                               "cart_pole/slideBar/cart/pole",
+                               id=2, pos=Pos(),
+                               geom=[{"box": [0.05, 0.05, 1.0]}],
+                               visual_pos={"pole1": Pos(xyz=[0, 0, 0.5])})
+            render_robot.links.append(link3)
+            joint1 = robot.Joint(viewer_client,
+                                 name="slider_to_cart",
+                                 id=0, pos=Pos(),
+                                 type="prismatic",
+                                 parent_link="sildeBar",
+                                 child_link="cart",
+                                 axis=[1, 0, 0])
+            render_robot.joints.append(joint1)
+            joint2 = robot.Joint(viewer_client,
+                                 name="cart_to_pole",
+                                 id=0, pos=Pos(),
+                                 type="continuous",
+                                 parent_link="cart",
+                                 child_link="pole",
+                                 axis=[0, 1, 0])
+            render_robot.joints.append(joint2)
+            render_robot.render()
         else:
             raise NotImplementedError()
         return render_robot
@@ -164,7 +221,10 @@ class CartPole(BaseEnv):
             self.render_robot.jdict["cart_to_pole"].reset_current_position(
                 theta, 0)
         elif self.render_engine_name == "xmirror":
-            raise NotImplementedError()
+            self.render_robot.set_joint_state(
+                joint_name="slider_to_cart", state=x)
+            self.render_robot.set_joint_state(
+                joint_name="cart_to_pole", state=theta)
         else:
             raise NotImplementedError()
 
@@ -193,7 +253,8 @@ class CartPole(BaseEnv):
 
     def _step_fun(self, action):
         u = jnp.array([action[0], 0.0])
-        dynamics_params = (self.x_tree, self.inertia, u, self.a_grav)
+        dynamics_params = (self.x_tree, self.inertia,
+                           self.joint_damping_params, u, self.a_grav)
         next_state = self.dynamics_step(
             self.dynamics_fun, self.state, *dynamics_params)
         done = self.done_fun(next_state)
@@ -205,8 +266,9 @@ class CartPole(BaseEnv):
     def _batch_step_fun(self, action):
         action = jnp.reshape(jnp.array(action), newshape=(self.batch_size, -1))
         u = jnp.hstack([action, jnp.zeros((self.batch_size, 1))])
-        dynamics_params = (self.x_tree, self.inertia, u, self.a_grav)
-        next_state = jax.vmap(self.dynamics_step, (None, 0, None, None, 0, None), 0)(
+        dynamics_params = (self.x_tree, self.inertia,
+                           self.joint_damping_params, u, self.a_grav)
+        next_state = jax.vmap(self.dynamics_step, (None, 0, None, None, None, 0, None), 0)(
             self.dynamics_fun, self.state, *dynamics_params)
         done = jax.vmap(self.done_fun)(next_state)
         reward = jax.vmap(self.reward_fun)(self.state, action, next_state)
@@ -216,7 +278,7 @@ class CartPole(BaseEnv):
 
 
 if __name__ == "__main__":
-    env = CartPole(render=True)
+    env = CartPole(render=True, render_engine_name="xmirror")
 
     for i in range(1000):
         env.state = jnp.array([jnp.sin(i/100.0), jnp.cos(i/100.0), 0., 0.])

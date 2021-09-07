@@ -1,15 +1,13 @@
 #!/usr/bin/python3
-import numpy as np
 import os
 import time
-import meshcat
-import meshcat.transformations as tf
 import re
+import meshcat.transformations as tf
 from urdf_parser_py.urdf import URDF
-import visual
-from visual import Pos
-from link_name_tree import LinkNameTree
-from world import XML_parser
+from jbdl.experimental.render.xmirror.visual import Pos, Mesh, Box, Cylinder, Sphere
+from jbdl.experimental.render.xmirror.link_name_tree import LinkNameTree
+#from jbdl.experimental.render.xmirror.world import XML_parser
+
 
 class RobotModel:
     def __init__(self,
@@ -18,7 +16,7 @@ class RobotModel:
                  id=0,
                  pos=Pos(),
                  xml_path="",
-                 mesh_dir = "None"
+                 mesh_dir="None"
                  ):
         # TODO add annotation for this class here
         """
@@ -26,10 +24,13 @@ class RobotModel:
         """
         self.vis = vis
         self.name = name
-        self.ID = id
+        self.id = id
         self.pos = pos
         self.xml_path = xml_path
-        self.mesh_dir =mesh_dir
+        self.mesh_dir = mesh_dir
+        self.link_name_tree = LinkNameTree()
+        self.joints = []
+        self.links = []
         self.robot_init()
 
     def robot_init(self):
@@ -37,20 +38,21 @@ class RobotModel:
             self.urdf_robot_init()
         elif re.search(".xml", self.xml_path) is not None:
             self.xml_robot_init()
+        else:
+            print("construct robot by link")
 
     def urdf_robot_init(self):
         urdf_path = self.xml_path
-        self.link_name_tree = LinkNameTree()
         self.pos_tree = {"base": Pos()}
-        self.urdf = Urdf_parser(vis=self.vis, link_name_tree=self.link_name_tree, pos_tree=self.pos_tree,
-                                urdf_path=urdf_path, robot_name=self.name)
+        self.urdf = UrdfParser(vis=self.vis, link_name_tree=self.link_name_tree, pos_tree=self.pos_tree,
+                               urdf_path=urdf_path, robot_name=self.name)
         self.joints = self.urdf.generate_joints()
         self.urdf.generate_link_name_tree()
         self.links = self.urdf.generate_links()
 
     def xml_robot_init(self):
         pass
-        #only if you have just one robot in your xml
+        # only if you have just one robot in your xml
         # xml_path = self.xml_path
         # self.link_name_tree = LinkNameTree()
         # self.xml = XML_parser(vis=self.vis,
@@ -60,7 +62,6 @@ class RobotModel:
         #                          link_name_tree=LinkNameTree())
         # self.links = self.xml.links
         # self.joints = self.xml.joints
-
 
     def set_joint_state(self, joint_name=None, joint_id=None, state=0.0):
         if joint_id is None and joint_name is None:
@@ -74,7 +75,7 @@ class RobotModel:
 
         self.joints[joint_id].set_state(self.link_name_tree, state)
 
-    def render(self, sleep_time=0.1):
+    def render(self, sleep_time=0.5):
         self.vis[self.name].set_transform(
             self.pos.matrix
         )
@@ -83,7 +84,7 @@ class RobotModel:
             time.sleep(sleep_time)
 
 
-class Urdf_parser():
+class UrdfParser():
 
     def __init__(self,
                  vis,
@@ -233,7 +234,7 @@ class Joint:
                  type="fixed",
                  parent_link="parent_name",
                  child_link="child_name",
-                 axis=[0, 0, 0],
+                 axis=None,
                  init_state=0.0,
                  upper=0.0,
                  lower=0.0
@@ -244,11 +245,13 @@ class Joint:
         """
         self.vis = vis
         self.name = name
-        self.ID = id
+        self.id = id
         self.type = type
         self.pos = pos
         self.parent_link = parent_link
         self.child_link = child_link
+        if axis is None:
+            axis = [0, 0, 0]
         self.axis = axis
         self.state = init_state
         self.upper = upper
@@ -258,7 +261,7 @@ class Joint:
         self.name = new_name
 
     def set_id(self, new_id=0):
-        self.ID = new_id
+        self.id = new_id
 
     def set_parent(self, new_parent="new_parent"):
         self.parent_link = new_parent
@@ -307,8 +310,8 @@ class Link:
                  name="base_link",
                  id=0,
                  pos=Pos(),
-                 geom=[{"mesh": "meshpath"}, {"box": [0, 0, 0]}],
-                 visual_pos={},
+                 geom=None,
+                 visual_pos=None,
                  collision_visible=True,
                  material=None,
                  frame_visible=False):
@@ -320,19 +323,23 @@ class Link:
         id is link id
         pos is link pos
         geom is link's geometry can be mesh,box,sphere,cylinder
+            if geom is mesh,link it with meshpath
+            if geom is other geometry,link it with size
+            for example:geom=[{"mesh": "meshpath"}, {"box": [0, 0, 0]}]
         """
 
         self.vis = vis
         self.name = name
-        self.ID = id
+        self.id = id
         self.pos = pos
+        if visual_pos is None:
+            visual_pos = {}
         self.visual_pos = visual_pos
         self.geom = geom
         self.collision_visible = collision_visible
         self.frame_visible = frame_visible
         self.material = material
         self.visualizer = []
-
 
     def init_visualizer(self):
         visual_id = 0
@@ -346,32 +353,32 @@ class Link:
                 name = list(self.visual_pos.keys())[visual_id]
                 pos = self.visual_pos[name]
                 name = self.name + "/" + name
-                self.visualizer.append(visual.Mesh(self.vis, name, mesh_path, pos))
+                self.visualizer.append(Mesh(self.vis, name, mesh_path, pos))
             elif geom_type == "box":
                 size = geom_item[geom_type]
                 name = list(self.visual_pos.keys())[visual_id]
                 pos = self.visual_pos[name]
                 name = self.name + "/" + name
-                self.visualizer.append(visual.Box(self.vis, name, size=size, material=self.material, pos=pos))
+                self.visualizer.append(Box(self.vis, name, size=size, material=self.material, pos=pos))
             elif geom_type == "sphere":
                 size = geom_item[geom_type]
                 name = list(self.visual_pos.keys())[visual_id]
                 pos = self.visual_pos[name]
                 name = self.name + "/" + name
-                self.visualizer.append(visual.Sphere(self.vis, name, size, self.material, pos))
+                self.visualizer.append(Sphere(self.vis, name, size, self.material, pos))
             elif geom_type == "cylinder":
                 size = geom_item[geom_type]
                 name = list(self.visual_pos.keys())[visual_id]
                 pos = self.visual_pos[name]
                 name = self.name + "/" + name
-                self.visualizer.append(visual.Cylinder(self.vis, name, size, self.material, pos))
+                self.visualizer.append(Cylinder(self.vis, name, size, self.material, pos))
             visual_id += 1
 
     def set_name(self, new_name="new_name"):
         self.name = new_name
 
     def set_id(self, new_id=0):
-        self.ID = new_id
+        self.id = new_id
 
     def view_collision(self, view=True):
         self.collision_visible = view
