@@ -1,5 +1,5 @@
 # JBDL
-A JAX-Based Body Dynamics Algorithm Library forRobotics.
+A JAX-Based Body Dynamics Algorithm Library for Robotics.
 
 # Citation
 
