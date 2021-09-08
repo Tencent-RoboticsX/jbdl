@@ -21,25 +21,21 @@ from jbdl.rbdl.dynamics import composite_rigid_body_algorithm_core
 from jbdl.experimental.ode.solve_ivp import solve_ivp
 from jax.ops import index_update, index
 
-M_BASE_LINK = 0.1
-M_TORSO = 3.66519
-M_THIGH = 4.05789
-M_LEG = 2.78136
-M_FOOT = 5.31557
+M_TORSO = 1.0
+M_THIGH = 1.0
+M_LEG = 1.0
+M_FOOT = 1.0
 
-IC_PARAMS_BASE = jnp.array([0.1, 0., 0., 0.1, 0., 0.1])
-IC_PARAMS_TORSO = jnp.array([0.07941, 0., 0., 0.07941, 0., 0.00611])
-IC_PARAMS_THIGH = jnp.array([0.10567, 0., 0., 0.10567, 0., 0.00676])
-IC_PARAMS_LEG = jnp.array([0.07945, 0., 0., 0.07945, 0., 0.00297])
-IC_PARAMS_FOOT = jnp.array([0.01276, 0., 0., 0.12159, 0., 0.12159])
+IC_PARAMS_TORSO = jnp.zeros((6,))
+IC_PARAMS_THIGH = jnp.zeros((6,))
+IC_PARAMS_LEG = jnp.zeros((6,))
+IC_PARAMS_FOOT = jnp.zeros((6,))
 
-DEFAULT_PURE_HALF_CHEETAH_PARAMS = (
-    M_BASE_LINK,
+DEFAULT_PURE_HOPPER_PARAMS = (
     M_TORSO,
     M_THIGH,
     M_LEG,
     M_FOOT,
-    IC_PARAMS_BASE,
     IC_PARAMS_TORSO,
     IC_PARAMS_THIGH,
     IC_PARAMS_LEG,
@@ -49,7 +45,7 @@ DEFAULT_PURE_HALF_CHEETAH_PARAMS = (
 class Hopper(BaseEnv):
     def __init__(
             self,
-            pure_hopper_params=DEFAULT_PURE_HALF_CHEETAH_PARAMS,
+            pure_hopper_params=DEFAULT_PURE_HOPPER_PARAMS,
             reward_fun=None,
             seed=123,
             sim_dt=2e-3,
@@ -60,36 +56,31 @@ class Hopper(BaseEnv):
             render=False,
             render_idx=None):
 
-        self.nb = 5
+        self.nb = 6
         self.nc = 1
         self.nf = 2
 
         self.a_grav = jnp.array([[0.], [0.], [0.], [0.], [0.], [-9.81]])
-        self.jtype = (1, 0, 0, 0, 0)
-        self.jaxis = xyz2int('zxyyy')
-        self.parent = tuple([0, 1, 2, 3, 4])
+        self.jtype = (1, 1, 0, 0, 0, 0)
+        self.jaxis = xyz2int('xzyyyy')
+        self.parent = tuple([0, 1, 2, 3, 4, 5])
         self.x_tree = list([jnp.eye(6) for i in range(self.nb)])
-        self.x_tree[1] = jnp.array([[1., 0., 0., 0., 0., 0.],
-                                    [0., 1., 0., 0., 0., 0.],
-                                    [-0., 0., 1., 0., 0., 0.],
-                                    [0., 1., 0., 1., 0., 0.],
-                                    [-1., -0., 0., 0., 1., 0.],
-                                    [0., -0., 0., -0., 0., 1.]])
-
-        self.id_contact = (3)
-        self.contact_point = (jnp.array([[0.], [0.], [0]]))
+        self.id_contact = (6,)
+        # self.contact_point = (jnp.array([[0.], [0.], [0]]))
+        self.contact_point = (jnp.array([0., 0., 0.]))
         self.contact_force_lb = jnp.array([-1000.0, -1000.0, 0.0])
-        # self.contact_force_lb = jnp.array([-1000.0], [-1000.0], [0.])
         self.contact_force_ub = jnp.array([1000.0, 1000.0, 3000.0])
         self.contact_pos_lb = jnp.array([0.0001, 0.0001, 0.0001])
         self.contact_pos_ub = jnp.array([0.0001, 0.0001, 0.0001])
         self.contact_vel_lb = jnp.array([-0.05, -0.05, -0.05])
         self.contact_vel_ub = jnp.array([0.01, 0.01, 0.01])
         self.mu = 0.9
-        self.ST = jnp.vstack([jnp.zeros((3, 6)), jnp.identity(6)])
+        self.st = jnp.vstack([jnp.zeros((3, 3)), jnp.identity(3)])
 
         self.sim_dt = 0.1
         self.batch_size = batch_size
+
+        self.render_engine_name = "pybullet"
 
         super().__init__(
             pure_hopper_params,
@@ -105,8 +96,8 @@ class Hopper(BaseEnv):
         def _dynamics_fun_core(
             y,
             t,
-            Xtree,
-            I,
+            x_tree,
+            inertia,
             u,
             a_grav,
             contact_point,
@@ -116,7 +107,7 @@ class Hopper(BaseEnv):
             contact_vel_lb,
             contact_vel_ub,
             mu,
-            ST,
+            st,
             id_contact,
             parent,
             jtype,
@@ -127,9 +118,10 @@ class Hopper(BaseEnv):
                 ncp):
             q = y[0:nb]
             qdot = y[nb:2 * nb]
-            tau = jnp.matmul(ST, u)
+            tau = jnp.matmul(st, u)
+            # tau = u
             flag_contact = detect_contact_core(
-                Xtree,
+                x_tree,
                 q,
                 qdot,
                 contact_point,
@@ -141,8 +133,8 @@ class Hopper(BaseEnv):
                 jtype,
                 jaxis,
                 nc)
-            ydot, fqp, H = dynamics_fun_extend_core(
-                Xtree, I, q, qdot, contact_point, tau, a_grav,
+            ydot, fqp, h = dynamics_fun_extend_core(
+                x_tree, inertia, q, qdot, contact_point, tau, a_grav,
                 contact_force_lb, contact_force_ub, id_contact, flag_contact,
                 parent, jtype, jaxis, nb, nc, nf, ncp, mu)
             return ydot
@@ -150,8 +142,8 @@ class Hopper(BaseEnv):
         def _events_fun_core(
             y,
             t,
-            Xtree,
-            I,
+            x_tree,
+            inertia,
             u,
             a_grav,
             contact_point,
@@ -161,7 +153,7 @@ class Hopper(BaseEnv):
             contact_vel_lb,
             contact_vel_ub,
             mu,
-            ST,
+            st,
             id_contact,
             parent,
             jtype,
@@ -173,7 +165,7 @@ class Hopper(BaseEnv):
             q = y[0:nb]
             qdot = y[nb:2 * nb]
             flag_contact = detect_contact_core(
-                Xtree,
+                x_tree,
                 q,
                 qdot,
                 contact_point,
@@ -186,7 +178,7 @@ class Hopper(BaseEnv):
                 jaxis,
                 nc)
             value = events_fun_extend_core(
-                Xtree,
+                x_tree,
                 q,
                 contact_point,
                 id_contact,
@@ -200,8 +192,8 @@ class Hopper(BaseEnv):
         def _impulsive_dynamics_fun_core(
             y,
             t,
-            Xtree,
-            I,
+            x_tree,
+            inertia,
             u,
             a_grav,
             contact_point,
@@ -211,7 +203,7 @@ class Hopper(BaseEnv):
             contact_vel_lb,
             contact_vel_ub,
             mu,
-            ST,
+            st,
             id_contact,
             parent,
             jtype,
@@ -222,10 +214,10 @@ class Hopper(BaseEnv):
                 ncp):
             q = y[0:nb]
             qdot = y[nb:2 * nb]
-            H = composite_rigid_body_algorithm_core(
-                Xtree, I, parent, jtype, jaxis, nb, q)
+            h = composite_rigid_body_algorithm_core(
+                x_tree, inertia, parent, jtype, jaxis, nb, q)
             flag_contact = detect_contact_core(
-                Xtree,
+                x_tree,
                 q,
                 qdot,
                 contact_point,
@@ -238,11 +230,11 @@ class Hopper(BaseEnv):
                 jaxis,
                 nc)
             qdot_impulse = impulsive_dynamics_extend_core(
-                Xtree,
+                x_tree,
                 q,
                 qdot,
                 contact_point,
-                H,
+                h,
                 id_contact,
                 flag_contact,
                 parent,
@@ -258,8 +250,8 @@ class Hopper(BaseEnv):
         def _fqp_fun_core(
             y,
             t,
-            Xtree,
-            I,
+            x_tree,
+            inertia,
             u,
             a_grav,
             contact_point,
@@ -269,7 +261,7 @@ class Hopper(BaseEnv):
             contact_vel_lb,
             contact_vel_ub,
             mu,
-            ST,
+            st,
             id_contact,
             parent,
             jtype,
@@ -280,9 +272,9 @@ class Hopper(BaseEnv):
                 ncp):
             q = y[0:nb]
             qdot = y[nb:2 * nb]
-            tau = jnp.matmul(ST, u)
+            tau = jnp.matmul(st, u)
             flag_contact = detect_contact_core(
-                Xtree,
+                x_tree,
                 q,
                 qdot,
                 contact_point,
@@ -294,13 +286,14 @@ class Hopper(BaseEnv):
                 jtype,
                 jaxis,
                 nc)
-            xdot, fqp, H = dynamics_fun_extend_core(Xtree, I, q, qdot, contact_point, tau, a_grav, contact_force_lb,
-                                                    contact_force_ub, id_contact, flag_contact, parent, jtype, jaxis, 
+            xdot, fqp, h = dynamics_fun_extend_core(x_tree, inertia, q, qdot, contact_point, tau, a_grav, 
+                                                    contact_force_lb, contact_force_ub, id_contact, 
+                                                    flag_contact, parent, jtype, jaxis, 
                                                     nb, nc, nf, ncp, mu)
             return fqp, flag_contact
 
         self._dynamics_fun = partial(_dynamics_fun_core,
-                                     ST=self.ST,
+                                     st=self.st,
                                      id_contact=self.id_contact,
                                      parent=self.parent,
                                      jtype=self.jtype,
@@ -311,7 +304,7 @@ class Hopper(BaseEnv):
                                      ncp=0.0)
 
         self._events_fun = partial(_events_fun_core,
-                                   ST=self.ST,
+                                   st=self.st,
                                    id_contact=self.id_contact,
                                    parent=self.parent,
                                    jtype=self.jtype,
@@ -322,7 +315,7 @@ class Hopper(BaseEnv):
                                    ncp=0.0)
 
         self._impulsive_dynamics_fun = partial(_impulsive_dynamics_fun_core,
-                                               ST=self.ST,
+                                               st=self.st,
                                                id_contact=self.id_contact,
                                                parent=self.parent,
                                                jtype=self.jtype,
@@ -333,7 +326,7 @@ class Hopper(BaseEnv):
                                                ncp=0.0)
 
         self._fqp_fun = partial(_fqp_fun_core,
-                                ST=self.ST,
+                                st=self.st,
                                 id_contact=self.id_contact,
                                 parent=self.parent,
                                 jtype=self.jtype,
@@ -400,33 +393,36 @@ class Hopper(BaseEnv):
             self.reward_fun = jax.jit(reward_fun)
 
     def _init_pure_params(self, *pure_env_params):
-        self.m_base_link, self.m_torso, self.m_thigh, self.m_leg, self.m_foot, self.IC_params_base_link, \
+        self.m_torso, self.m_thigh, self.m_leg, self.m_foot, \
             self.IC_params_torso, self.IC_params_thigh, self.IC_params_leg, self.IC_params_foot = pure_env_params
 
-        self.I_base_link = self.init_inertia(
-            self.m_base_link, jnp.array([0.0, 0.0, 0.0]), self.IC_params_base_link)
-        self.I_m_torso = self.init_inertia(self.m_torso, jnp.array(
-            [0.00000, 0.00000, 1.25000]), self.IC_params_torso)
+        self.I_rootx = jnp.zeros((6, 6))
+        self.I_rootz = jnp.zeros((6, 6))
+        self.I_rooty = self.init_inertia(self.m_torso, jnp.array(
+            [0.00000, 0.00000, 0.2000]), self.IC_params_torso)
         self.I_m_thigh = self.init_inertia(self.m_thigh, jnp.array(
-            [0.00000, 0.00000, 0.82500]), self.IC_params_thigh)
+            [0.00000, 0.00000, 0.22500]), self.IC_params_thigh)
         self.I_m_leg = self.init_inertia(self.m_leg, jnp.array(
-            [0.00000, 0.00000, 0.35000]), self.IC_params_leg)
+            [0.00000, 0.00000, 0.25000]), self.IC_params_leg)
         self.I_m_foot = self.init_inertia(self.m_foot, jnp.array(
-            [0.06500, 0.00000, 0.10000]), self.IC_params_foot)
-        self.I = [
-            self.I_base_link,
-            self.I_m_torso,
+            [0.06500, 0.00000, 0.19500]), self.IC_params_foot)
+
+        self.inertia = [
+            self.I_rootx,
+            self.I_rootz,  
+            self.I_rooty,          
             self.I_m_thigh,
             self.I_m_leg,
             self.I_m_foot]
 
     def _load_render_robot(self, pybullet_client):
         pybullet_client.connect(pybullet_client.GUI)
-        robot = URDFBasedRobot(
-            "hopper.urdf",
-            "base_link",
+        robot = MJCFBasedRobot(
+            "hopper.xml",
+            "torso",
             action_dim=6,
-            obs_dim=26)
+            obs_dim=12)
+
         robot.load(pybullet_client)
         pybullet_client.resetDebugVisualizerCamera(
             cameraDistance=4.0,
@@ -436,17 +432,21 @@ class Hopper(BaseEnv):
                 0,
                 0,
                 0])
+        print(robot.jdict)
         return robot
 
     def _reset_render_state(self, *render_robot_state):
-        self.render_robot.jdict["base_to_torso"].reset_current_position(
-            render_robot_state[0], 0)
+        rootx, rootz, rooty, thigh_joint, leg_joint, foot_joint = render_robot_state
+        
+        self.render_robot.jdict["rootx"].reset_current_position(rootx, 0)
+        self.render_robot.jdict["rootz"].reset_current_position(rootz, 0)
+        self.render_robot.jdict["rooty"].reset_current_position(rooty, 0)
         self.render_robot.jdict["thigh_joint"].reset_current_position(
-            render_robot_state[1], 0)
+            thigh_joint, 0)
         self.render_robot.jdict["leg_joint"].reset_current_position(
-            render_robot_state[2], 0)
+            leg_joint, 0)
         self.render_robot.jdict["foot_joint"].reset_current_position(
-            render_robot_state[3], 0)
+            foot_joint, 0)
 
     def _get_render_state(self):
         if self.batch_size == 0:
@@ -455,24 +455,22 @@ class Hopper(BaseEnv):
                 self.state[1],
                 self.state[2],
                 self.state[3],
-                self.state[4])
+                self.state[4],
+                self.state[5],
+                )
         else:
             return (
                 self.state[self.render_idx, 0],
                 self.state[self.render_idx, 1],
                 self.state[self.render_idx, 2],
                 self.state[self.render_idx, 3],
-                self.state[self.render_idx, 4],
-                self.state[self.render_idx, 5],
-                self.state[self.render_idx, 6],
-                self.state[self.render_idx, 7],
+                self.state[self.render_idx, 4]
             )
 
     def _state_random_initializer(self):
         self.key, subkey = jax.random.split(self.key)
-        q = jax.random.uniform(subkey, shape=(9,), minval=-0.1, maxval=0.1)
-        q = jnp.zeros((4,))
-        qdot = jnp.zeros((4,))
+        q = jax.random.uniform(subkey, shape=(6,), minval=-0.1, maxval=0.1)
+        qdot = jnp.zeros((6,))
         state = jnp.concatenate([q, qdot])
         return state
 
@@ -502,8 +500,8 @@ class Hopper(BaseEnv):
     def _step_fun(self, action):
         u = jnp.array(action)
         dynamics_params = (
-            self.Xtree,
-            self.I, u,
+            self.x_tree,
+            self.inertia, u,
             self.a_grav,
             self.contact_point,
             self.contact_force_lb,
@@ -527,8 +525,8 @@ class Hopper(BaseEnv):
     def _batch_step_fun(self, action):
         u = jnp.reshape(jnp.array(action), newshape=(self.batch_size, -1))
         dynamics_params = (
-            self.Xtree,
-            self.I, u,
+            self.x_tree,
+            self.inertia, u,
             self.a_grav,
             self.contact_point,
             self.contact_force_lb,
