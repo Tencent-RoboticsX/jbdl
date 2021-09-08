@@ -250,13 +250,14 @@ class Arm(BaseEnv):
                       theta_threshold=self.theta_done):
             # x = state[0]
             # theta = state[1]
-            qdot = state[self.nb:2 * self.nb]
-            done = jax.lax.cond(
-                (len(qdot[qdot > self.qdot_threshold]) > 0),
-                lambda done: True,
-                lambda done: False,
-                None)
-            return done
+
+            # qdot = state[self.nb:2 * self.nb]
+            # done = jax.lax.cond(
+            #     (len(qdot[qdot > self.qdot_threshold]) > 0),
+            #     lambda done: True,
+            #     lambda done: False,
+            #     None)
+            return False
 
         self.done_fun = jax.jit(_done_fun)
 
