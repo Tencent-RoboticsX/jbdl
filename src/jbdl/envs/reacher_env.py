@@ -13,8 +13,8 @@ from jbdl.experimental.contact.calc_joint_damping import calc_joint_damping_core
 import pybullet
 
 
-M_BODY0 = 1.0
-M_BODY1 = 1.0
+M_BODY0 = 0.1 * 0.01 * 0.01 * 3000
+M_BODY1 = 0.1 * 0.01 * 0.01 * 3000
 IC_PARAMS_BODY0 = jnp.zeros((6,))
 IC_PARAMS_BODY1 = jnp.zeros((6,))
 JOINT_DAMPING_PARAMS = jnp.array([0.7, 0.7])
@@ -262,7 +262,9 @@ class Reacher(BaseEnv):
             return state
 
     def _step_fun(self, action):
-        u = jnp.reshape(jnp.array(action), newshape=(-1,))
+        action = jnp.reshape(jnp.array(action), newshape=(-1,))
+        apply_action = 0.05 * jnp.clip(action, -1.0, 1.0)
+        u = apply_action
         dynamics_params = (self.x_tree, self.inertia,
                            self.joint_damping_params, u, self.a_grav)
         next_state = self.dynamics_step(

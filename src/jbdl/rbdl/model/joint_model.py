@@ -19,6 +19,16 @@ def joint_model(jtype: int, jaxis: int, q: float):
         if jaxis == 2:
             xj = x_rotz(q)
             s = jnp.array([[0.0], [0.0], [1.0], [0.0], [0.0], [0.0]])
+        if jaxis == 3:
+            xj = x_rotx(-q)
+            s = jnp.array([[-1.0], [0.0], [0.0], [0.0], [0.0], [0.0]])
+        if jaxis == 4:
+            xj = x_roty(-q)
+            s = jnp.array([[0.0], [-1.0], [0.0], [0.0], [0.0], [0.0]])
+        if jaxis == 5:
+            xj = x_rotz(-q)
+            s = jnp.array([[0.0], [0.0], [-1.0], [0.0], [0.0], [0.0]])
+
     if jtype == 1:
         # prismatic joint
         # print("prismatic joint")
@@ -32,6 +42,15 @@ def joint_model(jtype: int, jaxis: int, q: float):
         if jaxis == 2:
             xj = x_trans(jnp.array([[0.0], [0.0], [q]]))
             s = jnp.array([[0.0], [0.0], [0.0], [0.0], [0.0], [1.0]])
+        if jaxis == 3:
+            xj = x_trans(jnp.array([[-q], [0.0], [0.0]]))
+            s = jnp.array([[0.0], [0.0], [0.0], [-1.0], [0.0], [0.0]])
+        if jaxis == 4:
+            xj = x_trans(jnp.array([[0.0], [-q], [0.0]]))
+            s = jnp.array([[0.0], [0.0], [0.0], [0.0], [-1.0], [0.0]])
+        if jaxis == 5:
+            xj =x_trans(jnp.array([[0.0], [0.0], [-q]]))
+            s = jnp.array([[0.0], [0.0], [0.0], [0.0], [0.0], [-1.0]])
 
     return (xj, s)
 
