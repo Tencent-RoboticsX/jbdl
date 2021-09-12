@@ -122,7 +122,10 @@ class InvertedDoublePendulum(BaseEnv):
 
             pos_fingertip = jnp.array([0.0, 0.0, 2.0 * self.half_pole2_length])
 
-            u = jnp.array([action[0], 0.0, 0.0])
+            action = jnp.reshape(action, (-1,))
+            apply_action = 200 * jnp.clip(action, -1, 1)
+            u = jnp.hstack([apply_action, jnp.zeros((2,))])
+
             dynamics_fun_param = (
                 x_tree, inertia, joint_damping_params, u, a_grav)
             next_state = self._dynamics_step(

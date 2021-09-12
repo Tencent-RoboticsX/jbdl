@@ -1,4 +1,4 @@
-from jbdl.envs.arm_env import Arm
+from jbdl.experimental.envs.arm_env import Arm
 import jax.numpy as jnp
 
 env = Arm(render=True)

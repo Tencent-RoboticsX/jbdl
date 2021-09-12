@@ -120,7 +120,9 @@ class Reacher(BaseEnv):
             inertia_body1 = self.init_inertia(m_body1, jnp.array(
                 [0.05, 0.0, 0.0]), ic_params_body1)
             inertia = [inertia_body0, inertia_body1]
-            u = jnp.reshape(jnp.array(action), (-1,))
+            action = jnp.reshape(jnp.array(action), newshape=(-1,))
+            apply_action = 0.05 * jnp.clip(action, -1.0, 1.0)
+            u = apply_action
             dynamics_fun_param = (
                 x_tree, inertia, joint_damping_params, u, a_grav)
             next_state = self._dynamics_step(

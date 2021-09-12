@@ -49,7 +49,7 @@ DEFAULT_PURE_HOPPER_PARAMS = (
 class Hopper(BaseEnv):
     def __init__(
             self, pure_hopper_params=DEFAULT_PURE_HOPPER_PARAMS, reward_fun=None,
-            seed=123, sim_dt=0.1, rtol=1.4e-8, atol=1.4e-8, mxstep=jnp.inf, batch_size=0,
+            seed=123, sim_dt=0.01, rtol=1.4e-8, atol=1.4e-8, mxstep=jnp.inf, batch_size=0,
             render=False, render_engine_name="pybullet", render_idx=None):
 
         self.nb = 6
@@ -194,11 +194,61 @@ class Hopper(BaseEnv):
         self._dynamics_step = partial(_dynamics_step_core,
             nb=self.nb, sim_dt=self.sim_dt, rtol=self.rtol, atol=self.atol, mxstep=self.mxstep)
 
+
+        def _dynamics_step_with_params_core(
+                dynamics_fun, events_fun, impulsive_dynamics_fun, state, action, *pure_hopper_params,
+                x_tree, a_grav, contact_point, contact_force_lb, contact_force_ub,
+                contact_pos_lb, contact_vel_lb, contact_vel_ub, mu):
+            m_torso, m_thigh, m_leg, m_foot, \
+            ic_params_torso, ic_params_thigh, \
+            ic_params_leg, ic_params_foot = pure_hopper_params
+
+            
+            inertia_rootx = jnp.zeros((6, 6))
+            inertia_rootz = jnp.zeros((6, 6))
+            inertia_rooty = self.init_inertia(m_torso, jnp.array(
+                [0.0, 0.0, 0.0]), ic_params_torso)
+            inertia_thigh = self.init_inertia(m_thigh, jnp.array(
+                [0.0, 0.0, -0.225]), ic_params_thigh)
+            inertia_leg = self.init_inertia(m_leg, jnp.array(
+                [0.0, 0.0, -0.25]), ic_params_leg)
+            inertia_foot = self.init_inertia(m_foot, jnp.array(
+                [0.065, 0.0, 0.0]), ic_params_foot)
+
+            inertia = [
+                inertia_rootx, inertia_rootz, inertia_rooty,
+                inertia_thigh, inertia_leg, inertia_foot]
+
+            action = jnp.reshape(action, (-1,))
+            apply_action = 75 * jnp.clip(action, -1, 1)
+            u = jnp.hstack([jnp.zeros(3,), apply_action])
+
+            dynamics_params = (
+                x_tree, inertia, u, a_grav,
+                contact_point, contact_force_lb, contact_force_ub,
+                contact_pos_lb, contact_vel_lb, contact_vel_ub, mu)
+            next_state = self.dynamics_step(
+                dynamics_fun, events_fun, impulsive_dynamics_fun,
+                state, *dynamics_params)
+            return next_state
+
+        self._dynamics_step_with_params = partial(_dynamics_step_with_params_core,
+            x_tree=self.x_tree, a_grav=self.a_grav,
+            contact_point=self.contact_point,
+            contact_force_lb=self.contact_force_lb,
+            contact_force_ub=self.contact_force_ub,
+            contact_pos_lb=self.contact_pos_lb,
+            contact_vel_lb=self.contact_vel_lb,
+            contact_vel_ub=self.contact_vel_ub,
+            mu=self.mu)
+
+
         self.dynamics_fun = jax.jit(self._dynamics_fun)
         self.events_fun = jax.jit(self._events_fun)
         self.impulsive_dynamics_fun = jax.jit(self._impulsive_dynamics_fun)
         self.fqp_fun = jax.jit(self._fqp_fun)
         self.dynamics_step = self._dynamics_step
+        self.dynamics_step_with_params = jax.jit(self._dynamics_step_with_params, static_argnums=[0, 1, 2])
 
         def _done_fun(next_state):
             height = next_state[1]

@@ -119,7 +119,7 @@ if __name__ == "__main__":
     print(duration)
 
     start = time.time()
-    result = solve_ivp(pend, y0, jnp.linspace(0, 1, 1000), e_fun, e_handle, b, c)
+    result = solve_ivp(pend, y0, jnp.linspace(0, 1, 1000), e_fun, e_handle, B, C)
     result.block_until_ready()
     duration = time.time() - start
 
@@ -132,20 +132,20 @@ if __name__ == "__main__":
 
     start = time.time()
     diff = jax.jit(jacfwd(solve_ivp, argnums=1), static_argnums=(0, 3, 4))
-    reslut = diff(pend, y0, jnp.linspace(0, 1, 1000), e_fun, e_handle, b, c)
+    reslut = diff(pend, y0, jnp.linspace(0, 1, 1000), e_fun, e_handle, B, C)
     result.block_until_ready()
     duration = time.time() - start
     print(duration)
 
 
     start = time.time()
-    reslut = diff(pend, y0, jnp.linspace(0, 1, 1000), e_fun, e_handle, b, c)
+    reslut = diff(pend, y0, jnp.linspace(0, 1, 1000), e_fun, e_handle, B, C)
     result.block_until_ready()
     duration = time.time() - start
     print(duration)
 
     start = time.time()
-    reslut = diff(pend, y0, jnp.linspace(0, 1, 1000), e_fun, e_handle, b, c)
+    reslut = diff(pend, y0, jnp.linspace(0, 1, 1000), e_fun, e_handle, B, C)
     result.block_until_ready()
     duration = time.time() - start
     print(duration)
