@@ -22,6 +22,7 @@ from jbdl.experimental.contact.impulsive_dynamics import impulsive_dynamics_exte
 from jbdl.rbdl.dynamics import composite_rigid_body_algorithm_core
 from jbdl.experimental.ode.solve_ivp import solve_ivp
 from jbdl.rbdl.kinematics.calc_body_to_base_coordinates import calc_body_to_base_coordinates_core
+from jbdl.experimental.contact.calc_joint_damping import calc_joint_damping_core
 from jax.ops import index_update, index
 import pybullet
 
@@ -35,6 +36,8 @@ IC_PARAMS_THIGH = jnp.zeros((6,))
 IC_PARAMS_LEG = jnp.zeros((6,))
 IC_PARAMS_FOOT = jnp.zeros((6,))
 
+JOINT_DAMPING_PARAMS = jnp.array([0.7, 0.7, 0.7])
+
 DEFAULT_PURE_HOPPER_PARAMS = (
     M_TORSO,
     M_THIGH,
@@ -43,7 +46,8 @@ DEFAULT_PURE_HOPPER_PARAMS = (
     IC_PARAMS_TORSO,
     IC_PARAMS_THIGH,
     IC_PARAMS_LEG,
-    IC_PARAMS_FOOT)
+    IC_PARAMS_FOOT,
+    JOINT_DAMPING_PARAMS)
 
 
 class Hopper(BaseEnv):
@@ -104,22 +108,26 @@ class Hopper(BaseEnv):
             sim_dt=sim_dt, rtol=rtol, atol=atol, mxstep=mxstep, batch_size=batch_size,
             render=render, render_engine=render_engine, render_idx=render_idx)
 
-        def _dynamics_fun_core(y, t, x_tree, inertia, u, a_grav,
+        def _dynamics_fun_core(y, t, x_tree, inertia, joint_damping_params, u, a_grav,
                 contact_point, contact_force_lb, contact_force_ub, contact_pos_lb, contact_vel_lb, contact_vel_ub, mu,
                 id_contact, parent, jtype, jaxis, nb,nc, nf, ncp):
             q = y[0:nb]
             qdot = y[nb:2 * nb]
+            u = jnp.reshape(u, (-1,))
+            joint_damping_tau = calc_joint_damping_core(
+                qdot, jnp.hstack([jnp.zeros(3,), joint_damping_params]))
+            tau = u + joint_damping_tau
             flag_contact = detect_contact_core(
                 x_tree, q, qdot, contact_point, contact_pos_lb, contact_vel_lb, contact_vel_ub, id_contact,
                 parent, jtype, jaxis, nc)
             ydot, _, _ = dynamics_fun_extend_core(
-                x_tree, inertia, q, qdot, contact_point, u, a_grav,
+                x_tree, inertia, q, qdot, contact_point, tau, a_grav,
                 contact_force_lb, contact_force_ub, id_contact, flag_contact,
                 parent, jtype, jaxis, nb, nc, nf, ncp, mu)
 
             return ydot
 
-        def _events_fun_core(y, t, x_tree, inertia, u, a_grav,
+        def _events_fun_core(y, t, x_tree, inertia, joint_damping_params, u, a_grav,
                 contact_point, contact_force_lb, contact_force_ub, contact_pos_lb, contact_vel_lb, contact_vel_ub, mu,
                 id_contact, parent, jtype, jaxis, nb, nc, nf, ncp):
             q = y[0:nb]
@@ -132,7 +140,7 @@ class Hopper(BaseEnv):
                 parent, jtype, jaxis, nc)
             return value
 
-        def _impulsive_dynamics_fun_core(y, t, x_tree, inertia, u, a_grav,
+        def _impulsive_dynamics_fun_core(y, t, x_tree, inertia, joint_damping_params, u, a_grav,
                 contact_point, contact_force_lb, contact_force_ub,
                 contact_pos_lb, contact_vel_lb, contact_vel_ub, mu,
                 id_contact, parent, jtype, jaxis, nb, nc, nf, ncp):
@@ -150,21 +158,21 @@ class Hopper(BaseEnv):
             y_new = jnp.hstack([q, qdot_impulse])
             return y_new
 
-        def _fqp_fun_core(y, t, x_tree, inertia, u, a_grav,
-                contact_point, contact_force_lb, contact_force_ub,
-                contact_pos_lb, contact_vel_lb, contact_vel_ub, mu,
-                id_contact, parent, jtype, jaxis, nb, nc, nf, ncp):
-            q = y[0:nb]
-            qdot = y[nb:2 * nb]
-            flag_contact = detect_contact_core(x_tree, q, qdot,
-                contact_point, contact_pos_lb, contact_vel_lb, contact_vel_ub, id_contact,
-                parent, jtype, jaxis, nc)
-            _, fqp, _ = dynamics_fun_extend_core(
-                x_tree, inertia, q, qdot, contact_point, u, a_grav,
-                contact_force_lb, contact_force_ub, id_contact,
-                flag_contact, parent, jtype, jaxis,
-                nb, nc, nf, ncp, mu)
-            return fqp, flag_contact
+        # def _fqp_fun_core(y, t, x_tree, inertia, u, a_grav,
+        #         contact_point, contact_force_lb, contact_force_ub,
+        #         contact_pos_lb, contact_vel_lb, contact_vel_ub, mu,
+        #         id_contact, parent, jtype, jaxis, nb, nc, nf, ncp):
+        #     q = y[0:nb]
+        #     qdot = y[nb:2 * nb]
+        #     flag_contact = detect_contact_core(x_tree, q, qdot,
+        #         contact_point, contact_pos_lb, contact_vel_lb, contact_vel_ub, id_contact,
+        #         parent, jtype, jaxis, nc)
+        #     _, fqp, _ = dynamics_fun_extend_core(
+        #         x_tree, inertia, q, qdot, contact_point, u, a_grav,
+        #         contact_force_lb, contact_force_ub, id_contact,
+        #         flag_contact, parent, jtype, jaxis,
+        #         nb, nc, nf, ncp, mu)
+        #     return fqp, flag_contact
 
         self._dynamics_fun = partial(_dynamics_fun_core,
             id_contact=self.id_contact, parent=self.parent,
@@ -178,9 +186,9 @@ class Hopper(BaseEnv):
             id_contact=self.id_contact, parent=self.parent,
             jtype=self.jtype, jaxis=self.jaxis, nb=self.nb, nc=self.nc, nf=self.nf, ncp=0.0)
 
-        self._fqp_fun = partial(_fqp_fun_core,
-            id_contact=self.id_contact, parent=self.parent,
-            jtype=self.jtype, jaxis=self.jaxis, nb=self.nb, nc=self.nc, nf=self.nf, ncp=0.0)
+        # self._fqp_fun = partial(_fqp_fun_core,
+        #     id_contact=self.id_contact, parent=self.parent,
+        #     jtype=self.jtype, jaxis=self.jaxis, nb=self.nb, nc=self.nc, nf=self.nf, ncp=0.0)
 
         def _dynamics_step_core(dynamics_fun, events_fun, impulsive_dynamics_fun,
                 y0, *args, nb, sim_dt, rtol, atol, mxstep):
@@ -201,7 +209,7 @@ class Hopper(BaseEnv):
                 contact_pos_lb, contact_vel_lb, contact_vel_ub, mu):
             m_torso, m_thigh, m_leg, m_foot, \
             ic_params_torso, ic_params_thigh, \
-            ic_params_leg, ic_params_foot = pure_hopper_params
+            ic_params_leg, ic_params_foot, joint_damping_params = pure_hopper_params
 
             
             inertia_rootx = jnp.zeros((6, 6))
@@ -224,7 +232,7 @@ class Hopper(BaseEnv):
             u = jnp.hstack([jnp.zeros(3,), apply_action])
 
             dynamics_params = (
-                x_tree, inertia, u, a_grav,
+                x_tree, inertia, joint_damping_params, u, a_grav,
                 contact_point, contact_force_lb, contact_force_ub,
                 contact_pos_lb, contact_vel_lb, contact_vel_ub, mu)
             next_state = self.dynamics_step(
@@ -246,7 +254,7 @@ class Hopper(BaseEnv):
         self.dynamics_fun = jax.jit(self._dynamics_fun)
         self.events_fun = jax.jit(self._events_fun)
         self.impulsive_dynamics_fun = jax.jit(self._impulsive_dynamics_fun)
-        self.fqp_fun = jax.jit(self._fqp_fun)
+        # self.fqp_fun = jax.jit(self._fqp_fun)
         self.dynamics_step = self._dynamics_step
         self.dynamics_step_with_params = jax.jit(self._dynamics_step_with_params, static_argnums=[0, 1, 2])
 
@@ -282,7 +290,7 @@ class Hopper(BaseEnv):
 
     def _init_pure_params(self, *pure_env_params):
         self.m_torso, self.m_thigh, self.m_leg, self.m_foot, \
-        self.ic_params_torso, self.ic_params_thigh, self.ic_params_leg, self.ic_params_foot = pure_env_params
+        self.ic_params_torso, self.ic_params_thigh, self.ic_params_leg, self.ic_params_foot, self.joint_damping_params = pure_env_params
 
         self.inertia_rootx = jnp.zeros((6, 6))
         self.inertia_rootz = jnp.zeros((6, 6))
@@ -379,7 +387,7 @@ class Hopper(BaseEnv):
         apply_action = 75 * jnp.clip(action, -1, 1)
         u = jnp.hstack([jnp.zeros(3,), apply_action])
         dynamics_params = (
-            self.x_tree, self.inertia, u, self.a_grav,
+            self.x_tree, self.inertia, self.joint_damping_params, u, self.a_grav,
             self.contact_point, self.contact_force_lb, self.contact_force_ub,
             self.contact_pos_lb, self.contact_vel_lb, self.contact_vel_ub, self.mu)
         next_state = self.dynamics_step(
@@ -398,11 +406,11 @@ class Hopper(BaseEnv):
         apply_action = 75 * jnp.clip(action, -1, 1)
         u = jnp.hstack([jnp.zeros(self.batch_size, 3), apply_action])
         dynamics_params = (
-            self.x_tree, self.inertia, u, self.a_grav,
+            self.x_tree, self.inertia, self.joint_damping_params, u, self.a_grav,
             self.contact_point, self.contact_force_lb, self.contact_force_ub,
             self.contact_pos_lb, self.contact_vel_lb, self.contact_vel_ub, self.mu)
         next_state = jax.vmap(self.dynamics_step,
-            (None, None, None, 0, None, None, 0, None, None, None, None, None, None, None, None), 0)(
+            (None, None, None, 0, None, None, None, 0, None, None, None, None, None, None, None, None), 0)(
                 self.dynamics_fun, self.events_fun, self.impulsive_dynamics_fun, self.state, *dynamics_params)
         done = jax.vmap(self.done_fun)(next_state)
         reward = jax.vmap(self.reward_fun)(self.state, action, next_state)
