@@ -47,6 +47,39 @@ Then, set the environment variable ```WITH_JAX_CUDA=yes``` to enable CUDA suppor
 export WITH_JAX_CUDA=yes
 ```
 
+## Use the jbdl-gpu with Docker.
+* Build the image:
+```
+docker build -t jbdl_gpu:0.80 .
+```
+* Share interface with Docker:
+```
+xhost +local:docker
+```
+* Set up NVIDIA Container Toolkit (<https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html#docker>):
+```
+distribution=$(. /etc/os-release;echo $ID$VERSION_ID) \
+   && curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add - \
+   && curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | sudo tee /etc/apt/sources.list.d/nvidia-docker.list
+sudo apt-get update
+sudo apt-get install -y nvidia-docker2
+sudo systemctl restart docker
+```
+* Start the container:
+```
+docker run -it  --env="DISPLAY" \
+    --env="QT_X11_NO_MITSHM=1" \
+    --env="MPLBACKEND=TkAgg" \
+    --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
+    --runtime=nvidia \    
+    jbdl_gpu:0.80 /bin/bash
+```
+* Activate the virtual env and test the jbdl-gpu in the container:
+```
+source activate jbdl_gpu
+python scripts/demo/test_half_max_v5.py
+```
+
 # Quick Examples
 Go to demo directory under the scripts folder, and run
 ```
