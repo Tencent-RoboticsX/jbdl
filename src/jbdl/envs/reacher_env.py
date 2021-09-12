@@ -278,7 +278,9 @@ class Reacher(BaseEnv):
         return next_entry
 
     def _batch_step_fun(self, action):
-        u = jnp.reshape(jnp.array(action), newshape=(self.batch_size, -1))
+        action = jnp.reshape(jnp.array(action), newshape=(self.batch_size, -1))
+        apply_action = 0.05 * jnp.clip(action, -1.0, 1.0)
+        u = apply_action
         dynamics_params = (self.x_tree, self.inertia,
                            self.joint_damping_params, u, self.a_grav)
         next_state = jax.vmap(self.dynamics_step, (None, 0, None, None, None, 0, None), 0)(
