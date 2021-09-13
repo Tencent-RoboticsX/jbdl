@@ -13,14 +13,10 @@ PURE_REACHER_PARAMS = (
 
 env = Reacher(pure_reacher_params=PURE_REACHER_PARAMS, render=True)
 action = jnp.array([0.5, -1.0])
-print(env.state)
 for i in range(1000):
-    # print(i)
     next_state, reward, done, _ = env.step(action)
-    # print(env.state)
-    # env.state = jnp.array([jnp.sin(i/100.0), jnp.cos(i/100.0), 0., 0.])
     env.reset_render_state()
 
-    # if done:
-    #     print("done")
-    #     env.reset(*DEFAULT_PURE_REACHER_PARAMS)
+    if done:
+        print("done")
+        env.reset(*PURE_REACHER_PARAMS)

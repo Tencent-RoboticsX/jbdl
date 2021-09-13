@@ -4,8 +4,7 @@ import jax
 from jax.ops import index, index_update
 import jax.numpy as jnp
 from jbdl.envs.base_env import BaseEnv
-from jbdlenvs.envs.cart_pole_env_with_joint_damping import HALF_POLE_LENGTH
-from jbdlenvs.utils.parser import MJCFBasedRobot
+from jbdl.envs.utils.parser import MJCFBasedRobot
 from jbdl.rbdl.utils import xyz2int
 from jbdl.rbdl.math import x_trans
 from jbdl.rbdl.kinematics import calc_body_to_base_coordinates_core
