@@ -1,5 +1,3 @@
-from functools import partial
-from sys import gettrace
 import jax
 import jax.numpy as jnp
 from jbdl.envs.reacher_env import Reacher, DEFAULT_PURE_REACHER_PARAMS

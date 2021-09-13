@@ -1,23 +1,18 @@
-from jbdl.experimental import contact
-from jbdl.envs.base_env import BaseEnv
-# from jbdlenvs.envs.reacher_env import IC_PARAMS_BODY0
-from jbdl.envs.utils.parser import MJCFBasedRobot, URDFBasedRobot
+from functools import partial
+import jax
+from jax.ops import index_update, index
 import jax.numpy as jnp
+from jbdl.envs.base_env import BaseEnv
+from jbdl.envs.utils.parser import MJCFBasedRobot
 from jbdl.rbdl.utils import xyz2int
 from jbdl.rbdl.math import x_trans
-import numpy as np
-from jbdl.rbdl.dynamics.forward_dynamics import forward_dynamics_core
-from jbdl.rbdl.dynamics.state_fun_ode import dynamics_fun_extend_core, events_fun_extend_core
-from functools import partial
-from jbdl.experimental.ode.runge_kutta import odeint
-from jbdl.experimental.contact import detect_contact_core
-import jax
-from jbdl.experimental.contact.impulsive_dynamics import impulsive_dynamics_extend_core
-from jbdl.rbdl.dynamics import composite_rigid_body_algorithm_core
-from jbdl.experimental.ode.solve_ivp import solve_ivp
 from jbdl.rbdl.kinematics.calc_body_to_base_coordinates import calc_body_to_base_coordinates_core
+from jbdl.rbdl.dynamics.state_fun_ode import dynamics_fun_extend_core, events_fun_extend_core
+from jbdl.rbdl.dynamics import composite_rigid_body_algorithm_core
+from jbdl.experimental.contact import detect_contact_core
+from jbdl.experimental.contact.impulsive_dynamics import impulsive_dynamics_extend_core
+from jbdl.experimental.ode.solve_ivp import solve_ivp
 from jbdl.experimental.contact.calc_joint_damping import calc_joint_damping_core
-from jax.ops import index_update, index
 import pybullet
 
 M_TORSO = 0.4 * 0.05 * 0.05 * 3000
@@ -104,7 +99,7 @@ class Hopper(BaseEnv):
 
         def _dynamics_fun_core(y, t, x_tree, inertia, joint_damping_params, u, a_grav,
                 contact_point, contact_force_lb, contact_force_ub, contact_pos_lb, contact_vel_lb, contact_vel_ub, mu,
-                id_contact, parent, jtype, jaxis, nb,nc, nf, ncp):
+                id_contact, parent, jtype, jaxis, nb, nc, nf, ncp):
             q = y[0:nb]
             qdot = y[nb:2 * nb]
             u = jnp.reshape(u, (-1,))
@@ -205,7 +200,7 @@ class Hopper(BaseEnv):
             ic_params_torso, ic_params_thigh, \
             ic_params_leg, ic_params_foot, joint_damping_params = pure_hopper_params
 
-            
+
             inertia_rootx = jnp.zeros((6, 6))
             inertia_rootz = jnp.zeros((6, 6))
             inertia_rooty = self.init_inertia(m_torso, jnp.array(
@@ -272,7 +267,7 @@ class Hopper(BaseEnv):
             power_cost = -1e-3 * jnp.sum(jnp.square(action))
             reward = potentail + alive_bonus + power_cost
             return reward
-        
+
         _default_reward_fun = partial(_default_reward_fun_core, sim_dt=self.sim_dt)
 
         if reward_fun is None:
@@ -284,7 +279,9 @@ class Hopper(BaseEnv):
 
     def _init_pure_params(self, *pure_env_params):
         self.m_torso, self.m_thigh, self.m_leg, self.m_foot, \
-        self.ic_params_torso, self.ic_params_thigh, self.ic_params_leg, self.ic_params_foot, self.joint_damping_params = pure_env_params
+        self.ic_params_torso, self.ic_params_thigh, \
+        self.ic_params_leg, self.ic_params_foot, \
+        self.joint_damping_params = pure_env_params
 
         self.inertia_rootx = jnp.zeros((6, 6))
         self.inertia_rootz = jnp.zeros((6, 6))
