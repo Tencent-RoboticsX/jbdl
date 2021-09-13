@@ -49,7 +49,7 @@ def joint_model(jtype: int, jaxis: int, q: float):
             xj = x_trans(jnp.array([[0.0], [-q], [0.0]]))
             s = jnp.array([[0.0], [0.0], [0.0], [0.0], [-1.0], [0.0]])
         if jaxis == 5:
-            xj =x_trans(jnp.array([[0.0], [0.0], [-q]]))
+            xj = x_trans(jnp.array([[0.0], [0.0], [-q]]))
             s = jnp.array([[0.0], [0.0], [0.0], [0.0], [0.0], [-1.0]])
 
     return (xj, s)
