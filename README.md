@@ -15,7 +15,7 @@ pip install -e .
 ```
 to install jbdl.
 
-If you want to install jaxRBDL with both CPU and NVidia GPU support, you must first install CUDA and CuDNN and add environment variables:
+If you want to install JBDL with both CPU and NVidia GPU support, you must first install CUDA and CuDNN and add environment variables:
 
 ```
 echo export 'PATH="/usr/local/cuda/bin:$PATH"'  >> ~/.bashrc
@@ -32,7 +32,7 @@ The jaxlib version must correspond to the version of the existing CUDA installat
 the folder under /usr/local/cuda.
 * For CUDA 11.1, use cuda111. 
 * For CUDA 11.0, use cuda110.
-* Other CUDA versions has not been tested with jaxRBDL(cuosqp).
+* Other CUDA versions has not been tested with JBDL(cuosqp).
 
 Take installation with CUDA 11.1 for example:
 ```
