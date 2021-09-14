@@ -4,8 +4,7 @@ import jax
 from jax.ops import index, index_update
 import jax.numpy as jnp
 from jbdl.envs.base_env import BaseEnv
-from jbdlenvs.envs.cart_pole_env_with_joint_damping import HALF_POLE_LENGTH
-from jbdlenvs.utils.parser import MJCFBasedRobot
+from jbdl.envs.utils.parser import MJCFBasedRobot
 from jbdl.rbdl.utils import xyz2int
 from jbdl.rbdl.math import x_trans
 from jbdl.rbdl.kinematics import calc_body_to_base_coordinates_core
@@ -70,7 +69,6 @@ class InvertedDoublePendulum(BaseEnv):
         def _dynamics_fun_core(y, t, x_tree, inertia, joint_damping_params, u, a_grav, parent, jtype, jaxis, nb):
             q = y[0:nb]
             qdot = y[nb:2 * nb]
-            u = jnp.reshape(u, (-1,))
             joint_damping_tau = calc_joint_damping_core(
                 qdot, joint_damping_params)
             tau = u + joint_damping_tau
@@ -121,10 +119,8 @@ class InvertedDoublePendulum(BaseEnv):
                     [0.0, 0.0, half_pole2_length]), pole2_ic_params)]
 
             pos_fingertip = jnp.array([0.0, 0.0, 2.0 * self.half_pole2_length])
-
-            action = jnp.reshape(action, (-1,))
-            apply_action = 200 * jnp.clip(action, -1, 1)
-            u = jnp.hstack([apply_action, jnp.zeros((2,))])
+            
+            u = self._action_wrapper(action)
 
             dynamics_fun_param = (
                 x_tree, inertia, joint_damping_params, u, a_grav)
@@ -251,10 +247,18 @@ class InvertedDoublePendulum(BaseEnv):
             )
         return state
 
+    def _action_wrapper(self, action):
+        action = super()._action_wrapper(action)
+        update_action = jnp.hstack([200.0 * jnp.clip(action, -1, 1), jnp.zeros((2,))])
+        return update_action
+
+    def _batch_action_wrapper(self, action):
+        action = super()._batch_action_wrapper(action)
+        update_action = jnp.hstack([200.0 * jnp.clip(action, -1, 1), jnp.zeros((self.batch_size, 2))])
+        return update_action
+
     def _step_fun(self, action):
-        action = jnp.reshape(action, (-1,))
-        apply_action = 200 * jnp.clip(action, -1, 1)
-        u = jnp.hstack([apply_action, jnp.zeros((2,))])
+        u = self._action_wrapper(action)
         dynamics_params = (self.x_tree, self.inertia,
                            self.joint_damping_params, u, self.a_grav)
         next_state = self.dynamics_step(
@@ -266,9 +270,7 @@ class InvertedDoublePendulum(BaseEnv):
         return next_entry
 
     def _batch_step_fun(self, action):
-        action = jnp.reshape(jnp.array(action), newshape=(self.batch_size, -1))
-        apply_action = 200 * jnp.clip(action, -1, 1)
-        u = jnp.hstack([apply_action, jnp.zeros((self.batch_size, 2))])
+        u = self._batch_action_wrapper(action)
         dynamics_params = (self.x_tree, self.inertia,
                            self.joint_damping_params, u, self.a_grav)
         next_state = jax.vmap(self.dynamics_step, (None, 0, None, None, None, None, 0, None), 0)(

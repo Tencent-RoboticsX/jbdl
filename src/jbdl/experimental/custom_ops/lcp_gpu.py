@@ -61,7 +61,7 @@ def lcp_gpu_abstract_eval(p_matrix, q, a_matrix, l, u):
     assert u.shape == (m, 1)
 
     primal_shape = (n, 1)
-    dual_shape = (m + 2*n, 1)
+    dual_shape = (m + n, 1)
 
     return (ShapedArray(primal_shape, dtype), ShapedArray(dual_shape, dtype))
 
@@ -110,7 +110,7 @@ def lcp_gpu_translation(c, p_matrix, q, a_matrix, l, u, *, platform="gpu"):
     primal_array_shape = xla_client.Shape.array_shape(
         np.dtype(dtype), (n, 1), (1, 0))
     dual_array_shape = xla_client.Shape.array_shape(
-        np.dtype(dtype), (m + 2*n, 1), (1, 0))
+        np.dtype(dtype), (m + n, 1), (1, 0))
 
     op_name = b"gpu_lcp_double"
 
@@ -172,15 +172,28 @@ def lcp_gpu_kkt(x, z, h_matrix, f, l_matrix, k, lb, ub):
 # applications, so check out the "How JAX primitives work" tutorial in the JAX
 # documentation for more info as necessary.
 def lcp_gpu_jvp(arg_values, arg_tangents):
-    h_matrix, f, l_matrix, k, lb, ub = arg_values
-    h_matrix_dot, f_dot, l_matrix_dot, k_dot, lb_dot, ub_dot = arg_tangents
+    h_matrix, f, a_matrix, lower_bound, upper_bound = arg_values
+    h_matrix_dot, f_dot, a_matrix_dot, lower_bound_dot, upper_bound_dot = arg_tangents
+
+    n = a_matrix.shape[0]
+    m = a_matrix.shape[1]
+
+    l_matrix = a_matrix[0:(n-m), :]
+    k = upper_bound[0:(n-m)]
+    lb = lower_bound[(n-m):]
+    ub = upper_bound[(n-m):]
+
+    l_matrix_dot = ad.Zero(l_matrix.aval)
+    k_dot = ad.Zero(k.aval)
+    lb_dot = ad.Zero(lb.aval)
+    ub_dot = ad.Zero(ub.aval)
 
     # We use "bind" here because we don't want to mod the mean anomaly again
     x_star, z_star = lcp_gpu(h_matrix, f, l_matrix, k, lb, ub)
     nv = h_matrix.shape[1]
 
     dkkt2dx = jacfwd(lcp_gpu_kkt, argnums=0)(x_star, z_star, h_matrix, f, l_matrix, k, lb, ub)
-    dkkt2dz = jacfwd(lcp_gpu_kkt, argnums=1)(x_star, z_star, h_matrix, f, l_matrix, k, l_matrixb, ub)
+    dkkt2dz = jacfwd(lcp_gpu_kkt, argnums=1)(x_star, z_star, h_matrix, f, l_matrix, k, lb, ub)
 
     dkkt2dh_matrix = jacfwd(lcp_gpu_kkt, argnums=2)(x_star, z_star, h_matrix, f, l_matrix, k, lb, ub)
     dkkt2df = jacfwd(lcp_gpu_kkt, argnums=3)(x_star, z_star, h_matrix, f, l_matrix, k, lb, ub)

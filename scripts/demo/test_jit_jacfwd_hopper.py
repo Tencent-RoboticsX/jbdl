@@ -3,7 +3,7 @@ from jbdl.experimental.envs.hopper_env import Hopper
 import jax
 import jax.numpy as jnp
 
-env = Hopper(sim_dt=0.01)
+env = Hopper()
 
 m_torso = 0.4 * 0.05 * 0.05 * 3000
 m_thigh = 0.45 * 0.05 * 0.05 * 3000

@@ -83,7 +83,6 @@ class Reacher(BaseEnv):
         def _dynamics_fun_core(y, t, x_tree, inertia, joint_damping_params, u, a_grav, parent, jtype, jaxis, nb):
             q = y[0:nb]
             qdot = y[nb:2*nb]
-            u = jnp.reshape(u, (-1,))
             joint_damping_tau = calc_joint_damping_core(
                 qdot, joint_damping_params)
             tau = u + joint_damping_tau
@@ -120,9 +119,7 @@ class Reacher(BaseEnv):
             inertia_body1 = self.init_inertia(m_body1, jnp.array(
                 [0.05, 0.0, 0.0]), ic_params_body1)
             inertia = [inertia_body0, inertia_body1]
-            action = jnp.reshape(jnp.array(action), newshape=(-1,))
-            apply_action = 0.05 * jnp.clip(action, -1.0, 1.0)
-            u = apply_action
+            u = self._action_wrapper(action)
             dynamics_fun_param = (
                 x_tree, inertia, joint_damping_params, u, a_grav)
             next_state = self._dynamics_step(
@@ -263,10 +260,18 @@ class Reacher(BaseEnv):
             )
             return state
 
+    def _action_wrapper(self, action):
+        action = super()._action_wrapper(action)
+        update_action = 0.05 * jnp.clip(action, -1.0, 1.0)
+        return update_action
+
+    def _batch_action_wrapper(self, action):
+        action = super()._batch_action_wrapper(action)
+        update_action = 0.05 * jnp.clip(action, -1.0, 1.0)
+        return update_action
+
     def _step_fun(self, action):
-        action = jnp.reshape(jnp.array(action), newshape=(-1,))
-        apply_action = 0.05 * jnp.clip(action, -1.0, 1.0)
-        u = apply_action
+        u = self._action_wrapper(action)
         dynamics_params = (self.x_tree, self.inertia,
                            self.joint_damping_params, u, self.a_grav)
         next_state = self.dynamics_step(
@@ -278,9 +283,7 @@ class Reacher(BaseEnv):
         return next_entry
 
     def _batch_step_fun(self, action):
-        action = jnp.reshape(jnp.array(action), newshape=(self.batch_size, -1))
-        apply_action = 0.05 * jnp.clip(action, -1.0, 1.0)
-        u = apply_action
+        u = self._batch_action_wrapper(action)
         dynamics_params = (self.x_tree, self.inertia,
                            self.joint_damping_params, u, self.a_grav)
         next_state = jax.vmap(self.dynamics_step, (None, 0, None, None, None, 0, None), 0)(
