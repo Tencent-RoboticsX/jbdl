@@ -64,7 +64,6 @@ class CartPole(BaseEnv):
         def _dynamics_fun_core(y, t, x_tree, inertia, joint_damping_params, u, a_grav, parent, jtype, jaxis, nb):
             q = y[0:nb]
             qdot = y[nb:2*nb]
-            u = jnp.reshape(u, (-1,))
             joint_damping_tau = calc_joint_damping_core(
                 qdot, joint_damping_params)
             tau = u + joint_damping_tau
@@ -97,7 +96,7 @@ class CartPole(BaseEnv):
             inertia_pole = self.init_inertia(m_pole, jnp.array(
                 [0.0, 0.0, half_pole_length]), pole_ic_params)
             inertia = [inertia_cart, inertia_pole]
-            u = jnp.array([action[0], 0.0])
+            u = self._action_wrapper(action)
             dynamics_fun_param = (
                 x_tree, inertia, joint_damping_params, u, a_grav)
             next_state = self._dynamics_step(
@@ -251,8 +250,18 @@ class CartPole(BaseEnv):
             )
         return state
 
+    def _action_wrapper(self, action):
+        action = super()._action_wrapper(action)
+        update_action = jnp.hstack([action, jnp.zeros((1,))])
+        return update_action
+
+    def _batch_action_wrapper(self, action):
+        action = super()._batch_action_wrapper(action)
+        update_action = jnp.hstack([action, jnp.zeros((self.batch_size, 1))])
+        return update_action
+
     def _step_fun(self, action):
-        u = jnp.array([action[0], 0.0])
+        u = self._action_wrapper(action)
         dynamics_params = (self.x_tree, self.inertia,
                            self.joint_damping_params, u, self.a_grav)
         next_state = self.dynamics_step(
@@ -264,8 +273,7 @@ class CartPole(BaseEnv):
         return next_entry
 
     def _batch_step_fun(self, action):
-        action = jnp.reshape(jnp.array(action), newshape=(self.batch_size, -1))
-        u = jnp.hstack([action, jnp.zeros((self.batch_size, 1))])
+        u = self._batch_action_wrapper(action)
         dynamics_params = (self.x_tree, self.inertia,
                            self.joint_damping_params, u, self.a_grav)
         next_state = jax.vmap(self.dynamics_step, (None, 0, None, None, None, 0, None), 0)(

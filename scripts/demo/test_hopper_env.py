@@ -12,3 +12,9 @@ for i in range(1000):
         env.reset(*DEFAULT_PURE_HOPPER_PARAMS)
 
 
+
+env = Hopper(batch_size=2, render=False)
+action = jnp.zeros((2, 3))
+print(env.state)
+next_state, reward, done, _ = env.step(action)
+print(next_state)

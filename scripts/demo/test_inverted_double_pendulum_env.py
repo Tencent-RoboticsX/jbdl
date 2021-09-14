@@ -10,3 +10,10 @@ for i in range(1000):
     if done:
         print(i, "done")
         env.reset(*DEFAULT_PURE_INVERTED_DOUBLE_PENDULUM_PARAMS)
+
+
+env = InvertedDoublePendulum(batch_size=2, render=False)
+action = jnp.zeros((2, 1))
+print(env.state)
+next_state, reward, done, _ = env.step(action)
+print(next_state)

@@ -1,4 +1,6 @@
 from abc import ABC, abstractmethod
+
+from numpy.core.fromnumeric import shape
 from jbdl.rbdl.model.rigid_body_inertia import rigid_body_inertia, init_ic_by_cholesky
 import pybullet
 import jax
@@ -89,6 +91,13 @@ class BaseEnv(ABC):
 
     # def draw_line(self, from_pos, to_pos, line_color_rgb=[0, 1, 0], line_width=2):
     #     pass
+    def _action_wrapper(self, action):
+        update_action = jnp.reshape(jnp.array(action), newshape=(-1,))
+        return update_action
+
+    def _batch_action_wrapper(self, action):
+        update_action = jnp.reshape(jnp.array(action), newshape=(self.batch_size, -1))
+        return update_action
 
     @staticmethod
     def init_inertia(m, c, l):

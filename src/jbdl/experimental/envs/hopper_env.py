@@ -102,7 +102,6 @@ class Hopper(BaseEnv):
                 id_contact, parent, jtype, jaxis, nb, nc, nf, ncp):
             q = y[0:nb]
             qdot = y[nb:2 * nb]
-            u = jnp.reshape(u, (-1,))
             joint_damping_tau = calc_joint_damping_core(
                 qdot, jnp.hstack([jnp.zeros(3,), joint_damping_params]))
             tau = u + joint_damping_tau
@@ -216,9 +215,7 @@ class Hopper(BaseEnv):
                 inertia_rootx, inertia_rootz, inertia_rooty,
                 inertia_thigh, inertia_leg, inertia_foot]
 
-            action = jnp.reshape(action, (-1,))
-            apply_action = 75 * jnp.clip(action, -1, 1)
-            u = jnp.hstack([jnp.zeros(3,), apply_action])
+            u = self._action_wrapper(action)
 
             dynamics_params = (
                 x_tree, inertia, joint_damping_params, u, a_grav,
@@ -373,10 +370,18 @@ class Hopper(BaseEnv):
                 update_state)
             return state
 
+    def _action_wrapper(self, action):
+        action = super()._action_wrapper(action)
+        update_action = jnp.hstack([jnp.zeros((3,)), 75.0 * jnp.clip(action, -1.0, 1.0)])
+        return update_action
+
+    def _batch_action_wrapper(self, action):
+        action = super()._batch_action_wrapper(action)
+        update_action =  jnp.hstack([jnp.zeros((self.batch_size, 3)), 75.0 * jnp.clip(action, -1.0, 1.0)])
+        return update_action
+
     def _step_fun(self, action):
-        action = jnp.reshape(action, (-1,))
-        apply_action = 75 * jnp.clip(action, -1, 1)
-        u = jnp.hstack([jnp.zeros(3,), apply_action])
+        u = self._action_wrapper(action)
         dynamics_params = (
             self.x_tree, self.inertia, self.joint_damping_params, u, self.a_grav,
             self.contact_point, self.contact_force_lb, self.contact_force_ub,
@@ -393,9 +398,7 @@ class Hopper(BaseEnv):
         return next_entry
 
     def _batch_step_fun(self, action):
-        action = jnp.reshape(jnp.array(action), newshape=(self.batch_size, -1))
-        apply_action = 75 * jnp.clip(action, -1, 1)
-        u = jnp.hstack([jnp.zeros(self.batch_size, 3), apply_action])
+        u = self._batch_action_wrapper(action)
         dynamics_params = (
             self.x_tree, self.inertia, self.joint_damping_params, u, self.a_grav,
             self.contact_point, self.contact_force_lb, self.contact_force_ub,

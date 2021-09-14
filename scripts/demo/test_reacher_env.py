@@ -20,3 +20,11 @@ for i in range(1000):
     if done:
         print("done")
         env.reset(*PURE_REACHER_PARAMS)
+
+
+
+env = Reacher(batch_size=2, render=False)
+action = jnp.zeros((2, 2))
+print(env.state)
+next_state, reward, done, _ = env.step(action)
+print(next_state)

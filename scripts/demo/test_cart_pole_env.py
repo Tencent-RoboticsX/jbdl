@@ -1,3 +1,4 @@
+from jax._src.api import F
 from jbdl.envs.cart_pole_env import CartPole
 import jax.numpy as jnp
 import numpy as np
@@ -13,6 +14,7 @@ PURE_CART_POLE_PARAMS = (
 
 env = CartPole(pure_cart_pole_params=PURE_CART_POLE_PARAMS,
                render=True, render_engine_name="xmirror")
+
 action = jnp.zeros((1,))
 for i in range(1000):
     next_state, reward, done, _ = env.step(action)
@@ -21,3 +23,11 @@ for i in range(1000):
     if done:
         print(i, "done")
         env.reset(*PURE_CART_POLE_PARAMS)
+
+
+env = CartPole(batch_size=2, pure_cart_pole_params=PURE_CART_POLE_PARAMS,
+               render=False, render_engine_name="xmirror")
+print(env.state)
+action = jnp.zeros((2, 1))
+next_state, reward, done, _ = env.step(action)
+print(next_state)
